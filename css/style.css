@@ -770,6 +770,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
 /* Интерактивные здания без дёргания */
 .town-building {
     cursor: pointer;
+    transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.town-building:hover {
+    filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.55)) brightness(1.1);
 }
 
 .town-building .building-roof {
@@ -777,8 +782,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .town-building:hover .building-roof {
-    filter: brightness(1.25);
-    stroke: #d4af37;
+    stroke: #facc15 !important;
     stroke-width: 3.5px;
 }
 
@@ -787,8 +791,20 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .town-building:hover .banner-box {
-    fill: #272834;
-    stroke: #d4af37;
+    fill: #222436 !important;
+    stroke: #facc15 !important;
+}
+
+.town-building:hover .map-label {
+    fill: #fef08a !important;
+}
+
+.south-exit-group {
+    transition: filter 0.2s ease;
+}
+
+.south-exit-group:hover {
+    filter: drop-shadow(0 0 12px rgba(250, 204, 21, 0.6)) brightness(1.15);
 }
 
 .building-icon {
@@ -1468,3 +1484,4514 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .south-exit-group:hover path {
     stroke: #fde047;
 }
+
+/* ================= ЭКРАН ИНВЕНТАРЯ И МЕНЮ ================= */
+.inv-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(circle at 50% 30%, #1c1a24 0%, #0c0b10 100%);
+    box-sizing: border-box;
+    padding: 12px 18px;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.inv-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #3d3429;
+    padding-bottom: 8px;
+}
+
+.inv-title-wrap h2 {
+    color: #d4af37;
+    font-size: 1.25rem;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.inv-subtitle {
+    font-size: 0.8rem;
+    color: #a39c8e;
+}
+
+.inv-btn-close {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 0.84rem;
+}
+
+/* Двухколоночный макет */
+.inv-main-stage {
+    display: grid;
+    grid-template-columns: 570px 1fr;
+    gap: 16px;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ЛЕВАЯ КОЛОНКА */
+.inv-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+}
+
+/* Кукла персонажа + ячейки экипировки */
+.inv-doll-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(18, 17, 24, 0.7);
+    border: 1px solid #4a3e2e;
+    border-radius: 8px;
+    padding: 8px 12px;
+    height: 255px;
+    box-sizing: border-box;
+}
+
+.equip-slots-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 175px;
+}
+
+.equip-slot-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #14151e;
+    border: 1.5px solid #3d3429;
+    border-radius: 6px;
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 48px;
+    box-sizing: border-box;
+}
+
+.equip-slot-box:hover {
+    border-color: #d4af37;
+    background: #1e202c;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.25);
+}
+
+.equip-slot-box.selected {
+    border-color: #facc15;
+    background: #252838;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+}
+
+.equip-slot-box.empty {
+    border-style: dashed;
+    border-color: #332d25;
+    opacity: 0.75;
+}
+
+.equip-slot-box.filled {
+    border-color: #785a28;
+}
+
+.equip-slot-icon {
+    width: 34px;
+    height: 34px;
+    background: #0f1016;
+    border: 1px solid #2e261d;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.equip-slot-label {
+    font-size: 0.78rem;
+    color: #ded8cb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.equip-slot-box.empty .equip-slot-label {
+    color: #7e786d;
+    font-style: italic;
+}
+
+/* Центральное окно ростовой куклы */
+.inv-paperdoll-box {
+    width: 170px;
+    height: 240px;
+    background: radial-gradient(circle at 50% 30%, #202230 0%, #0d0e15 100%);
+    border: 2px solid #5a4a35;
+    border-radius: 8px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.doll-render-wrap {
+    width: 100%;
+    height: 205px;
+}
+
+.doll-pedestal-label {
+    position: absolute;
+    bottom: 6px;
+    font-size: 0.76rem;
+    color: #d4af37;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 2px #000;
+}
+
+/* Секция вещмешка / инвентаря */
+.inv-backpack-section {
+    background: rgba(18, 17, 24, 0.7);
+    border: 1px solid #4a3e2e;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.inv-backpack-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #332b21;
+    padding-bottom: 4px;
+}
+
+.backpack-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #f1ebd8;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.backpack-count {
+    font-size: 0.78rem;
+    color: #a39c8e;
+}
+
+/* Скроллируемая сетка инвентаря */
+.inv-grid-scroll-box {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.inv-grid-scroll-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.inv-grid-scroll-box::-webkit-scrollbar-track {
+    background: #101117;
+    border-radius: 3px;
+}
+
+.inv-grid-scroll-box::-webkit-scrollbar-thumb {
+    background: #4a3e2e;
+    border-radius: 3px;
+}
+
+.inv-grid-scroll-box::-webkit-scrollbar-thumb:hover {
+    background: #d4af37;
+}
+
+.inv-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.inv-slot {
+    height: 54px;
+    border-radius: 6px;
+    background: #14151f;
+    border: 1.5px solid #36312a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s ease;
+}
+
+.inv-slot.empty-slot {
+    border-style: dashed;
+    border-color: #27252f;
+    background: rgba(14, 15, 22, 0.4);
+    cursor: default;
+}
+
+.inv-slot.item-filled {
+    border-color: #5a4732;
+    background: #181926;
+}
+
+.inv-slot.item-filled:hover {
+    border-color: #d4af37;
+    background: #25283a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6), 0 0 8px rgba(212, 175, 55, 0.25);
+}
+
+.inv-slot.item-filled.selected {
+    border-color: #facc15;
+    background: #2b2e44;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
+    transform: translateY(-2px);
+}
+
+.inv-item-icon-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* ПРАВАЯ КОЛОНКА */
+.inv-right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+}
+
+/* Системные кнопки меню */
+.inv-menu-actions-box {
+    background: rgba(18, 17, 24, 0.7);
+    border: 1px solid #4a3e2e;
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.menu-actions-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 8px;
+}
+
+.btn-action-save {
+    background: linear-gradient(180deg, #57411e 0%, #30220d 100%) !important;
+    border-color: #ca8a04 !important;
+    color: #fef08a !important;
+    font-size: 0.82rem !important;
+    padding: 8px 10px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-action-save:hover {
+    background: linear-gradient(180deg, #7a5a28 0%, #473214 100%) !important;
+    box-shadow: 0 0 12px rgba(234, 179, 8, 0.4) !important;
+}
+
+.btn-action-exit {
+    font-size: 0.82rem !important;
+    padding: 8px 10px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.save-toast-banner {
+    min-height: 22px;
+    font-size: 0.76rem;
+    color: #4ade80;
+    text-align: center;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    background: rgba(22, 101, 52, 0.2);
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.save-toast-banner.visible {
+    opacity: 1;
+}
+
+/* Карточка характеристик героя */
+.inv-stats-card {
+    background: rgba(18, 17, 24, 0.7);
+    border: 1px solid #4a3e2e;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stats-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #332b21;
+    padding-bottom: 6px;
+}
+
+.stat-badge-gold {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: #f5c542;
+    font-weight: bold;
+}
+
+.stat-badge-level {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    cursor: help;
+}
+
+.stat-level-label {
+    font-size: 0.82rem;
+    color: #f1ebd8;
+}
+
+.stat-level-label strong {
+    color: #facc15;
+}
+
+.stat-xp-track {
+    width: 105px;
+    height: 5px;
+    background: #0d0e15;
+    border: 1px solid #4a3e2e;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.stat-xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #a855f7 100%);
+    border-radius: 2px;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 6px rgba(96, 165, 250, 0.6);
+}
+
+/* Всплывающий тултип опыта при наведении */
+.stat-xp-tooltip {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: rgba(13, 15, 22, 0.98);
+    border: 1.5px solid #38bdf8;
+    border-radius: 6px;
+    padding: 8px 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85), 0 0 12px rgba(56, 189, 248, 0.25);
+    z-index: 120;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.stat-badge-level:hover .stat-xp-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.stat-xp-tt-title {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-xp-tt-val {
+    font-size: 0.84rem;
+    color: #f8fafc;
+    font-weight: bold;
+}
+
+.stat-xp-tt-val span {
+    color: #38bdf8;
+    font-size: 0.78rem;
+    font-weight: normal;
+}
+
+.stat-xp-tt-sub {
+    font-size: 0.74rem;
+    color: #cbd5e1;
+}
+
+.stat-xp-tt-sub strong {
+    color: #facc15;
+}
+
+/* Баннер доступных очков прокачки */
+.stat-points-banner {
+    background: linear-gradient(90deg, rgba(234, 179, 8, 0.22) 0%, rgba(161, 98, 7, 0.12) 100%);
+    border: 1px solid #eab308;
+    border-radius: 6px;
+    padding: 6px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: statPointsGlow 2.2s infinite ease-in-out;
+}
+
+@keyframes statPointsGlow {
+    0%, 100% {
+        box-shadow: 0 0 4px rgba(234, 179, 8, 0.25);
+        border-color: #ca8a04;
+    }
+    50% {
+        box-shadow: 0 0 14px rgba(234, 179, 8, 0.6);
+        border-color: #facc15;
+    }
+}
+
+.stat-points-pulse {
+    font-size: 0.8rem;
+    color: #fef08a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.stat-points-pulse strong {
+    color: #ffffff;
+    font-size: 0.95rem;
+}
+
+.stat-points-hint {
+    font-size: 0.7rem;
+    color: #fde047;
+    opacity: 0.9;
+}
+
+/* Кнопка повышения характеристики */
+.stat-pill-alloc {
+    position: relative;
+    padding-right: 4px;
+}
+
+.stat-pill-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+}
+
+.btn-stat-plus {
+    background: linear-gradient(180deg, #eab308 0%, #854d0e 100%);
+    border: 1px solid #facc15;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 0.9rem;
+    line-height: 1;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 6px;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+}
+
+.btn-stat-plus:hover {
+    background: linear-gradient(180deg, #fde047 0%, #a16207 100%);
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+    transform: scale(1.15);
+    color: #000000;
+}
+
+.btn-stat-plus:active {
+    transform: scale(0.95);
+}
+
+.stats-bars-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stat-bar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.74rem;
+    color: #b0a99c;
+}
+
+.stats-table-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+    margin-top: 4px;
+}
+
+.stat-pill {
+    background: rgba(10, 11, 15, 0.5);
+    border: 1px solid #2d261e;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 0.76rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #b3aba0;
+}
+
+.stat-pill strong {
+    color: #f1ebd8;
+}
+
+/* Карточка инспектора предмета */
+.inv-inspect-card {
+    background: rgba(18, 17, 24, 0.85);
+    border: 1px solid #4a3e2e;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.inspect-placeholder {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+    gap: 10px;
+    color: #666;
+    padding: 20px;
+}
+
+.inspect-placeholder-icon {
+    opacity: 0.4;
+}
+
+.inspect-placeholder-text {
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: #7e786d;
+}
+
+.inspect-header-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border-bottom: 1px solid #332b21;
+    padding-bottom: 8px;
+}
+
+.inspect-icon-frame {
+    width: 44px;
+    height: 44px;
+    background: #12131b;
+    border: 1.5px solid #d4af37;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.inspect-title-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.inspect-item-name {
+    color: #f1ebd8;
+    font-size: 0.95rem;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inspect-item-type {
+    font-size: 0.74rem;
+    color: #d4af37;
+}
+
+.inspect-desc-text {
+    font-size: 0.8rem;
+    color: #c0b9ab;
+    line-height: 1.35;
+    font-style: italic;
+}
+
+.inspect-stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: rgba(10, 11, 15, 0.4);
+    padding: 6px 8px;
+    border-radius: 4px;
+    border-left: 3px solid #38bdf8;
+}
+
+.inspect-stat-entry {
+    font-size: 0.78rem;
+    color: #7dd3fc;
+    font-weight: bold;
+}
+
+.inspect-buttons-row {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.inspect-buttons-row .btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 0.82rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.inspect-buttons-row .btn-drop {
+    background: #261515 !important;
+    border-color: #5c2020 !important;
+    color: #fca5a5 !important;
+    flex: 0 0 auto;
+}
+
+.inspect-buttons-row .btn-drop:hover {
+    background: #451a1a !important;
+    border-color: #ef4444 !important;
+    color: #fff !important;
+}
+
+.btn-equip-action {
+    background: linear-gradient(180deg, #2e5927 0%, #1a3616 100%) !important;
+    border-color: #4ade80 !important;
+    color: #f0fdf4 !important;
+    font-weight: bold;
+}
+
+.btn-equip-action:hover {
+    background: linear-gradient(180deg, #3b7432 0%, #254d1f 100%) !important;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.4) !important;
+}
+
+/* Стили Drag & Drop */
+.inv-slot.dragging, .equip-slot-box.dragging {
+    opacity: 0.35;
+    transform: scale(0.94);
+}
+
+.inv-slot.drag-over {
+    border-color: #4ade80 !important;
+    background: #17261d !important;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.5) !important;
+}
+
+.equip-slot-box.drag-over {
+    border-color: #4ade80 !important;
+    background: #17261d !important;
+    box-shadow: 0 0 14px rgba(74, 222, 128, 0.6) !important;
+}
+
+.inv-paperdoll-box.drag-over {
+    border-color: #4ade80 !important;
+    box-shadow: 0 0 22px rgba(74, 222, 128, 0.4) !important;
+}
+
+@keyframes pulseHintGlow {
+    0% { filter: brightness(1); border-color: #ca8a04; }
+    100% { filter: brightness(1.25); border-color: #fde047; box-shadow: 0 0 10px rgba(250, 204, 21, 0.5); }
+}
+
+.equip-slot-box.drag-hint, .inv-paperdoll-box.drag-hint, .inv-backpack-section.drag-hint {
+    animation: pulseHintGlow 0.8s infinite alternate ease-in-out;
+}
+
+/* =========================================
+   СТИЛИ ДВИЖКА ПОДЗЕМЕЛЬЯ (DUNGEON ENGINE)
+========================================= */
+
+.dungeon-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #08090d;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Верхний HUD */
+.dungeon-hud-top {
+    height: 48px;
+    background: rgba(15, 17, 23, 0.96);
+    border-bottom: 2px solid #2d3142;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.dungeon-hud-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.dungeon-floor-badge {
+    display: flex;
+    flex-direction: column;
+}
+
+.dungeon-floor-badge .floor-title {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #e2e8f0;
+    letter-spacing: 0.5px;
+}
+
+.dungeon-floor-badge .floor-sub {
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+.dungeon-room-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge-normal {
+    background: #1e293b;
+    color: #94a3b8;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border: 1px solid #334155;
+}
+
+.badge-boss {
+    background: #7f1d1d;
+    color: #fecaca;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border: 1px solid #ef4444;
+    animation: pulseBossGlow 1s infinite alternate;
+}
+
+@keyframes pulseBossGlow {
+    0% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.5); }
+    100% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.9); }
+}
+
+.badge-stairs {
+    background: #78350f;
+    color: #fef08a;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border: 1px solid #d97706;
+}
+
+.badge-mystery {
+    background: #4a044e;
+    color: #fdf4ff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border: 1px solid #d946ef;
+    animation: pulseMysteryGlow 1.4s infinite alternate;
+}
+
+@keyframes pulseMysteryGlow {
+    0% { box-shadow: 0 0 4px rgba(217, 70, 239, 0.4); }
+    100% { box-shadow: 0 0 16px rgba(217, 70, 239, 0.95); }
+}
+
+.room-name-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.hud-monster-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 500;
+}
+
+.hud-monster-pill.tier-regular {
+    background: rgba(34, 197, 94, 0.16);
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    color: #86efac;
+}
+
+.hud-monster-pill.tier-hardened {
+    background: rgba(245, 158, 11, 0.18);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    color: #fde047;
+}
+
+.hud-monster-pill.tier-boss {
+    background: rgba(239, 68, 68, 0.25);
+    border: 1px solid rgba(239, 68, 68, 0.6);
+    color: #fca5a5;
+    font-weight: bold;
+    animation: pulseBossGlow 1.2s infinite alternate;
+}
+
+.hud-monster-pill.tier-final_boss {
+    background: rgba(168, 85, 247, 0.3);
+    border: 1px solid rgba(168, 85, 247, 0.7);
+    color: #e9d5ff;
+    font-weight: bold;
+    animation: pulseBossGlow 1s infinite alternate;
+}
+
+.hud-monster-pill.defeated {
+    background: rgba(71, 85, 105, 0.2);
+    border: 1px solid #334155;
+    color: #94a3b8;
+}
+
+.dungeon-hud-center {
+    display: flex;
+    align-items: center;
+}
+
+.dungeon-hero-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+}
+
+.dungeon-hero-stats .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #cbd5e1;
+}
+
+.dungeon-hud-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dungeon-btn-hud {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Основной вьюпорт масштабирования */
+.dungeon-viewport {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #08090d;
+    cursor: grab;
+    user-select: none;
+}
+
+.dungeon-viewport:active {
+    cursor: grabbing;
+}
+
+.dungeon-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    transform: translateZ(0);
+}
+
+#dungeon-world-group {
+    will-change: transform;
+    transform-origin: 0 0;
+}
+
+/* Оптимизация производительности: отключение затратного hit-testing на тысячах декоративных путей */
+.room-interior,
+.mob-svg-figure,
+.room-monster-actor,
+.room-mob-entity,
+#dungeon-world-group line,
+#dungeon-world-group path,
+#dungeon-world-group polygon {
+    pointer-events: none;
+}
+
+.dungeon-room-node {
+    pointer-events: visiblePainted;
+}
+
+/* Панель инструментов масштабирования */
+.dungeon-zoom-toolbar {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    z-index: 20;
+    background: rgba(15, 17, 26, 0.92);
+    border: 1px solid #334155;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    gap: 6px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+}
+
+.btn-zoom-tool {
+    background: #1e2230;
+    border: 1px solid #3b4259;
+    color: #e2e8f0;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-zoom-tool:hover {
+    background: #2b3145;
+    border-color: #38bdf8;
+    color: #38bdf8;
+}
+
+.btn-zoom-tool.btn-round {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.zoom-label {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #94a3b8;
+    min-width: 44px;
+    text-align: center;
+}
+
+.zoom-divider {
+    width: 1px;
+    height: 18px;
+    background: #334155;
+    margin: 0 2px;
+}
+
+.floor-selector-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.floor-dropdown {
+    background: #181b24;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    padding: 3px 6px;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Карточка осмотра комнаты */
+.dungeon-room-card.hidden {
+    display: none !important;
+}
+
+.dungeon-room-card {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    z-index: 25;
+    width: 350px;
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+    background: rgba(15, 17, 26, 0.97);
+    border: 2px solid #3b4259;
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dungeon-room-card.collapsed {
+    padding: 8px 12px;
+    width: 270px;
+    max-height: 52px;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.94);
+    border-color: #475569;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.dungeon-room-card.collapsed .room-card-header {
+    margin-bottom: 0;
+    align-items: center;
+}
+
+.dungeon-room-card.collapsed .room-card-body {
+    display: none;
+}
+
+.room-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    user-select: none;
+}
+
+.room-card-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.room-card-badge {
+    align-self: flex-start;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+}
+
+.room-card-badge.boss {
+    background: #7f1d1d;
+    color: #fecaca;
+    border-color: #ef4444;
+}
+
+.room-card-badge.stairs {
+    background: #78350f;
+    color: #fef08a;
+    border-color: #d97706;
+}
+
+.room-card-badge.mystery {
+    background: #4a044e;
+    color: #f5d0fe;
+    border-color: #d946ef;
+}
+
+.room-card-title {
+    margin: 0;
+    font-size: 1rem;
+    color: #f8fafc;
+}
+
+.room-card-close,
+.room-card-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid #475569;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.room-card-close:hover,
+.room-card-toggle-btn:hover {
+    background: rgba(51, 65, 85, 0.9);
+    border-color: #cbd5e1;
+    color: #f8fafc;
+    transform: scale(1.05);
+}
+
+/* Блокировка предметов торговцев по уровню */
+.shop-item-card.item-locked {
+    opacity: 0.7;
+    filter: grayscale(35%);
+    border-color: #334155;
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.shop-item-card.item-locked:hover {
+    border-color: #475569;
+    transform: none;
+    box-shadow: none;
+}
+
+.badge-item-locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #450a0a;
+    color: #fca5a5;
+    border: 1px solid #b91c1c;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+.item-title-locked {
+    color: #94a3b8 !important;
+}
+
+.btn-locked-state {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #64748b !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.room-card-desc {
+    font-size: 0.8rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+    margin: 0 0 10px 0;
+}
+
+/* Досье врага внутри карточки комнаты */
+.card-enemy-box {
+    background: #0f1420;
+    border: 1px solid #2d3748;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 8px 0 10px 0;
+}
+
+.card-enemy-box.tier-boss {
+    border-color: #ef4444;
+    box-shadow: inset 0 0 12px rgba(239, 68, 68, 0.15);
+}
+
+.card-enemy-box.tier-final_boss {
+    border-color: #a855f7;
+    box-shadow: inset 0 0 14px rgba(168, 85, 247, 0.2);
+}
+
+.card-enemy-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.card-enemy-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.card-enemy-tier-badge {
+    font-size: 0.68rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #1e293b;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+}
+
+.tier-regular .card-enemy-tier-badge {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+    border-color: #22c55e;
+}
+
+.tier-hardened .card-enemy-tier-badge {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde047;
+    border-color: #f59e0b;
+}
+
+.tier-boss .card-enemy-tier-badge {
+    background: rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+    border-color: #ef4444;
+}
+
+.tier-final_boss .card-enemy-tier-badge {
+    background: rgba(168, 85, 247, 0.25);
+    color: #e9d5ff;
+    border-color: #a855f7;
+}
+
+.card-enemy-elem-badge {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #181d2c;
+    color: #94a3b8;
+    border: 1px solid #334155;
+}
+
+.enemy-status-active {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #22c55e;
+}
+
+.enemy-status-defeated {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #94a3b8;
+}
+
+.card-enemy-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-enemy-figure {
+    width: 105px;
+    height: 125px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #080a10;
+    border: 1px solid #1e293b;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.card-enemy-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-enemy-name {
+    margin: 0 0 2px 0;
+    font-size: 0.92rem;
+    color: #f8fafc;
+    font-weight: bold;
+}
+
+.card-enemy-sub {
+    display: block;
+    font-size: 0.73rem;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+
+.card-enemy-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+.enemy-stat-pill {
+    font-size: 0.7rem;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: #181c28;
+    color: #cbd5e1;
+}
+
+.enemy-stat-pill.hp {
+    border-left: 2.5px solid #ef4444;
+}
+
+.enemy-stat-pill.dmg {
+    border-left: 2.5px solid #f97316;
+}
+
+.enemy-stat-pill.def {
+    border-left: 2.5px solid #38bdf8;
+}
+
+.enemy-stat-pill.spd {
+    border-left: 2.5px solid #eab308;
+}
+
+.card-enemy-ability {
+    margin-top: 8px;
+    background: #090c13;
+    border-radius: 4px;
+    padding: 6px 8px;
+    border-left: 3px solid #8b5cf6;
+}
+
+.card-enemy-ability .ability-title {
+    font-size: 0.72rem;
+    font-weight: bold;
+    color: #c084fc;
+    margin-bottom: 2px;
+}
+
+.card-enemy-ability .ability-desc {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    line-height: 1.3;
+}
+
+.card-peaceful-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: 6px;
+    border: 1px dashed #334155;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    margin: 8px 0 10px 0;
+}
+
+.card-mystery-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, #1b082c 0%, #0d0617 100%);
+    border: 1.5px solid #d946ef;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px 0 10px 0;
+    box-shadow: inset 0 0 16px rgba(217, 70, 239, 0.2), 0 0 12px rgba(217, 70, 239, 0.15);
+}
+
+.mystery-q-glyph {
+    font-size: 2.6rem;
+    font-weight: 900;
+    color: #f43f5e;
+    text-shadow: 0 0 14px #f43f5e, 0 0 24px #e11d48;
+    line-height: 1;
+    padding: 0 6px;
+    font-family: 'Segoe UI', Impact, sans-serif;
+    animation: pulseMysteryGlyph 1.3s infinite alternate ease-in-out;
+}
+
+@keyframes pulseMysteryGlyph {
+    0% { transform: scale(0.94); opacity: 0.8; }
+    100% { transform: scale(1.1); opacity: 1; }
+}
+
+.mystery-q-content {
+    flex: 1;
+}
+
+.mystery-q-title {
+    margin: 0 0 4px 0;
+    font-size: 0.95rem;
+    color: #fdf4ff;
+    font-weight: bold;
+}
+
+.mystery-q-desc {
+    margin: 0;
+    font-size: 0.76rem;
+    color: #f0abfc;
+    line-height: 1.35;
+}
+
+/* Мобы внутри комнаты подземелья */
+.room-mob-entity {
+    cursor: pointer;
+    transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.room-mob-entity:hover {
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+}
+
+.room-mob-defeated {
+    opacity: 0.65;
+}
+
+.room-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Нижняя панель управления */
+.dungeon-hud-bottom {
+    height: 62px;
+    background: rgba(15, 17, 23, 0.96);
+    border-top: 2px solid #2d3142;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 10;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.dungeon-controls-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.controls-movement-group {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-dungeon-move {
+    font-size: 0.95rem;
+    font-weight: bold;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border-radius: 5px;
+    min-width: 135px;
+    justify-content: center;
+}
+
+.btn-dungeon-move:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: #27272a;
+}
+
+.controls-stairs-group {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-stairs-action {
+    font-size: 0.95rem;
+    font-weight: bold;
+    padding: 8px 22px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border-radius: 5px;
+    animation: pulseStairsBtn 1.2s infinite alternate;
+}
+
+@keyframes pulseStairsBtn {
+    0% { box-shadow: 0 0 4px rgba(245, 158, 11, 0.4); }
+    100% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.8); }
+}
+
+.dungeon-quick-hints {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.dungeon-quick-hints strong {
+    color: #e2e8f0;
+}
+
+/* Стили комнат и актера */
+.dungeon-room-node:hover rect:first-child {
+    filter: brightness(1.2);
+}
+
+.dungeon-room-node.current-room rect:first-child {
+    stroke: #38bdf8 !important;
+    stroke-width: 3.5 !important;
+    filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
+}
+
+@keyframes heroHaloAnim {
+    0% { r: 24; opacity: 0.28; }
+    50% { r: 36; opacity: 0.08; }
+    100% { r: 24; opacity: 0.28; }
+}
+
+.hero-halo-pulse {
+    animation: heroHaloAnim 1.6s infinite ease-in-out;
+}
+
+.hero-idle-bob {
+    animation: southParkIdle 2s infinite ease-in-out;
+}
+
+@keyframes southParkIdle {
+    0%, 100% { transform: translateY(0px) scale(1, 1); }
+    50% { transform: translateY(-1.5px) scale(1.015, 0.985); }
+}
+
+/* ==========================================================================
+   СКРЫТАЯ КНОПКА ГЛАВНОГО МЕНЮ (БЕСТИАРИЙ)
+   ========================================================================== */
+.secret-bestiary-trigger {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    width: 38px;
+    height: 38px;
+    opacity: 0.02;
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: default;
+    z-index: 100;
+}
+
+.secret-bestiary-trigger:hover,
+.secret-bestiary-trigger:focus {
+    outline: none;
+    background: transparent;
+}
+
+/* ==========================================================================
+   ЭКРАН БЕСТИАРИЯ (ВИТРИНА ЧУДОВИЩ)
+   ========================================================================== */
+.mob-showcase-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #090a0f;
+    color: #e2e8f0;
+    position: relative;
+}
+
+/* Верхняя панель навигации */
+.showcase-topbar {
+    height: 52px;
+    min-height: 52px;
+    background: #11131a;
+    border-bottom: 2px solid #232736;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 10;
+}
+
+.btn-showcase-back {
+    font-size: 0.85rem;
+    padding: 7px 14px;
+}
+
+.showcase-title-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.showcase-title {
+    font-size: 1.15rem;
+    color: #f1f5f9;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.showcase-badge {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+.btn-randomize-all {
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+    border: 1px solid #f59e0b;
+    color: #ffffff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+    transition: all 0.2s ease;
+}
+
+.btn-randomize-all:hover {
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.6);
+}
+
+/* Панель настройки градиента фона */
+.gradient-control-bar {
+    height: 44px;
+    min-height: 44px;
+    background: #161822;
+    border-bottom: 1px solid #282c3c;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    font-size: 0.82rem;
+    gap: 16px;
+    z-index: 9;
+}
+
+.gradient-inputs-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gradient-bar-label {
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+.color-picker-wrap input[type="color"] {
+    -webkit-appearance: none;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    width: 26px;
+    height: 24px;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+}
+
+.color-picker-wrap input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-picker-wrap input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 3px;
+}
+
+.gradient-arrow {
+    color: #64748b;
+}
+
+.angle-slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+}
+
+.angle-slider-wrap input[type="range"] {
+    width: 80px;
+    cursor: pointer;
+}
+
+.angle-display {
+    color: #f59e0b;
+    font-weight: bold;
+    min-width: 32px;
+}
+
+/* Пресеты градиентов */
+.gradient-presets-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+}
+
+.presets-label {
+    color: #94a3b8;
+    font-size: 0.78rem;
+}
+
+.btn-preset-chip {
+    background: #202433;
+    border: 1px solid #3b4257;
+    color: #cbd5e1;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.74rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.btn-preset-chip:hover {
+    background: #2f354a;
+    border-color: #38bdf8;
+    color: #ffffff;
+}
+
+/* Область контента с рядами */
+.showcase-content-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px 20px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    transition: background 0.25s ease;
+}
+
+.showcase-row-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Заголовки рядов */
+.showcase-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border-left: 4px solid;
+    background: rgba(15, 17, 23, 0.75);
+    backdrop-filter: blur(4px);
+}
+
+.showcase-row-header .row-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.showcase-row-header h3 {
+    margin: 0;
+    font-size: 0.96rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.row-header-count {
+    font-size: 0.76rem;
+    color: #94a3b8;
+}
+
+/* Стилизация рангов */
+.showcase-row-header.tier-regular {
+    border-color: #22c55e;
+}
+.showcase-row-header.tier-regular h3 {
+    color: #4ade80;
+}
+
+.showcase-row-header.tier-hardened {
+    border-color: #f59e0b;
+}
+.showcase-row-header.tier-hardened h3 {
+    color: #fbbf24;
+}
+
+.showcase-row-header.tier-boss {
+    border-color: #ef4444;
+}
+.showcase-row-header.tier-boss h3 {
+    color: #f87171;
+}
+
+.showcase-row-header.tier-final-boss {
+    border-color: #a855f7;
+    background: linear-gradient(90deg, rgba(36, 16, 44, 0.85) 0%, rgba(15, 17, 23, 0.75) 100%);
+}
+.showcase-row-header.tier-final-boss h3 {
+    color: #c084fc;
+    text-shadow: 0 0 8px rgba(192, 132, 252, 0.5);
+}
+
+/* Горизонтальный ряд карточек мобов */
+.showcase-mobs-track {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding: 4px 4px 12px 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #3b4257 #141722;
+}
+
+.showcase-mobs-track::-webkit-scrollbar {
+    height: 6px;
+}
+
+.showcase-mobs-track::-webkit-scrollbar-track {
+    background: #141722;
+    border-radius: 3px;
+}
+
+.showcase-mobs-track::-webkit-scrollbar-thumb {
+    background: #3b4257;
+    border-radius: 3px;
+}
+
+/* Карточка моба */
+.mob-card {
+    width: 200px;
+    min-width: 200px;
+    background: #141620;
+    border-radius: 8px;
+    border: 2px solid #262a3a;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.mob-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+}
+
+.mob-card.tier-regular {
+    border-color: #1e3a24;
+}
+.mob-card.tier-regular:hover {
+    border-color: #22c55e;
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.25);
+}
+
+.mob-card.tier-hardened {
+    border-color: #3d2f17;
+}
+.mob-card.tier-hardened:hover {
+    border-color: #f59e0b;
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
+}
+
+.mob-card.tier-boss {
+    border-color: #3f1a1d;
+}
+.mob-card.tier-boss:hover {
+    border-color: #ef4444;
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+}
+
+.mob-card.tier-final-boss {
+    border-color: #3b1b4a;
+    background: linear-gradient(180deg, #181124 0%, #100d17 100%);
+}
+.mob-card.tier-final-boss:hover {
+    border-color: #c084fc;
+    box-shadow: 0 8px 24px rgba(192, 132, 252, 0.45);
+}
+
+.mob-card-badge-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    background: rgba(9, 10, 15, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mob-card-tier-badge {
+    font-size: 0.68rem;
+    font-weight: bold;
+}
+
+.mob-card-elem-badge {
+    font-size: 0.68rem;
+    color: #cbd5e1;
+    background: #1e2230;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.mob-card-figure-area {
+    width: 100%;
+    height: 165px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: radial-gradient(circle at center, rgba(30, 34, 48, 0.4) 0%, rgba(10, 11, 16, 0.8) 100%);
+    position: relative;
+}
+
+.mob-card-figure-area:hover .mob-svg-figure {
+    transform: scale(1.04);
+    transition: transform 0.2s ease;
+}
+
+.mob-card-meta {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mob-card-title {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #f1f5f9;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mob-card-sub {
+    font-size: 0.72rem;
+    color: #f59e0b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+
+.mob-card-stats-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.stat-pill {
+    font-size: 0.68rem;
+    background: #0f1118;
+    padding: 2px 5px;
+    border-radius: 3px;
+    color: #cbd5e1;
+    border: 1px solid #232738;
+}
+
+.stat-pill.hp { color: #f87171; border-color: #450a0a; }
+.stat-pill.dmg { color: #fbbf24; border-color: #451a03; }
+.stat-pill.def { color: #38bdf8; border-color: #0c4a6e; }
+
+.mob-card-ability {
+    font-size: 0.70rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mob-card-actions {
+    display: flex;
+    padding: 6px 10px 10px 10px;
+    gap: 6px;
+    margin-top: auto;
+}
+
+.btn-card-reroll {
+    flex: 1;
+    background: #232736;
+    border: 1px solid #3e455e;
+    color: #f1f5f9;
+    padding: 5px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.btn-card-reroll:hover {
+    background: #333a52;
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.btn-card-inspect {
+    flex: 1;
+    background: #192336;
+    border: 1px solid #2563eb;
+    color: #93c5fd;
+    padding: 5px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.btn-card-inspect:hover {
+    background: #1d4ed8;
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   МОДАЛЬНОЕ ОКНО ДЕТАЛЬНОГО ОСМОТРА МОБА
+   ========================================================================== */
+.mob-inspect-modal {
+    position: absolute;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mob-inspect-modal.hidden {
+    display: none !important;
+}
+
+.mob-inspect-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(6px);
+}
+
+.mob-inspect-card {
+    position: relative;
+    z-index: 1001;
+    width: 680px;
+    max-width: 90%;
+    background: #12141d;
+    border: 2px solid #38bdf8;
+    border-radius: 10px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 0 0 20px rgba(56, 189, 248, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.inspect-header {
+    height: 48px;
+    background: #181b27;
+    border-bottom: 1px solid #282d40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+}
+
+.inspect-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.inspect-badge {
+    font-size: 0.78rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #0f1118;
+}
+
+.inspect-elem-tag {
+    font-size: 0.78rem;
+    color: #94a3b8;
+}
+
+.inspect-close-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.6rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.inspect-close-btn:hover {
+    color: #ffffff;
+}
+
+.inspect-body {
+    display: flex;
+    padding: 16px;
+    gap: 16px;
+}
+
+.inspect-figure-col {
+    width: 250px;
+    height: 290px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #1e2233 0%, #0c0e15 100%);
+    border-radius: 8px;
+    border: 1px solid #282d40;
+}
+
+.inspect-info-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.inspect-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #f1f5f9;
+}
+
+.inspect-quote {
+    margin: 0;
+    font-size: 0.82rem;
+    font-style: italic;
+    color: #f59e0b;
+    border-left: 2px solid #f59e0b;
+    padding-left: 8px;
+}
+
+.inspect-desc {
+    margin: 0;
+    font-size: 0.84rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+}
+
+.inspect-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: #171a26;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #282d40;
+}
+
+.inspect-stat-box {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.80rem;
+}
+
+.stat-label {
+    color: #94a3b8;
+}
+
+.stat-val {
+    font-weight: bold;
+}
+
+.stat-val.hp { color: #f87171; }
+.stat-val.dmg { color: #fbbf24; }
+.stat-val.def { color: #38bdf8; }
+.stat-val.spd { color: #a855f7; }
+
+.inspect-ability-box {
+    background: #151824;
+    border-left: 3px solid #38bdf8;
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+}
+
+.ability-title {
+    font-size: 0.74rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.ability-desc {
+    font-size: 0.84rem;
+    color: #e2e8f0;
+    margin-top: 2px;
+}
+
+.inspect-footer {
+    height: 52px;
+    background: #181b27;
+    border-top: 1px solid #282d40;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 16px;
+    gap: 10px;
+}
+
+/* Custom SVG Icon system */
+.svg-icon {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.tier-dot-icon {
+    margin-right: 4px;
+}
+
+.btn .svg-icon,
+.btn-small .svg-icon,
+.btn-card-inspect .svg-icon,
+.btn-card-reroll .svg-icon,
+.btn-stairs-action .svg-icon,
+.btn-zoom-tool .svg-icon,
+.btn-preset-chip .svg-icon,
+.stat-pill .svg-icon,
+.enemy-stat-pill .svg-icon,
+.stat-val .svg-icon,
+.hud-monster-pill .svg-icon,
+.card-enemy-elem-badge .svg-icon,
+.mob-card-elem-badge .svg-icon,
+.badge-mystery .svg-icon,
+.badge-boss .svg-icon,
+.badge-stairs .svg-icon {
+    margin-right: 4px;
+}
+
+/* ==========================================================================
+   БОЕВАЯ СИСТЕМА (BATTLE SCREEN)
+   ========================================================================== */
+
+.battle-screen-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    background: #090a0f;
+    user-select: none;
+}
+
+/* Фон комнаты */
+.battle-arena-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.battle-arena-background svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: brightness(0.82) saturate(1.15);
+}
+
+.battle-arena-background::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(9, 11, 17, 0.25) 0%, rgba(9, 11, 17, 0.85) 100%),
+                linear-gradient(180deg, rgba(9, 11, 17, 0.6) 0%, transparent 25%, transparent 75%, rgba(9, 11, 17, 0.88) 100%);
+}
+
+/* Верхняя полоса локации */
+.battle-top-bar {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: rgba(13, 16, 24, 0.88);
+    border-bottom: 1.5px solid #334155;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.battle-loc-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.battle-room-tag {
+    color: #94a3b8;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.battle-room-title {
+    color: #f8fafc;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+}
+
+.battle-round-badge {
+    background: #1e293b;
+    border: 1px solid #475569;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    color: #cbd5e1;
+}
+
+.battle-round-badge strong {
+    color: #f59e0b;
+    font-size: 0.95rem;
+}
+
+/* Главная боевая сцена */
+.battle-stage-row {
+    position: relative;
+    z-index: 10;
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 12px 36px;
+    gap: 16px;
+    max-height: calc(100vh - 200px);
+}
+
+/* Бойцы */
+.combatant-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 270px;
+    gap: 12px;
+}
+
+.combatant-hud {
+    width: 100%;
+    background: rgba(13, 17, 26, 0.92);
+    border: 1.5px solid #334155;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.combatant-name-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.combatant-name {
+    font-size: 0.92rem;
+    font-weight: bold;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.combatant-lvl {
+    font-size: 0.78rem;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.mob-tier-badge {
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.mob-tier-badge.tier-regular {
+    background: #14532d;
+    color: #86efac;
+    border: 1px solid #22c55e;
+}
+
+.mob-tier-badge.tier-hardened {
+    background: #78350f;
+    color: #fde047;
+    border: 1px solid #eab308;
+}
+
+.mob-tier-badge.tier-boss,
+.mob-tier-badge.tier-final-boss {
+    background: #7f1d1d;
+    color: #fca5a5;
+    border: 1px solid #ef4444;
+}
+
+/* Шкалы HP и ресурсов в бою */
+.battle-bar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.battle-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.74rem;
+    color: #94a3b8;
+}
+
+.battle-bar-track {
+    width: 100%;
+    height: 9px;
+    background: #090d16;
+    border: 1px solid #1e293b;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.battle-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.battle-bar-fill.hp {
+    background: linear-gradient(90deg, #dc2626 0%, #ef4444 60%, #f87171 100%);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+.battle-bar-fill.mob-hp {
+    background: linear-gradient(90deg, #991b1b 0%, #dc2626 70%, #f87171 100%);
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
+}
+
+.battle-bar-fill.rage {
+    background: linear-gradient(90deg, #b91c1c 0%, #ea580c 50%, #facc15 100%);
+    box-shadow: 0 0 8px rgba(234, 88, 12, 0.6);
+}
+
+.battle-bar-fill.energy {
+    background: linear-gradient(90deg, #ca8a04 0%, #eab308 60%, #fef08a 100%);
+    box-shadow: 0 0 8px rgba(234, 179, 8, 0.6);
+}
+
+.battle-bar-fill.mp {
+    background: linear-gradient(90deg, #2563eb 0%, #38bdf8 60%, #93c5fd 100%);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+.battle-bar-fill.focus {
+    background: linear-gradient(90deg, #15803d 0%, #22c55e 60%, #86efac 100%);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+/* Комбо-очки разбойника */
+.combo-points-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.combo-label {
+    font-size: 0.72rem;
+    color: #fde047;
+}
+
+.combo-dots-wrap {
+    display: flex;
+    gap: 4px;
+}
+
+.combo-point-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #1e2433;
+    border: 1px solid #475569;
+    transition: all 0.2s ease;
+}
+
+.combo-point-dot.filled {
+    background: #eab308;
+    border-color: #fef08a;
+    box-shadow: 0 0 8px #facc15;
+    transform: scale(1.15);
+}
+
+/* Намерение врага */
+.mob-intent-box {
+    margin-top: 2px;
+}
+
+.intent-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.76rem;
+    border: 1px solid;
+    animation: intentPulse 2s infinite ease-in-out;
+}
+
+@keyframes intentPulse {
+    0%, 100% { opacity: 0.9; }
+    50% { opacity: 1; filter: drop-shadow(0 0 4px currentColor); }
+}
+
+.intent-pill.intent-normal {
+    background: rgba(234, 179, 8, 0.15);
+    border-color: #eab308;
+    color: #fef08a;
+}
+
+.intent-pill.intent-heavy {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #fca5a5;
+}
+
+.intent-pill.intent-ability {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: #a855f7;
+    color: #e9d5ff;
+}
+
+.intent-pill.intent-defend {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    color: #bae6fd;
+}
+
+/* Баффы бойцов */
+.combatant-buffs-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 18px;
+}
+
+.status-badge {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.status-badge.buff {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.status-badge.debuff {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Фигуры персонажей */
+.combatant-figure {
+    width: 220px;
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.hero-figure-node svg,
+.mob-figure-node svg {
+    max-width: 100%;
+    max-height: 100%;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.8));
+}
+
+/* Центральная колонка: Журнал боя */
+.battle-center-col {
+    flex: 1;
+    max-width: 380px;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-bottom: 8px;
+}
+
+.combat-log-card {
+    background: rgba(13, 16, 24, 0.88);
+    border: 1.5px solid #334155;
+    border-radius: 8px;
+    padding: 8px 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 220px;
+}
+
+.combat-log-header {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.combat-log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+    max-height: 170px;
+    padding-right: 4px;
+}
+
+.combat-log-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.combat-log-list::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 2px;
+}
+
+.combat-log-line {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.combat-log-line.log-hero {
+    color: #7dd3fc;
+    border-left: 2.5px solid #0284c7;
+}
+
+.combat-log-line.log-mob {
+    color: #fca5a5;
+    border-left: 2.5px solid #ef4444;
+}
+
+.combat-log-line.log-heal {
+    color: #86efac;
+    border-left: 2.5px solid #22c55e;
+}
+
+.combat-log-line.log-info {
+    color: #cbd5e1;
+    border-left: 2.5px solid #64748b;
+}
+
+/* Нижняя панель управления боем */
+.battle-controls-card {
+    position: relative;
+    z-index: 10;
+    background: rgba(13, 16, 25, 0.96);
+    border-top: 1.5px solid #334155;
+    padding: 10px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.battle-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.btn-battle-skill {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border: 1.5px solid #334155;
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: #f8fafc;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+    min-height: 48px;
+}
+
+.btn-battle-skill:hover:not(.disabled):not(:disabled) {
+    background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+    border-color: #38bdf8;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-battle-skill.disabled,
+.btn-battle-skill:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #1e293b;
+    filter: grayscale(0.8);
+}
+
+.btn-battle-skill .skill-name {
+    font-size: 0.84rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.btn-battle-skill .skill-cost {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+.btn-battle-skill .skill-cost.cost-gain {
+    color: #4ade80;
+}
+
+.btn-battle-flee {
+    border-color: #475569;
+}
+
+.btn-battle-flee:hover:not(.disabled):not(:disabled) {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4) !important;
+}
+
+/* Пояс зелий */
+.battle-potions-belt {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid #1e293b;
+    padding-top: 6px;
+}
+
+.potions-belt-title {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.potions-belt-items {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-belt-potion {
+    background: #141b2a;
+    border: 1px solid #334155;
+    border-radius: 5px;
+    padding: 4px 8px;
+    color: #f1f5f9;
+    font-size: 0.76rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+}
+
+.btn-belt-potion.potion-hp {
+    border-color: #ef4444;
+    color: #fecaca;
+}
+
+.btn-belt-potion.potion-hp:hover {
+    background: rgba(239, 68, 68, 0.25);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+.btn-belt-potion.potion-mp {
+    border-color: #38bdf8;
+    color: #bae6fd;
+}
+
+.btn-belt-potion.potion-mp:hover {
+    background: rgba(56, 189, 248, 0.25);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+.no-potions-hint {
+    font-size: 0.74rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+/* Боевые анимации */
+.anim-attack-hero {
+    animation: attackLungeRight 0.35s ease forwards;
+}
+
+.anim-attack-mob {
+    animation: attackLungeLeft 0.35s ease forwards;
+}
+
+.anim-hit-shake {
+    animation: hitShake 0.35s ease forwards;
+}
+
+@keyframes attackLungeRight {
+    0% { transform: translateX(0); }
+    40% { transform: translateX(50px) scale(1.05); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes attackLungeLeft {
+    0% { transform: translateX(0); }
+    40% { transform: translateX(-50px) scale(1.05); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes hitShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); filter: brightness(1.6); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(4px); }
+}
+
+/* Всплывающий комбат-текст */
+.floating-numbers-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.floating-combat-text {
+    position: absolute;
+    font-weight: 900;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 1.4rem;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 4px #000;
+    animation: floatCombatNumber 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.floating-combat-text.text-player {
+    color: #f87171;
+}
+
+.floating-combat-text.text-crit {
+    color: #fbbf24;
+    font-size: 1.85rem;
+    text-shadow: 0 0 12px rgba(245, 158, 11, 0.9), 0 2px 6px #000;
+}
+
+.floating-combat-text.text-mob {
+    color: #ef4444;
+}
+
+.floating-combat-text.text-heal {
+    color: #4ade80;
+}
+
+.floating-combat-text.text-dodge {
+    color: #38bdf8;
+    font-size: 1.25rem;
+}
+
+@keyframes floatCombatNumber {
+    0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.6);
+    }
+    20% {
+        opacity: 1;
+        transform: translateY(-8px) scale(1.2);
+    }
+    70% {
+        opacity: 1;
+        transform: translateY(-24px) scale(1.0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-40px) scale(0.9);
+    }
+}
+
+/* Модальные окна победы и поражения */
+.battle-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(9, 11, 17, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeInModal 0.3s ease;
+}
+
+.battle-modal-overlay.hidden {
+    display: none;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.battle-modal-card {
+    background: #0f131f;
+    border: 2px solid #ca8a04;
+    border-radius: 12px;
+    padding: 24px 32px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85), 0 0 24px rgba(202, 138, 4, 0.3);
+    text-align: center;
+    animation: slideUpModal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUpModal {
+    from { transform: translateY(20px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.battle-victory-box,
+.battle-defeat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.modal-victory-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-victory-title h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #facc15;
+    letter-spacing: 1px;
+}
+
+.victory-icon {
+    color: #facc15;
+}
+
+.victory-subtext,
+.defeat-subtext {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+}
+
+.level-up-banner {
+    width: 100%;
+    background: linear-gradient(90deg, rgba(234, 179, 8, 0.25) 0%, rgba(202, 138, 4, 0.12) 100%);
+    border: 1.5px solid #eab308;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 0 14px rgba(234, 179, 8, 0.4);
+}
+
+.lvlup-title {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #fef08a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.lvlup-points {
+    font-size: 0.82rem;
+    color: #ffffff;
+}
+
+.lvlup-points strong {
+    color: #fde047;
+}
+
+.rewards-summary-card {
+    width: 100%;
+    background: #090c14;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reward-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+}
+
+.reward-label {
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.reward-val {
+    color: #f8fafc;
+}
+
+.drop-item-name {
+    color: #38bdf8;
+}
+
+.modal-defeat-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-defeat-title h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #ef4444;
+    letter-spacing: 1px;
+}
+
+.defeat-icon {
+    color: #ef4444;
+}
+
+.defeat-note {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    background: #090d16;
+    border: 1px solid #334155;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+/* =============================================================================
+   АНИМАЦИИ И ЖИВОЙ МИР: ГОРОД (TOWN ANIMATIONS)
+   ============================================================================= */
+
+/* 1. Фонтан: волны на воде и брызги */
+.fountain-ripple-anim {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: fountainRipple 3s cubic-bezier(0.1, 0.4, 0.3, 1) infinite;
+}
+.fountain-ripple-anim.ripple-1 { animation-delay: 0s; }
+.fountain-ripple-anim.ripple-2 { animation-delay: 1s; }
+.fountain-ripple-anim.ripple-3 { animation-delay: 2s; }
+
+@keyframes fountainRipple {
+    0% {
+        transform: scale(0.3);
+        opacity: 0.85;
+        stroke-width: 3px;
+    }
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+        stroke-width: 0.5px;
+    }
+}
+
+.fountain-spray,
+.fountain-spray-anim {
+    animation: fountainSpray 2.2s ease-in-out infinite alternate;
+}
+.fountain-spray-anim.drop-1,
+.fountain-spray.spray-left {
+    animation-delay: 0s;
+}
+.fountain-spray-anim.drop-2,
+.fountain-spray.spray-right {
+    animation-delay: 0.7s;
+}
+.fountain-spray-anim.drop-3,
+.fountain-spray.spray-center {
+    animation-delay: 1.4s;
+}
+
+@keyframes fountainSpray {
+    0% {
+        transform: translateY(0) scale(0.9);
+        opacity: 0.5;
+    }
+    50% {
+        transform: translateY(-8px) scale(1.2);
+        opacity: 0.95;
+    }
+    100% {
+        transform: translateY(-3px) scale(0.7);
+        opacity: 0.3;
+    }
+}
+
+/* 2. Уличные фонари: мерцание теплого света */
+.lantern-glow-pulse,
+.anim-lantern-glow {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: lanternFlicker 3s ease-in-out infinite alternate;
+}
+.lantern-glow-pulse.glow-1 { animation-delay: 0s; }
+.lantern-glow-pulse.glow-2 { animation-delay: 0.8s; }
+.lantern-glow-pulse.glow-3 { animation-delay: 1.6s; }
+.lantern-glow-pulse.glow-4 { animation-delay: 2.4s; }
+
+.anim-lantern-core {
+    animation: lanternCoreGlow 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes lanternFlicker {
+    0% { opacity: 0.8; transform: scale(1); }
+    30% { opacity: 0.6; transform: scale(0.95); }
+    50% { opacity: 0.95; transform: scale(1.08); }
+    70% { opacity: 0.75; transform: scale(0.98); }
+    100% { opacity: 0.9; transform: scale(1.03); }
+}
+
+@keyframes lanternCoreGlow {
+    0% { opacity: 1; fill: #fef08a; }
+    50% { opacity: 0.8; fill: #fde047; }
+    100% { opacity: 1; fill: #ffffff; }
+}
+
+/* 3. Дым из печных труб таверны и кузницы */
+.chimney-smoke-stream .smoke-puff {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: chimneySmokeRise 3.5s ease-out infinite;
+}
+.chimney-smoke-stream .smoke-puff.puff-1 { animation-delay: 0s; }
+.chimney-smoke-stream .smoke-puff.puff-2 { animation-delay: 0.85s; }
+.chimney-smoke-stream .smoke-puff.puff-3 { animation-delay: 1.7s; }
+.chimney-smoke-stream .smoke-puff.puff-4 { animation-delay: 2.55s; }
+
+@keyframes chimneySmokeRise {
+    0% {
+        transform: translate(0, 0) scale(0.5);
+        opacity: 0.85;
+    }
+    40% {
+        transform: translate(5px, -15px) scale(1.1);
+        opacity: 0.6;
+    }
+    80% {
+        transform: translate(12px, -32px) scale(1.5);
+        opacity: 0.25;
+    }
+    100% {
+        transform: translate(18px, -45px) scale(1.8);
+        opacity: 0;
+    }
+}
+
+/* 4. Вывеска таверны: покачивание на ветру */
+.anim-swaying-sign {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: tavernSignSway 4.5s ease-in-out infinite;
+}
+
+@keyframes tavernSignSway {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(4deg); }
+    75% { transform: rotate(-3.5deg); }
+}
+
+.anim-window-glow {
+    animation: windowLightPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes windowLightPulse {
+    0% { opacity: 0.82; }
+    50% { opacity: 0.98; }
+    100% { opacity: 0.85; }
+}
+
+/* 5. Врата Катакомб: портал Бездны и угли */
+.abyss-portal-mist,
+.anim-portal-mist {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: abyssMistPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes abyssMistPulse {
+    0% {
+        transform: scale(0.92);
+        opacity: 0.65;
+    }
+    50% {
+        transform: scale(1.08);
+        opacity: 0.95;
+    }
+    100% {
+        transform: scale(0.95);
+        opacity: 0.75;
+    }
+}
+
+.anim-portal-core {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: abyssCoreTwirl 7s linear infinite;
+}
+
+@keyframes abyssCoreTwirl {
+    0% { transform: rotate(0deg); opacity: 0.7; }
+    50% { transform: rotate(180deg); opacity: 0.95; }
+    100% { transform: rotate(360deg); opacity: 0.7; }
+}
+
+.abyss-ember {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: abyssEmberFloat 3s ease-out infinite;
+}
+.abyss-ember.ember-1 { animation-delay: 0s; }
+.abyss-ember.ember-2 { animation-delay: 0.6s; }
+.abyss-ember.ember-3 { animation-delay: 1.2s; }
+.abyss-ember.ember-4 { animation-delay: 1.8s; }
+.abyss-ember.ember-5 { animation-delay: 2.4s; }
+
+@keyframes abyssEmberFloat {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.9;
+    }
+    50% {
+        transform: translate(4px, -18px) scale(0.8);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translate(-3px, -36px) scale(0.3);
+        opacity: 0;
+    }
+}
+
+.anim-torch-flame {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: torchFlameFlicker 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes torchFlameFlicker {
+    0% { transform: scaleY(0.95) skewX(-2deg); }
+    100% { transform: scaleY(1.1) skewX(2deg); }
+}
+
+/* 6. Кузница: горн, пламя и искры */
+.anim-forge-glow {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: forgeGlowBreath 2s ease-in-out infinite alternate;
+}
+
+@keyframes forgeGlowBreath {
+    0% { opacity: 0.75; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1.12); }
+}
+
+.anim-forge-flame {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: forgeFireLeap 0.75s ease-in-out infinite alternate;
+}
+.anim-forge-flame.flame-inner {
+    animation-duration: 0.5s;
+    animation-delay: 0.1s;
+}
+
+@keyframes forgeFireLeap {
+    0% { transform: scaleY(0.9) skewX(-3deg); }
+    50% { transform: scaleY(1.18) skewX(2deg); }
+    100% { transform: scaleY(1.02) skewX(4deg); }
+}
+
+.forge-spark {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sparkLeap 1.8s ease-out infinite;
+}
+.forge-spark.spark-1 { animation-delay: 0s; }
+.forge-spark.spark-2 { animation-delay: 0.45s; }
+.forge-spark.spark-3 { animation-delay: 0.9s; }
+.forge-spark.spark-4 { animation-delay: 1.35s; }
+
+@keyframes sparkLeap {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(6px, -14px) scale(0.85);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-4px, -26px) scale(0.2);
+        opacity: 0;
+    }
+}
+
+/* 7. Храм Света: золотой витраж и небесный луч */
+.anim-temple-glow {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: templeWindowGlow 3.6s ease-in-out infinite alternate;
+}
+
+@keyframes templeWindowGlow {
+    0% { opacity: 0.75; transform: scale(0.96); }
+    100% { opacity: 1; transform: scale(1.1); }
+}
+
+.anim-temple-beam {
+    animation: templeBeamShimmer 4s ease-in-out infinite alternate;
+}
+
+@keyframes templeBeamShimmer {
+    0% { opacity: 0.15; }
+    50% { opacity: 0.38; }
+    100% { opacity: 0.22; }
+}
+
+/* 8. Светлячки над городской площадью */
+.ambient-firefly {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: fireflyHover 4s ease-in-out infinite alternate;
+}
+.ambient-firefly.firefly-1 { animation-duration: 3.6s; animation-delay: 0s; }
+.ambient-firefly.firefly-2 { animation-duration: 4.4s; animation-delay: 0.6s; }
+.ambient-firefly.firefly-3 { animation-duration: 5.0s; animation-delay: 1.2s; }
+.ambient-firefly.firefly-4 { animation-duration: 3.8s; animation-delay: 1.8s; }
+.ambient-firefly.firefly-5 { animation-duration: 4.8s; animation-delay: 0.3s; }
+.ambient-firefly.firefly-6 { animation-duration: 4.2s; animation-delay: 1.5s; }
+.ambient-firefly.firefly-7 { animation-duration: 5.4s; animation-delay: 2.1s; }
+.ambient-firefly.firefly-8 { animation-duration: 3.9s; animation-delay: 0.9s; }
+
+@keyframes fireflyHover {
+    0% {
+        transform: translate(0, 0) scale(0.9);
+        opacity: 0.3;
+    }
+    30% {
+        transform: translate(12px, -10px) scale(1.2);
+        opacity: 0.95;
+    }
+    70% {
+        transform: translate(-8px, -16px) scale(0.85);
+        opacity: 0.45;
+    }
+    100% {
+        transform: translate(6px, -6px) scale(1.1);
+        opacity: 0.85;
+    }
+}
+
+/* =============================================================================
+   АНИМАЦИИ И СПЕЦЭФФЕКТЫ БОЯ (BATTLE VFX & ANIMATIONS)
+   ============================================================================= */
+
+/* 1. Дыхание и живые позы бойцов */
+.hero-idle-breathe {
+    transform-origin: bottom center;
+    animation: heroIdleBreathe 3.4s ease-in-out infinite;
+}
+
+@keyframes heroIdleBreathe {
+    0%, 100% {
+        transform: translateY(0) scaleY(1);
+    }
+    50% {
+        transform: translateY(-4px) scaleY(1.025) scaleX(0.99);
+    }
+}
+
+.mob-idle-menace {
+    transform-origin: bottom center;
+    animation: mobIdleMenace 2.8s ease-in-out infinite;
+}
+
+@keyframes mobIdleMenace {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(3px) scale(1.03) scaleX(1.01);
+    }
+}
+
+/* 2. Тряска экрана при ударах и критических попаданиях */
+.screen-shake-light {
+    animation: screenShakeLight 0.28s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes screenShakeLight {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-3px, 2px); }
+    40% { transform: translate(3px, -2px); }
+    60% { transform: translate(-2px, 1px); }
+    80% { transform: translate(2px, -1px); }
+}
+
+.screen-shake-heavy {
+    animation: screenShakeHeavy 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes screenShakeHeavy {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    15% { transform: translate(-8px, 5px) rotate(-0.5deg); }
+    30% { transform: translate(8px, -5px) rotate(0.5deg); }
+    45% { transform: translate(-6px, 4px); }
+    60% { transform: translate(5px, -3px); }
+    75% { transform: translate(-3px, 2px); }
+}
+
+.screen-shake-crit {
+    animation: screenShakeCrit 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes screenShakeCrit {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    10% { transform: translate(-12px, 8px) scale(1.025); }
+    25% { transform: translate(12px, -9px) scale(1.018); }
+    40% { transform: translate(-9px, 6px) scale(1.01); }
+    55% { transform: translate(8px, -5px); }
+    70% { transform: translate(-5px, 3px); }
+    85% { transform: translate(3px, -2px); }
+}
+
+/* 3. Оверлей боевых спецэффектов */
+.battle-vfx-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 60;
+}
+
+.vfx-projectile-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    will-change: transform;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate3d(0, 0, 0);
+}
+
+.vfx-impact-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    will-change: transform;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate3d(0, 0, 0) translate(-50%, -50%);
+}
+
+.vfx-elem {
+    display: block;
+    overflow: visible;
+}
+
+/* 4. Специфические стили отдельных спецэффектов */
+/* Огненный шар и взрыв */
+.vfx-fireball-svg {
+    width: 80px;
+    height: 45px;
+    filter: drop-shadow(0 0 12px #f97316);
+}
+
+.vfx-explosion-svg {
+    width: 190px;
+    height: 190px;
+}
+.anim-fire-core {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: fireCoreBurst 0.45s ease-out forwards;
+}
+@keyframes fireCoreBurst {
+    0% { transform: scale(0.3); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.95; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
+.anim-fire-blast {
+    animation: fireBlastRing 0.45s ease-out forwards;
+}
+@keyframes fireBlastRing {
+    0% { r: 15px; stroke-width: 20px; opacity: 1; }
+    100% { r: 75px; stroke-width: 2px; opacity: 0; }
+}
+.anim-spark-1 { animation: sparkFly1 0.45s ease-out forwards; }
+.anim-spark-2 { animation: sparkFly2 0.45s ease-out forwards; }
+.anim-spark-3 { animation: sparkFly3 0.45s ease-out forwards; }
+.anim-spark-4 { animation: sparkFly4 0.45s ease-out forwards; }
+
+@keyframes sparkFly1 { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(-45px, -35px); opacity: 0; } }
+@keyframes sparkFly2 { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(50px, -30px); opacity: 0; } }
+@keyframes sparkFly3 { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(40px, 45px); opacity: 0; } }
+@keyframes sparkFly4 { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(-40px, 40px); opacity: 0; } }
+
+/* Лед и заморозка */
+.vfx-frost-svg {
+    width: 85px;
+    height: 35px;
+    filter: drop-shadow(0 0 10px #38bdf8);
+}
+.vfx-frost-burst-svg {
+    width: 170px;
+    height: 170px;
+}
+.frost-shard {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: frostShardShatter 0.4s ease-out forwards;
+}
+.frost-shard.shard-1 { animation: shardOut1 0.4s ease-out forwards; }
+.frost-shard.shard-2 { animation: shardOut2 0.4s ease-out forwards; }
+.frost-shard.shard-3 { animation: shardOut3 0.4s ease-out forwards; }
+.frost-shard.shard-4 { animation: shardOut4 0.4s ease-out forwards; }
+
+@keyframes shardOut1 { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(0, -35px); opacity: 0; } }
+@keyframes shardOut2 { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(35px, 0); opacity: 0; } }
+@keyframes shardOut3 { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(0, 35px); opacity: 0; } }
+@keyframes shardOut4 { 0% { transform: translate(0,0); opacity: 1; } 100% { transform: translate(-35px, 0); opacity: 0; } }
+
+.frost-ring {
+    animation: frostRingExpand 0.4s ease-out forwards;
+}
+@keyframes frostRingExpand {
+    0% { r: 15px; opacity: 1; stroke-width: 8px; }
+    100% { r: 65px; opacity: 0; stroke-width: 1px; }
+}
+
+/* Чародейская стрела */
+.vfx-dart-svg {
+    width: 70px;
+    height: 35px;
+    filter: drop-shadow(0 0 10px #c084fc);
+}
+.vfx-dart-burst-svg {
+    width: 120px;
+    height: 120px;
+}
+
+/* Арканный каскад */
+.vfx-cascade-svg {
+    width: 180px;
+    height: 270px;
+}
+.cascade-ray {
+    animation: cascadeRayPlunge 0.55s ease-out forwards;
+}
+.cascade-ray.ray-1 { animation-delay: 0s; }
+.cascade-ray.ray-2 { animation-delay: 0.08s; }
+.cascade-ray.ray-3 { animation-delay: 0.16s; }
+
+@keyframes cascadeRayPlunge {
+    0% { stroke-dasharray: 400; stroke-dashoffset: 400; opacity: 0; }
+    30% { stroke-dashoffset: 0; opacity: 1; }
+    70% { opacity: 0.9; }
+    100% { opacity: 0; }
+}
+.cascade-base {
+    animation: cascadeBasePulse 0.55s ease-out forwards;
+}
+@keyframes cascadeBasePulse {
+    0% { rx: 10px; opacity: 0; }
+    40% { rx: 75px; opacity: 1; }
+    100% { rx: 90px; opacity: 0; }
+}
+
+/* Физические удары и рассечения */
+.vfx-slash-svg {
+    width: 150px;
+    height: 150px;
+    animation: slashFade 0.35s ease-out forwards;
+}
+@keyframes slashFade {
+    0% { transform: scale(0.6); opacity: 0; }
+    40% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1.25); opacity: 0; }
+}
+
+.vfx-heavy-slam-svg {
+    width: 180px;
+    height: 180px;
+    animation: heavySlamFade 0.42s ease-out forwards;
+}
+@keyframes heavySlamFade {
+    0% { transform: scale(0.5); opacity: 0; }
+    30% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1.35); opacity: 0; }
+}
+
+.vfx-pulse-ring {
+    animation: ringPulseAnim 0.42s ease-out forwards;
+}
+@keyframes ringPulseAnim {
+    0% { r: 15px; opacity: 1; stroke-width: 6px; }
+    100% { r: 65px; opacity: 0; stroke-width: 1px; }
+}
+
+/* Оборона щитом */
+.vfx-shield-svg {
+    width: 150px;
+    height: 190px;
+    animation: shieldBarrierPulse 0.5s ease-out forwards;
+}
+@keyframes shieldBarrierPulse {
+    0% { transform: scale(0.4); opacity: 0; }
+    35% { transform: scale(1.1); opacity: 1; }
+    75% { transform: scale(1.02); opacity: 0.9; }
+    100% { transform: scale(1.15); opacity: 0; }
+}
+.vfx-rotate-shield {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: shieldSpin 1.2s linear infinite;
+}
+@keyframes shieldSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Казнь */
+.vfx-execute-svg {
+    width: 110px;
+    height: 220px;
+    animation: executeBladePlunge 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+@keyframes executeBladePlunge {
+    0% { transform: translateY(-70px) scaleY(1.4); opacity: 0; }
+    30% { transform: translateY(0) scaleY(1); opacity: 1; }
+    70% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(8px); opacity: 0; }
+}
+
+/* Яд разбойника */
+.vfx-poison-svg {
+    width: 140px;
+    height: 140px;
+}
+.poison-drop {
+    animation: poisonDripAnim 0.45s ease-out forwards;
+}
+.poison-drop.drop-1 { animation-delay: 0.05s; }
+.poison-drop.drop-2 { animation-delay: 0.12s; }
+.poison-drop.drop-3 { animation-delay: 0.2s; }
+
+@keyframes poisonDripAnim {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(28px); opacity: 0; }
+}
+
+/* Шаг в тень */
+.vfx-shadow-svg {
+    width: 150px;
+    height: 190px;
+    animation: shadowCloudFade 0.5s ease-out forwards;
+}
+@keyframes shadowCloudFade {
+    0% { transform: scale(0.6); opacity: 0; }
+    40% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Потрошение */
+.vfx-frenzy-svg {
+    width: 170px;
+    height: 170px;
+}
+.frenzy-slash {
+    animation: frenzySlashAnim 0.48s ease-out forwards;
+}
+.frenzy-slash.slash-1 { animation-delay: 0s; }
+.frenzy-slash.slash-2 { animation-delay: 0.1s; }
+.frenzy-slash.slash-3 { animation-delay: 0.2s; }
+
+@keyframes frenzySlashAnim {
+    0% { stroke-dasharray: 200; stroke-dashoffset: 200; opacity: 0; }
+    40% { stroke-dashoffset: 0; opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Стрелы лучника */
+.vfx-arrow-svg {
+    width: 100px;
+    height: 28px;
+    filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.7));
+}
+
+/* Снайперский луч */
+.vfx-snipe-svg {
+    width: 380px;
+    height: 55px;
+    animation: snipeBeamFlash 0.45s ease-out forwards;
+}
+@keyframes snipeBeamFlash {
+    0% { transform: scaleX(0.1); opacity: 0; }
+    30% { transform: scaleX(1); opacity: 1; }
+    80% { opacity: 0.85; }
+    100% { opacity: 0; }
+}
+
+/* Капкан */
+.vfx-trap-svg {
+    width: 150px;
+    height: 85px;
+    animation: trapSnapAnim 0.45s cubic-bezier(0.15, 0.9, 0.3, 1) forwards;
+}
+@keyframes trapSnapAnim {
+    0% { transform: scale(0.7); opacity: 0; }
+    30% { transform: scale(1.15); opacity: 1; }
+    75% { transform: scale(1); opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Атаки монстра */
+.vfx-claw-svg {
+    width: 150px;
+    height: 150px;
+    animation: clawSwipeAnim 0.38s ease-out forwards;
+}
+@keyframes clawSwipeAnim {
+    0% { transform: scale(0.5) translate(-15px, -15px); opacity: 0; }
+    35% { transform: scale(1.15) translate(0, 0); opacity: 1; }
+    100% { transform: scale(1.25) translate(15px, 15px); opacity: 0; }
+}
+
+.vfx-mob-heavy-svg {
+    width: 180px;
+    height: 180px;
+    animation: mobHeavySlam 0.45s ease-out forwards;
+}
+@keyframes mobHeavySlam {
+    0% { transform: scale(0.5); opacity: 0; }
+    30% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1.35); opacity: 0; }
+}
+
+.mob-shockwave {
+    animation: mobShockwaveExpand 0.45s ease-out forwards;
+}
+@keyframes mobShockwaveExpand {
+    0% { r: 15px; opacity: 1; stroke-width: 8px; }
+    100% { r: 85px; opacity: 0; stroke-width: 1px; }
+}
+
+.vfx-mob-spell-svg {
+    width: 170px;
+    height: 170px;
+}
+.mob-spell-vortex {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: mobVortexSpin 0.5s ease-out forwards;
+}
+@keyframes mobVortexSpin {
+    0% { transform: rotate(0deg) scale(0.5); opacity: 0; }
+    40% { transform: rotate(180deg) scale(1.15); opacity: 1; }
+    100% { transform: rotate(360deg) scale(1.35); opacity: 0; }
+}
+.mob-rune-tri {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: mobRuneSpin 0.5s ease-out forwards;
+}
+@keyframes mobRuneSpin {
+    0% { transform: rotate(0deg) scale(0.4); opacity: 0; }
+    40% { transform: rotate(-90deg) scale(1.1); opacity: 0.9; }
+    100% { transform: rotate(-180deg) scale(1.3); opacity: 0; }
+}
+
+/* ================= ИНТЕРЬЕРЫ ЗДАНИЙ ГОРОДА (ТАВЕРНА, ЛАВКА, КУЗНИЦА, ХРАМ) ================= */
+
+/* Полноразмерное отображение SVG-сцен интерьеров */
+.shop-scene-svg,
+.blacksmith-scene-svg,
+.temple-scene-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Кнопки действий и торговли в интерьерах */
+.btn-primary {
+    background: linear-gradient(180deg, #8a5a22 0%, #5e3b12 100%);
+    border: 1px solid #d4af37;
+    color: #fff4d9;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.btn-primary:hover {
+    background: linear-gradient(180deg, #a66e2c 0%, #754a17 100%);
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+.btn-buy-item,
+.btn-buy-gear,
+.btn-buy-relic {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(180deg, #2b4520 0%, #1a2f13 100%);
+    border: 1px solid #4ade80;
+    color: #dcfce7;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-buy-item:hover,
+.btn-buy-gear:hover,
+.btn-buy-relic:hover {
+    background: linear-gradient(180deg, #365b28 0%, #233d1b 100%);
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-sell-item {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(180deg, #4d3016 0%, #301e0d 100%);
+    border: 1px solid #f59e0b;
+    color: #fef3c7;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-sell-item:hover {
+    background: linear-gradient(180deg, #613e1c 0%, #3f2711 100%);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Общая анимация дыхания NPC в интерьерах */
+.npc-interior-breathe {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: npcInteriorBreathe 3.6s ease-in-out infinite alternate;
+}
+
+@keyframes npcInteriorBreathe {
+    0% {
+        transform: translateY(0) scale(1, 1);
+    }
+    50% {
+        transform: translateY(-2px) scale(1.008, 1.018);
+    }
+    100% {
+        transform: translateY(-3.5px) scale(1.015, 1.025);
+    }
+}
+
+/* ---------------- 1. ТАВЕРНА: КАМИН, ЛЮСТРА, ЭЛЬ И ПЫЛИНКИ ---------------- */
+
+/* Пульсация теплого света очага */
+.anim-hearth-glow {
+    animation: hearthGlowPulse 2.4s ease-in-out infinite alternate;
+}
+@keyframes hearthGlowPulse {
+    0% { opacity: 0.65; }
+    50% { opacity: 0.95; }
+    100% { opacity: 0.75; }
+}
+
+/* Языки пламени в камине (3 слоя) */
+.anim-hearth-flame.flame-outer {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: hearthFlameOuter 0.9s ease-in-out infinite alternate;
+}
+.anim-hearth-flame.flame-mid {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: hearthFlameMid 0.65s ease-in-out infinite alternate;
+}
+.anim-hearth-flame.flame-core {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: hearthFlameCore 0.45s ease-in-out infinite alternate;
+}
+
+@keyframes hearthFlameOuter {
+    0% { transform: scale(1, 1) rotate(0deg); opacity: 0.85; }
+    50% { transform: scale(1.05, 1.12) rotate(1.5deg); opacity: 1; }
+    100% { transform: scale(0.95, 1.04) rotate(-1.5deg); opacity: 0.9; }
+}
+@keyframes hearthFlameMid {
+    0% { transform: scale(1, 1) rotate(0deg); }
+    50% { transform: scale(1.08, 1.16) rotate(-2deg); }
+    100% { transform: scale(0.92, 1.06) rotate(2deg); }
+}
+@keyframes hearthFlameCore {
+    0% { transform: scale(1, 1); opacity: 0.95; }
+    50% { transform: scale(1.12, 1.22); opacity: 1; }
+    100% { transform: scale(0.94, 1.08); opacity: 0.9; }
+}
+
+/* Взлетающие каминные искорки */
+.hearth-sparks-group {
+    pointer-events: none;
+}
+.hearth-spark {
+    transform-box: fill-box;
+}
+.hearth-spark.spark-1 {
+    animation: hearthSparkRise1 2.2s ease-out infinite;
+}
+.hearth-spark.spark-2 {
+    animation: hearthSparkRise2 2.7s ease-out infinite 0.7s;
+}
+.hearth-spark.spark-3 {
+    animation: hearthSparkRise3 2.0s ease-out infinite 1.4s;
+}
+
+@keyframes hearthSparkRise1 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    20% { opacity: 0.9; }
+    80% { opacity: 0.8; }
+    100% { transform: translate(12px, -36px) scale(0.3); opacity: 0; }
+}
+@keyframes hearthSparkRise2 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 0.7; }
+    100% { transform: translate(-10px, -42px) scale(0.2); opacity: 0; }
+}
+@keyframes hearthSparkRise3 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    25% { opacity: 0.95; }
+    75% { opacity: 0.6; }
+    100% { transform: translate(6px, -30px) scale(0.4); opacity: 0; }
+}
+
+/* Пар над котелком с похлебкой */
+.stew-steam {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: stewSteamDrift 3s ease-in-out infinite alternate;
+}
+@keyframes stewSteamDrift {
+    0% { transform: translateY(0) scale(0.95) skewX(0deg); opacity: 0.35; }
+    50% { transform: translateY(-8px) scale(1.08) skewX(3deg); opacity: 0.65; }
+    100% { transform: translateY(-16px) scale(1.15) skewX(-2deg); opacity: 0.25; }
+}
+
+/* Мерное покачивание кованой люстры */
+.anim-chandelier-sway {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: chandelierSway 6s ease-in-out infinite alternate;
+}
+@keyframes chandelierSway {
+    0% { transform: rotate(-1.4deg); }
+    50% { transform: rotate(0.6deg); }
+    100% { transform: rotate(1.4deg); }
+}
+
+/* Пламя свечи на стойке */
+.anim-candle-flame {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: candleFlameFlicker 1.1s ease-in-out infinite alternate;
+}
+@keyframes candleFlameFlicker {
+    0% { transform: scale(1, 1) rotate(0deg); opacity: 0.88; }
+    30% { transform: scale(1.08, 1.14) rotate(2deg); opacity: 1; }
+    70% { transform: scale(0.94, 0.98) rotate(-1.5deg); opacity: 0.85; }
+    100% { transform: scale(1.04, 1.06) rotate(1deg); opacity: 0.95; }
+}
+
+/* Пар от кружки эля */
+.anim-ale-steam {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+}
+.anim-ale-steam.steam-1 {
+    animation: aleSteamRise1 2.4s ease-out infinite;
+}
+.anim-ale-steam.steam-2 {
+    animation: aleSteamRise2 2.7s ease-out infinite 1.2s;
+}
+@keyframes aleSteamRise1 {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    30% { opacity: 0.6; }
+    80% { opacity: 0.35; }
+    100% { transform: translateY(-14px) scale(1.3); opacity: 0; }
+}
+@keyframes aleSteamRise2 {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    30% { opacity: 0.55; }
+    80% { opacity: 0.3; }
+    100% { transform: translateY(-16px) scale(1.25); opacity: 0; }
+}
+
+/* Пылинки в лучах света */
+.ambient-dust {
+    transform-box: fill-box;
+}
+.ambient-dust.dust-1 { animation: dustDrift1 8s ease-in-out infinite alternate; }
+.ambient-dust.dust-2 { animation: dustDrift2 10s ease-in-out infinite alternate 1.5s; }
+.ambient-dust.dust-3 { animation: dustDrift1 7s ease-in-out infinite alternate 3s; }
+.ambient-dust.dust-4 { animation: dustDrift2 9s ease-in-out infinite alternate 4.5s; }
+.ambient-dust.dust-5 { animation: dustDrift1 11s ease-in-out infinite alternate 2s; }
+
+@keyframes dustDrift1 {
+    0% { transform: translate(0, 0); opacity: 0.2; }
+    50% { transform: translate(8px, -12px); opacity: 0.65; }
+    100% { transform: translate(-6px, -20px); opacity: 0.15; }
+}
+@keyframes dustDrift2 {
+    0% { transform: translate(0, 0); opacity: 0.15; }
+    50% { transform: translate(-10px, -15px); opacity: 0.6; }
+    100% { transform: translate(7px, -24px); opacity: 0.2; }
+}
+
+/* ---------------- 2. ЛАВКА РАШИДА: ЗЕЛЬЯ, БЛАГОВОНИЯ И ВЕСЫ ---------------- */
+
+/* Пузырьки в алхимических колбах */
+.potion-bubble {
+    transform-box: fill-box;
+}
+.potion-bubble.bubble-1 {
+    animation: potionBubbleRise1 2.2s ease-in-out infinite;
+}
+.potion-bubble.bubble-2 {
+    animation: potionBubbleRise2 2.8s ease-in-out infinite 0.7s;
+}
+.potion-bubble.bubble-3 {
+    animation: potionBubbleRise3 2.5s ease-in-out infinite 1.4s;
+}
+
+@keyframes potionBubbleRise1 {
+    0% { transform: translateY(0) scale(0.6); opacity: 0; }
+    30% { opacity: 0.8; }
+    80% { opacity: 0.6; }
+    100% { transform: translateY(-16px) scale(1.1); opacity: 0; }
+}
+@keyframes potionBubbleRise2 {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    30% { opacity: 0.85; }
+    80% { opacity: 0.65; }
+    100% { transform: translateY(-18px) scale(1.2); opacity: 0; }
+}
+@keyframes potionBubbleRise3 {
+    0% { transform: translateY(0) scale(0.6); opacity: 0; }
+    30% { opacity: 0.75; }
+    80% { opacity: 0.55; }
+    100% { transform: translateY(-14px) scale(1.05); opacity: 0; }
+}
+
+/* Качающееся кадило с благовониями */
+.anim-censer-sway {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: censerSway 5.5s ease-in-out infinite alternate;
+}
+@keyframes censerSway {
+    0% { transform: rotate(-2.5deg); }
+    50% { transform: rotate(1deg); }
+    100% { transform: rotate(2.5deg); }
+}
+
+/* Струйки ароматического дыма */
+.anim-incense-smoke {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+}
+.anim-incense-smoke.wisp-1 {
+    animation: incenseSmokeWisp1 3.5s ease-out infinite;
+}
+.anim-incense-smoke.wisp-2 {
+    animation: incenseSmokeWisp2 4.2s ease-out infinite 1.2s;
+}
+.anim-incense-smoke.wisp-3 {
+    animation: incenseSmokeWisp3 3.8s ease-out infinite 2.1s;
+}
+
+@keyframes incenseSmokeWisp1 {
+    0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+    25% { opacity: 0.65; }
+    75% { opacity: 0.35; }
+    100% { transform: translate(-14px, -32px) scale(1.4); opacity: 0; }
+}
+@keyframes incenseSmokeWisp2 {
+    0% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+    25% { opacity: 0.6; }
+    75% { opacity: 0.3; }
+    100% { transform: translate(12px, -36px) scale(1.5); opacity: 0; }
+}
+@keyframes incenseSmokeWisp3 {
+    0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+    25% { opacity: 0.7; }
+    75% { opacity: 0.4; }
+    100% { transform: translate(-6px, -28px) scale(1.3); opacity: 0; }
+}
+
+/* Покачивание чаш торговых весов */
+.anim-scales-tilt {
+    transform-box: fill-box;
+    transform-origin: center top;
+    animation: scalesTilt 5.5s ease-in-out infinite alternate;
+}
+@keyframes scalesTilt {
+    0% { transform: rotate(-2.2deg); }
+    50% { transform: rotate(1.2deg); }
+    100% { transform: rotate(2.2deg); }
+}
+
+/* Восточная масляная лампа */
+.anim-lamp-glow {
+    animation: lampGlowPulse 2.2s ease-in-out infinite alternate;
+}
+@keyframes lampGlowPulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 0.95; }
+    100% { opacity: 0.7; }
+}
+
+.anim-lamp-flame {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: lampFlameDance 1.3s ease-in-out infinite alternate;
+}
+@keyframes lampFlameDance {
+    0% { transform: scale(1, 1) rotate(0deg); opacity: 0.9; }
+    50% { transform: scale(1.1, 1.18) rotate(3deg); opacity: 1; }
+    100% { transform: scale(0.92, 1.05) rotate(-2deg); opacity: 0.88; }
+}
+
+/* Искры и блики на диковинах */
+.curio-sparkle {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+.curio-sparkle.sparkle-1 { animation: curioSparkleTwinkle 2.5s ease-in-out infinite; }
+.curio-sparkle.sparkle-2 { animation: curioSparkleTwinkle 3.1s ease-in-out infinite 0.8s; }
+.curio-sparkle.sparkle-3 { animation: curioSparkleTwinkle 2.8s ease-in-out infinite 1.5s; }
+.curio-sparkle.sparkle-4 { animation: curioSparkleTwinkle 3.4s ease-in-out infinite 2.2s; }
+
+@keyframes curioSparkleTwinkle {
+    0%, 100% { transform: scale(0.2) rotate(0deg); opacity: 0; }
+    50% { transform: scale(1.2) rotate(90deg); opacity: 0.95; }
+}
+
+/* ---------------- 3. КУЗНИЦА ТОРВАЛЬДА: ГОРН, ИСКРЫ, МЕТАЛЛ И ЗАКАЛКА ---------------- */
+
+/* Жар и пульсация горна */
+.anim-forge-heat-pulse {
+    animation: forgeHeatPulse 2.2s ease-in-out infinite alternate;
+}
+@keyframes forgeHeatPulse {
+    0% { opacity: 0.65; }
+    50% { opacity: 1; }
+    100% { opacity: 0.75; }
+}
+
+/* Бушующее пламя в горне */
+.anim-forge-furnace-flame {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+}
+.anim-forge-furnace-flame.flame-1 {
+    animation: forgeFlameLeap1 0.85s ease-in-out infinite alternate;
+}
+.anim-forge-furnace-flame.flame-2 {
+    animation: forgeFlameLeap2 0.7s ease-in-out infinite alternate 0.15s;
+}
+.anim-forge-furnace-flame.flame-3 {
+    animation: forgeFlameLeap3 0.55s ease-in-out infinite alternate 0.3s;
+}
+
+@keyframes forgeFlameLeap1 {
+    0% { transform: scale(1, 1) skewX(0deg); opacity: 0.85; }
+    50% { transform: scale(1.08, 1.2) skewX(2deg); opacity: 1; }
+    100% { transform: scale(0.94, 1.05) skewX(-2deg); opacity: 0.9; }
+}
+@keyframes forgeFlameLeap2 {
+    0% { transform: scale(1, 1); opacity: 0.9; }
+    50% { transform: scale(1.12, 1.25); opacity: 1; }
+    100% { transform: scale(0.9, 1.02); opacity: 0.85; }
+}
+@keyframes forgeFlameLeap3 {
+    0% { transform: scale(1, 1); opacity: 0.95; }
+    50% { transform: scale(1.15, 1.3); opacity: 1; }
+    100% { transform: scale(0.92, 1.1); opacity: 0.9; }
+}
+
+/* Поток искр из горна */
+.forge-sparks-stream {
+    pointer-events: none;
+}
+.anim-forge-spark {
+    transform-box: fill-box;
+}
+.anim-forge-spark.spark-1 { animation: forgeSparkFly1 1.8s ease-out infinite; }
+.anim-forge-spark.spark-2 { animation: forgeSparkFly2 2.2s ease-out infinite 0.4s; }
+.anim-forge-spark.spark-3 { animation: forgeSparkFly3 1.5s ease-out infinite 0.9s; }
+.anim-forge-spark.spark-4 { animation: forgeSparkFly4 2.0s ease-out infinite 1.3s; }
+.anim-forge-spark.spark-5 { animation: forgeSparkFly5 1.7s ease-out infinite 0.6s; }
+
+@keyframes forgeSparkFly1 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    20% { opacity: 1; }
+    70% { opacity: 0.8; }
+    100% { transform: translate(-22px, -45px) scale(0.2); opacity: 0; }
+}
+@keyframes forgeSparkFly2 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    20% { opacity: 1; }
+    70% { opacity: 0.85; }
+    100% { transform: translate(18px, -52px) scale(0.2); opacity: 0; }
+}
+@keyframes forgeSparkFly3 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    25% { opacity: 0.95; }
+    75% { opacity: 0.7; }
+    100% { transform: translate(-12px, -38px) scale(0.3); opacity: 0; }
+}
+@keyframes forgeSparkFly4 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    20% { opacity: 1; }
+    70% { opacity: 0.75; }
+    100% { transform: translate(26px, -42px) scale(0.25); opacity: 0; }
+}
+@keyframes forgeSparkFly5 {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    25% { opacity: 0.9; }
+    75% { opacity: 0.65; }
+    100% { transform: translate(-6px, -48px) scale(0.2); opacity: 0; }
+}
+
+/* Раскаленная заготовка меча на наковальне */
+.anim-hot-metal-glow {
+    animation: hotMetalGlowPulse 1.8s ease-in-out infinite alternate;
+}
+@keyframes hotMetalGlowPulse {
+    0% { opacity: 0.7; filter: drop-shadow(0 0 4px rgba(255, 68, 0, 0.6)); }
+    50% { opacity: 1; filter: drop-shadow(0 0 14px rgba(255, 140, 0, 0.95)); }
+    100% { opacity: 0.78; filter: drop-shadow(0 0 6px rgba(255, 68, 0, 0.7)); }
+}
+
+/* Пар из бочки для закалки */
+.anim-quenching-steam {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+}
+.anim-quenching-steam.steam-1 {
+    animation: quenchSteamRise1 2.8s ease-out infinite;
+}
+.anim-quenching-steam.steam-2 {
+    animation: quenchSteamRise2 3.2s ease-out infinite 1s;
+}
+.anim-quenching-steam.steam-3 {
+    animation: quenchSteamRise3 2.5s ease-out infinite 1.8s;
+}
+
+@keyframes quenchSteamRise1 {
+    0% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+    30% { opacity: 0.6; }
+    80% { opacity: 0.35; }
+    100% { transform: translate(-8px, -30px) scale(1.4); opacity: 0; }
+}
+@keyframes quenchSteamRise2 {
+    0% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+    30% { opacity: 0.55; }
+    80% { opacity: 0.3; }
+    100% { transform: translate(10px, -35px) scale(1.5); opacity: 0; }
+}
+@keyframes quenchSteamRise3 {
+    0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+    30% { opacity: 0.65; }
+    80% { opacity: 0.4; }
+    100% { transform: translate(-4px, -26px) scale(1.3); opacity: 0; }
+}
+
+/* ---------------- 4. ХРАМ СВЕТА: РОЗА, НЕБЕСНЫЕ ЛУЧИ, ЧАША И МОЛИТВЕННЫЙ СВЕТ ---------------- */
+
+/* Сияние величественного окна-розы */
+.anim-rose-glow {
+    animation: templeRoseWindowGlow 4s ease-in-out infinite alternate;
+}
+@keyframes templeRoseWindowGlow {
+    0% { opacity: 0.75; }
+    50% { opacity: 1; }
+    100% { opacity: 0.82; }
+}
+
+/* Струящиеся небесные лучи сквозь арки */
+.anim-divine-sunbeams .beam-main {
+    animation: divineSunbeamShiftMain 5s ease-in-out infinite alternate;
+}
+.anim-divine-sunbeams .beam-left {
+    animation: divineSunbeamShiftSide 6.5s ease-in-out infinite alternate 1s;
+}
+.anim-divine-sunbeams .beam-right {
+    animation: divineSunbeamShiftSide 5.8s ease-in-out infinite alternate 2s;
+}
+
+@keyframes divineSunbeamShiftMain {
+    0% { opacity: 0.15; }
+    50% { opacity: 0.38; }
+    100% { opacity: 0.22; }
+}
+@keyframes divineSunbeamShiftSide {
+    0% { opacity: 0.08; }
+    50% { opacity: 0.26; }
+    100% { opacity: 0.14; }
+}
+
+/* Священный пульсирующий нимб жрицы */
+.anim-halo-pulse {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: templeHaloPulse 3s ease-in-out infinite alternate;
+}
+@keyframes templeHaloPulse {
+    0% { opacity: 0.7; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 0.78; transform: scale(0.98); }
+}
+
+/* Сияние священного потира */
+.anim-chalice-glow {
+    animation: chaliceHolyGlow 2.5s ease-in-out infinite alternate;
+}
+@keyframes chaliceHolyGlow {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.75; }
+}
+
+/* Огни храмовых свечей */
+.anim-holy-candle {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: holyCandleFlicker 1.2s ease-in-out infinite alternate;
+}
+@keyframes holyCandleFlicker {
+    0% { transform: scale(1, 1) rotate(0deg); opacity: 0.9; }
+    50% { transform: scale(1.08, 1.15) rotate(1.5deg); opacity: 1; }
+    100% { transform: scale(0.95, 1.02) rotate(-1deg); opacity: 0.88; }
+}
+
+/* Молитвенные светящиеся частицы */
+.prayer-mote {
+    transform-box: fill-box;
+}
+.prayer-mote.mote-1 { animation: prayerMoteDrift1 6.5s ease-in-out infinite alternate; }
+.prayer-mote.mote-2 { animation: prayerMoteDrift2 8s ease-in-out infinite alternate 1.2s; }
+.prayer-mote.mote-3 { animation: prayerMoteDrift1 5.8s ease-in-out infinite alternate 2.4s; }
+.prayer-mote.mote-4 { animation: prayerMoteDrift2 7.2s ease-in-out infinite alternate 3.6s; }
+.prayer-mote.mote-5 { animation: prayerMoteDrift1 6.0s ease-in-out infinite alternate 1.8s; }
+.prayer-mote.mote-6 { animation: prayerMoteDrift2 7.6s ease-in-out infinite alternate 4.0s; }
+
+@keyframes prayerMoteDrift1 {
+    0% { transform: translate(0, 0); opacity: 0.2; }
+    50% { transform: translate(10px, -18px); opacity: 0.85; }
+    100% { transform: translate(-8px, -32px); opacity: 0.25; }
+}
+@keyframes prayerMoteDrift2 {
+    0% { transform: translate(0, 0); opacity: 0.25; }
+    50% { transform: translate(-12px, -22px); opacity: 0.9; }
+    100% { transform: translate(8px, -36px); opacity: 0.15; }
+}
+
+
+

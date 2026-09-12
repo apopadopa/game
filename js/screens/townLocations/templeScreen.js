@@ -4,6 +4,7 @@ import { townTheme } from '../../audio/music/townTheme.js';
 import { CharacterRenderer } from '../../visuals/characterRenderer.js';
 import { NpcRenderer, NPC_CONFIGS } from '../../visuals/npcRenderer.js';
 import { Icons } from '../../visuals/icons.js';
+import { getTraderStock } from '../../data/itemsData.js';
 
 export class TempleScreen {
     constructor(player, callbacks) {
@@ -13,12 +14,11 @@ export class TempleScreen {
         this.activeTab = 'blessings';
 
         sound.switchMusic(templeMusic, 1.4);
+        this.updateStock();
+    }
 
-        this.relics = [
-            { id: 'holy_water', name: 'Святая вода', desc: 'Священный сосуд: наносит 45 урона нежити', price: 25, icon: Icons.urn(24), stat: 'holyDmg' },
-            { id: 'blessed_amulet', name: 'Освящённый амулет', desc: 'Защищает от тёмных сил (+3 к защите)', price: 60, icon: Icons.amulet(24), stat: 'defense', value: 3 },
-            { id: 'tears_of_goddess', name: 'Слеза Богини', desc: 'Светлое чудо: восстанавливает 100 HP и MP', price: 95, icon: Icons.gem(24), stat: 'fullHeal' }
-        ];
+    updateStock() {
+        this.relics = getTraderStock('temple', this.player.level || 1);
     }
 
     render(container) {
@@ -44,59 +44,163 @@ export class TempleScreen {
                     <div class="interior-scene-box">
                         <svg viewBox="0 0 460 380" class="temple-scene-svg">
                             <defs>
+                                <radialGradient id="cathedralAmbient" cx="50%" cy="35%" r="65%">
+                                    <stop offset="0%" stop-color="#1e1b4b" stop-opacity="0.5"/>
+                                    <stop offset="50%" stop-color="#0f172a" stop-opacity="0.3"/>
+                                    <stop offset="100%" stop-color="#020617" stop-opacity="0"/>
+                                </radialGradient>
+
                                 <radialGradient id="roseWindowLight" cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
-                                    <stop offset="60%" stop-color="#c084fc" stop-opacity="0.4"/>
+                                    <stop offset="0%" stop-color="#fde047" stop-opacity="1"/>
+                                    <stop offset="35%" stop-color="#38bdf8" stop-opacity="0.85"/>
+                                    <stop offset="70%" stop-color="#a855f7" stop-opacity="0.4"/>
                                     <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
                                 </radialGradient>
+
                                 <radialGradient id="templeCandle" cx="50%" cy="50%" r="50%">
                                     <stop offset="0%" stop-color="#fef08a" stop-opacity="0.95"/>
-                                    <stop offset="60%" stop-color="#ca8a04" stop-opacity="0.3"/>
+                                    <stop offset="45%" stop-color="#eab308" stop-opacity="0.4"/>
                                     <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
                                 </radialGradient>
+
+                                <radialGradient id="elysiaHaloGlow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#fef08a" stop-opacity="0.95"/>
+                                    <stop offset="50%" stop-color="#facc15" stop-opacity="0.5"/>
+                                    <stop offset="85%" stop-color="#38bdf8" stop-opacity="0.2"/>
+                                    <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+                                </radialGradient>
+
+                                <linearGradient id="divineBeamGrad" x1="0%" y1="0%" x2="40%" y2="100%">
+                                    <stop offset="0%" stop-color="#fef08a" stop-opacity="0.35"/>
+                                    <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.18"/>
+                                    <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+                                </linearGradient>
                             </defs>
 
-                            <rect width="460" height="380" fill="#0f141c"/>
+                            <!-- Темный глубокий фон собора с лазурным полумраком -->
+                            <rect width="460" height="380" fill="#0b0f19"/>
+                            <rect width="460" height="380" fill="url(#cathedralAmbient)"/>
 
-                            <circle cx="230" cy="110" r="95" fill="url(#roseWindowLight)"/>
-                            <circle cx="230" cy="110" r="55" fill="#1e293b" stroke="#0284c7" stroke-width="4"/>
-                            <line x1="230" y1="55" x2="230" y2="165" stroke="#facc15" stroke-width="2.5"/>
-                            <line x1="175" y1="110" x2="285" y2="110" stroke="#facc15" stroke-width="2.5"/>
-                            <line x1="190" y1="70" x2="270" y2="150" stroke="#38bdf8" stroke-width="2"/>
-                            <line x1="190" y1="150" x2="270" y2="70" stroke="#38bdf8" stroke-width="2"/>
+                            <!-- Готические стрельчатые арки свода храма -->
+                            <path d="M0,0 L0,220 Q120,40 230,20 Q340,40 460,220 L460,0 Z" fill="#111827" stroke="#1e293b" stroke-width="2"/>
+                            <path d="M40,0 L40,240 Q130,70 230,50 Q330,70 420,240 L420,0 Z" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
 
-                            <rect x="20" y="0" width="40" height="380" fill="#334155" stroke="#1e293b" stroke-width="2"/>
-                            <rect x="15" y="0" width="50" height="24" fill="#475569"/>
-                            <rect x="15" y="356" width="50" height="24" fill="#475569"/>
+                            <!-- ВИТРАЖНОЕ ОКНО-РОЗА (ЦЕНТР СВЕРХУ) С НЕБЕСНЫМ СВЕЧЕНИЕМ -->
+                            <circle cx="230" cy="105" r="105" fill="url(#roseWindowLight)" class="anim-rose-glow"/>
+                            <!-- Каменный ажурный переплет розы -->
+                            <circle cx="230" cy="105" r="62" fill="#1e1b4b" stroke="#0284c7" stroke-width="4"/>
+                            <circle cx="230" cy="105" r="48" fill="#0c4a6e" stroke="#facc15" stroke-width="2.5"/>
+                            <circle cx="230" cy="105" r="24" fill="#0284c7" stroke="#facc15" stroke-width="2"/>
+                            <circle cx="230" cy="105" r="10" fill="#fef08a"/>
+                            <!-- 12 спиц-лепестков розы -->
+                            <line x1="230" y1="43" x2="230" y2="167" stroke="#facc15" stroke-width="2.5"/>
+                            <line x1="168" y1="105" x2="292" y2="105" stroke="#facc15" stroke-width="2.5"/>
+                            <line x1="186" y1="61" x2="274" y2="149" stroke="#38bdf8" stroke-width="2"/>
+                            <line x1="186" y1="149" x2="274" y2="61" stroke="#38bdf8" stroke-width="2"/>
 
-                            <rect x="400" y="0" width="40" height="380" fill="#334155" stroke="#1e293b" stroke-width="2"/>
-                            <rect x="395" y="0" width="50" height="24" fill="#475569"/>
-                            <rect x="395" y="356" width="50" height="24" fill="#475569"/>
+                            <!-- НЕБЕСНЫЕ ЛУЧИ СВЕТА, НИСХОДЯЩИЕ ИЗ ОКНА НА АЛТАРЬ -->
+                            <polygon points="210,105 250,105 340,380 120,380" fill="url(#divineBeamGrad)" class="anim-divine-sunbeams beam-main"/>
+                            <polygon points="185,105 215,105 160,380 60,380" fill="url(#divineBeamGrad)" opacity="0.6" class="anim-divine-sunbeams beam-left"/>
+                            <polygon points="245,105 275,105 400,380 300,380" fill="url(#divineBeamGrad)" opacity="0.6" class="anim-divine-sunbeams beam-right"/>
 
-                            <g id="temple-elysia-sprite" transform="translate(160, 48) scale(0.92)">
+                            <!-- Величественные колонны из белого мрамора по краям -->
+                            <g id="temple-columns">
+                                <!-- Левая колонна с капителью -->
+                                <rect x="22" y="0" width="36" height="380" fill="#334155" stroke="#1e293b" stroke-width="2"/>
+                                <line x1="34" y1="0" x2="34" y2="380" stroke="#64748b" stroke-width="1.5"/>
+                                <line x1="46" y1="0" x2="46" y2="380" stroke="#64748b" stroke-width="1.5"/>
+                                <rect x="16" y="0" width="48" height="26" rx="2" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                                <rect x="16" y="354" width="48" height="26" rx="2" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+
+                                <!-- Правая колонна с капителью -->
+                                <rect x="402" y="0" width="36" height="380" fill="#334155" stroke="#1e293b" stroke-width="2"/>
+                                <line x1="414" y1="0" x2="414" y2="380" stroke="#64748b" stroke-width="1.5"/>
+                                <line x1="426" y1="0" x2="426" y2="380" stroke="#64748b" stroke-width="1.5"/>
+                                <rect x="396" y="0" width="48" height="26" rx="2" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                                <rect x="396" y="354" width="48" height="26" rx="2" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                            </g>
+
+                            <!-- СПРАЙТ ЖРИЦЫ ЭЛИЗИИ С БОЖЕСТВЕННЫМ НИМБОМ И АНИМАЦИЕЙ ДЫХАНИЯ -->
+                            <g id="temple-elysia-sprite" transform="translate(175, 48) scale(0.95)" class="npc-interior-breathe">
+                                <!-- Пульсирующий святой нимб над головой -->
+                                <circle cx="120" cy="40" r="42" fill="url(#elysiaHaloGlow)" class="anim-halo-pulse"/>
+                                <circle cx="120" cy="40" r="30" fill="none" stroke="#facc15" stroke-width="2.5" class="anim-halo-pulse"/>
                                 ${NpcRenderer.render(this.npc)}
                             </g>
 
+                            <!-- ПЕРЕДНИЙ ПЛАН: СВЯЩЕННЫЙ МРАМОРНЫЙ АЛТАРЬ С КАНДЕЛЯБРАМИ И КУБКОМ -->
                             <g id="temple-altar-foreground">
-                                <rect x="90" y="235" width="280" height="22" rx="3" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>
-                                <rect x="100" y="257" width="260" height="123" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
-                                <path d="M120,235 L140,290 L160,235 Z" fill="#0284c7"/>
-                                <path d="M300,235 L320,290 L340,235 Z" fill="#0284c7"/>
-                                <circle cx="230" cy="290" r="16" fill="#facc15" stroke="#78350f" stroke-width="1.5"/>
-                                <line x1="230" y1="278" x2="230" y2="302" stroke="#78350f" stroke-width="2"/>
-                                <line x1="220" y1="290" x2="240" y2="290" stroke="#78350f" stroke-width="2"/>
+                                <!-- Мраморная плита алтаря с золотым профилем -->
+                                <rect x="85" y="222" width="335" height="26" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+                                <line x1="88" y1="225" x2="417" y2="225" stroke="#facc15" stroke-width="2"/>
+                                <!-- Фронтон алтаря с лазурным шелковым покровом -->
+                                <rect x="94" y="248" width="317" height="132" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
+                                <!-- Синий священный покров со звездами -->
+                                <path d="M110,248 L135,320 L160,248 Z" fill="#0284c7" stroke="#facc15" stroke-width="1.2"/>
+                                <path d="M345,248 L370,320 L395,248 Z" fill="#0284c7" stroke="#facc15" stroke-width="1.2"/>
+                                <!-- Золотой крест в круге по центру алтаря -->
+                                <circle cx="252" cy="300" r="22" fill="#0f172a" stroke="#ca8a04" stroke-width="2"/>
+                                <line x1="252" y1="282" x2="252" y2="318" stroke="#facc15" stroke-width="3"/>
+                                <line x1="238" y1="296" x2="266" y2="296" stroke="#facc15" stroke-width="3"/>
 
-                                <g transform="translate(130, 205)">
-                                    <circle cx="0" cy="0" r="30" fill="url(#templeCandle)"/>
-                                    <rect x="-4" y="8" width="8" height="22" fill="#f8fafc" rx="1"/>
-                                    <polygon points="-2,8 0,0 2,8" fill="#fde047"/>
+                                <!-- СВЯЩЕННАЯ ЗОЛОТАЯ ЧАША В ЦЕНТРЕ АЛТАРЯ -->
+                                <g id="altar-chalice" transform="translate(252, 210)">
+                                    <path d="M-9,-4 Q0,-8 9,-4 L7,10 Q0,14 -7,10 Z" fill="#facc15" stroke="#78350f" stroke-width="1.2"/>
+                                    <line x1="0" y1="10" x2="0" y2="16" stroke="#ca8a04" stroke-width="2.5"/>
+                                    <ellipse cx="0" cy="16" rx="8" ry="3" fill="#facc15" stroke="#78350f" stroke-width="1"/>
+                                    <!-- Мягкое божественное сияние над чашей -->
+                                    <circle cx="0" cy="-6" r="14" fill="url(#roseWindowLight)" class="anim-chalice-glow"/>
+                                    <polygon points="-3,-4 0,-10 3,-4" fill="#ffffff"/>
                                 </g>
 
-                                <g transform="translate(330, 205)">
-                                    <circle cx="0" cy="0" r="30" fill="url(#templeCandle)"/>
-                                    <rect x="-4" y="8" width="8" height="22" fill="#f8fafc" rx="1"/>
-                                    <polygon points="-2,8 0,0 2,8" fill="#fde047"/>
+                                <!-- ЛЕВЫЙ ЗОЛОТОЙ КАНДЕЛЯБР СО СВЕЧАМИ -->
+                                <g id="candelabra-left" transform="translate(130, 185)">
+                                    <line x1="0" y1="12" x2="0" y2="40" stroke="#ca8a04" stroke-width="3"/>
+                                    <ellipse cx="0" cy="40" rx="10" ry="3.5" fill="#ca8a04"/>
+                                    <!-- 3 рожка со свечами -->
+                                    <line x1="-16" y1="20" x2="16" y2="20" stroke="#ca8a04" stroke-width="2"/>
+                                    <!-- Левая свеча -->
+                                    <circle cx="-16" cy="10" r="16" fill="url(#templeCandle)" class="anim-holy-candle"/>
+                                    <rect x="-18" y="14" width="4" height="12" fill="#f8fafc"/>
+                                    <polygon points="-17.5,14 -16,6 -14.5,14" fill="#fde047" class="anim-holy-candle"/>
+                                    <!-- Центральная свеча -->
+                                    <circle cx="0" cy="4" r="18" fill="url(#templeCandle)" class="anim-holy-candle"/>
+                                    <rect x="-2" y="8" width="4" height="15" fill="#f8fafc"/>
+                                    <polygon points="-1.5,8 0,0 1.5,8" fill="#fde047" class="anim-holy-candle"/>
+                                    <!-- Правая свеча -->
+                                    <circle cx="16" cy="10" r="16" fill="url(#templeCandle)" class="anim-holy-candle"/>
+                                    <rect x="14" y="14" width="4" height="12" fill="#f8fafc"/>
+                                    <polygon points="14.5,14 16,6 17.5,14" fill="#fde047" class="anim-holy-candle"/>
                                 </g>
+
+                                <!-- ПРАВЫЙ ЗОЛОТОЙ КАНДЕЛЯБР СО СВЕЧАМИ -->
+                                <g id="candelabra-right" transform="translate(370, 185)">
+                                    <line x1="0" y1="12" x2="0" y2="40" stroke="#ca8a04" stroke-width="3"/>
+                                    <ellipse cx="0" cy="40" rx="10" ry="3.5" fill="#ca8a04"/>
+                                    <line x1="-16" y1="20" x2="16" y2="20" stroke="#ca8a04" stroke-width="2"/>
+                                    <!-- Левая свеча -->
+                                    <circle cx="-16" cy="10" r="16" fill="url(#templeCandle)" class="anim-holy-candle"/>
+                                    <rect x="-18" y="14" width="4" height="12" fill="#f8fafc"/>
+                                    <polygon points="-17.5,14 -16,6 -14.5,14" fill="#fde047" class="anim-holy-candle"/>
+                                    <!-- Центральная свеча -->
+                                    <circle cx="0" cy="4" r="18" fill="url(#templeCandle)" class="anim-holy-candle"/>
+                                    <rect x="-2" y="8" width="4" height="15" fill="#f8fafc"/>
+                                    <polygon points="-1.5,8 0,0 1.5,8" fill="#fde047" class="anim-holy-candle"/>
+                                    <!-- Правая свеча -->
+                                    <circle cx="16" cy="10" r="16" fill="url(#templeCandle)" class="anim-holy-candle"/>
+                                    <rect x="14" y="14" width="4" height="12" fill="#f8fafc"/>
+                                    <polygon points="14.5,14 16,6 17.5,14" fill="#fde047" class="anim-holy-candle"/>
+                                </g>
+                            </g>
+
+                            <!-- ПАРЯЩИЕ СВЯЩЕННЫЕ ИСКРЫ МОЛИТВЫ В ХРАМЕ -->
+                            <g id="temple-prayer-motes" pointer-events="none">
+                                <circle cx="210" cy="200" r="1.8" fill="#fef08a" class="prayer-mote mote-1"/>
+                                <circle cx="280" cy="170" r="1.5" fill="#bae6fd" class="prayer-mote mote-2"/>
+                                <circle cx="170" cy="140" r="1.4" fill="#fef08a" class="prayer-mote mote-3"/>
+                                <circle cx="320" cy="190" r="1.6" fill="#fde047" class="prayer-mote mote-4"/>
+                                <circle cx="240" cy="260" r="2.0" fill="#ffffff" class="prayer-mote mote-5"/>
+                                <circle cx="190" cy="240" r="1.3" fill="#bae6fd" class="prayer-mote mote-6"/>
                             </g>
                         </svg>
                     </div>
@@ -238,9 +342,13 @@ export class TempleScreen {
                 }
             });
         } else {
+            this.updateStock();
+            const availableItems = this.relics.filter(i => !i.locked);
+            const lockedItems = this.relics.filter(i => i.locked);
+
             view.innerHTML = `
                 <div class="items-cards-grid">
-                    ${this.relics.map(item => `
+                    ${availableItems.map(item => `
                         <div class="item-trade-card">
                             <div class="item-trade-icon">${item.icon}</div>
                             <div class="item-trade-details">
@@ -252,20 +360,35 @@ export class TempleScreen {
                             </button>
                         </div>
                     `).join('')}
+
+                    ${lockedItems.map(item => `
+                        <div class="item-trade-card item-locked" title="Станет доступно при достижении ${item.reqLevel} уровня">
+                            <div class="item-trade-icon item-icon-locked">${item.icon}</div>
+                            <div class="item-trade-details">
+                                <div class="item-trade-title item-title-locked">
+                                    ${item.name}
+                                    <span class="badge-item-locked">${Icons.lock(11)} Ур. ${item.reqLevel}</span>
+                                </div>
+                                <div class="item-trade-desc">${item.desc}</div>
+                            </div>
+                            <button class="btn btn-secondary btn-locked-state" disabled>
+                                ${Icons.lock(12)} С ${item.reqLevel} ур.
+                            </button>
+                        </div>
+                    `).join('')}
                 </div>
             `;
 
             view.querySelectorAll('.btn-buy-relic').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const item = this.relics.find(i => i.id === btn.dataset.id);
+                    const item = this.relics.find(i => i.id === btn.dataset.id && !i.locked);
                     if (item && this.player.gold >= item.price) {
                         this.player.gold -= item.price;
-                        if (item.stat === 'defense') {
-                            this.player.defense += item.value;
-                        }
                         this.player.inventory.push({ ...item });
                         sound.playSfx('selectHero');
                         this.container.querySelector('#elysia-speech').textContent = `«${item.name} теперь освящает твой путь. Неси его с благоговением.»`;
+                        const goldVal = this.container.querySelector('#loc-gold-val');
+                        if (goldVal) goldVal.textContent = this.player.gold;
                         this.updateTabs();
                         this.renderTabContent();
                     }

@@ -122,7 +122,7 @@ export class NpcRenderer {
                     <path d="M${sL},94 Q120,88 ${sR},94 L156,245 L84,245 Z" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.2"/>
                     <path d="M106,94 L134,94 L130,245 L110,245 Z" fill="#0284c7"/>
                     <path d="M116,94 L124,94 L122,245 L118,245 Z" fill="#facc15"/>
-                    <path d="${sL},94 Q120,105 ${sR},94 L150,122 Q120,132 90,122 Z" fill="#0284c7"/>
+                    <path d="M${sL},94 Q120,105 ${sR},94 L150,122 Q120,132 90,122 Z" fill="#0284c7"/>
                     <line x1="${sL}" y1="94" x2="150" y2="122" stroke="#facc15" stroke-width="2"/>
                     <line x1="${sR}" y1="94" x2="90" y2="122" stroke="#facc15" stroke-width="2"/>
                     <circle cx="120" cy="118" r="6" fill="#facc15" stroke="#78350f" stroke-width="1"/>
@@ -219,7 +219,7 @@ export class NpcRenderer {
                     <g transform="translate(54, 138)">
                         <rect x="0" y="4" width="18" height="24" rx="3" fill="#78350f" stroke="#3b1704" stroke-width="1.5"/>
                         <path d="M18,9 Q24,14 18,21" stroke="#3b1704" stroke-width="2.5" fill="none"/>
-                        <path d="-2,4 Q9,-3 20,4 Z" fill="#fef08a"/>
+                        <path d="M-2,4 Q9,-3 20,4 Z" fill="#fef08a"/>
                         <circle cx="8" cy="16" r="5.5" fill="${config.skinColor}" stroke="#1c140d" stroke-width="0.8"/>
                     </g>
                     <path d="M152,96 L164,120 L162,122 L148,98 Z" fill="#d6cfc7" stroke="#2b231c" stroke-width="1"/>
@@ -268,8 +268,8 @@ export class NpcRenderer {
         let eyelashesSvg = '';
         if (isFemale) {
             eyelashesSvg = `
-                <path d="${eyeLX - 4},${eyeY - 2} Q${eyeLX},${eyeY - 4} ${eyeLX + 4},${eyeY - 2}" stroke="#1c120c" stroke-width="1.4" fill="none"/>
-                <path d="${eyeRX - 4},${eyeY - 2} Q${eyeRX},${eyeY - 4} ${eyeRX + 4},${eyeY - 2}" stroke="#1c120c" stroke-width="1.4" fill="none"/>
+                <path d="M${eyeLX - 4},${eyeY - 2} Q${eyeLX},${eyeY - 4} ${eyeLX + 4},${eyeY - 2}" stroke="#1c120c" stroke-width="1.4" fill="none"/>
+                <path d="M${eyeRX - 4},${eyeY - 2} Q${eyeRX},${eyeY - 4} ${eyeRX + 4},${eyeY - 2}" stroke="#1c120c" stroke-width="1.4" fill="none"/>
             `;
         }
 

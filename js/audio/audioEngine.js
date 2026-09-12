@@ -10,26 +10,83 @@ class ActiveTrackInstance {
         this.stepDuration = 60 / (track.bpm * 4);
         this.nextNoteTime = ctx.currentTime + 0.05;
         this.currentStep = 0;
+        this.stepInPattern = 0;
         this.isAlive = true;
+
+        this.currentVariationIndex = 0;
+        this.activeFlourishPattern = null;
+
+        // Инициализируем вариацию и проверяем 30% шанс на дополнительную строчку
+        this.initVariationCycle(true);
+    }
+
+    initVariationCycle(isInitial = false) {
+        const variations = this.track.variations;
+        if (variations && variations.length > 1) {
+            if (isInitial) {
+                this.currentVariationIndex = 0;
+            } else {
+                const count = variations.length;
+                let nextIdx = Math.floor(Math.random() * count);
+                if (nextIdx === this.currentVariationIndex && count > 1) {
+                    nextIdx = (nextIdx + 1 + Math.floor(Math.random() * (count - 1))) % count;
+                }
+                this.currentVariationIndex = nextIdx;
+            }
+        }
+
+        // Шанс 30% на проигрывание дополнительной украшающей строчки в текущем цикле
+        const extraLines = this.track.extraLines || [];
+        if (extraLines.length > 0 && Math.random() < 0.30) {
+            const fIdx = Math.floor(Math.random() * extraLines.length);
+            this.activeFlourishPattern = extraLines[fIdx];
+        } else {
+            this.activeFlourishPattern = null;
+        }
     }
 
     schedule(lookahead) {
-        const patternLen = this.track.leadPattern.length;
-
         while (this.nextNoteTime < this.ctx.currentTime + lookahead) {
-            const step = this.currentStep % patternLen;
-            const leadNote = this.track.leadPattern[step];
-            const bassNote = this.track.bassPattern[step];
+            const activeVar = (this.track.variations && this.track.variations[this.currentVariationIndex])
+                || { leadPattern: this.track.leadPattern, bassPattern: this.track.bassPattern };
+            const patternLen = (activeVar.leadPattern && activeVar.leadPattern.length) || 32;
 
-            if (leadNote) {
+            const step = this.stepInPattern % patternLen;
+
+            // Если завершился предыдущий цикл и начинается новый такт (шаг 0)
+            if (step === 0 && this.currentStep > 0) {
+                this.initVariationCycle(false);
+            }
+
+            // Читаем ноты для текущей вариации
+            const activeVarNow = (this.track.variations && this.track.variations[this.currentVariationIndex])
+                || { leadPattern: this.track.leadPattern, bassPattern: this.track.bassPattern };
+            const leadNote = activeVarNow.leadPattern ? activeVarNow.leadPattern[step] : null;
+            const bassNote = activeVarNow.bassPattern ? activeVarNow.bassPattern[step] : null;
+
+            if (leadNote && typeof this.track.playLead === 'function') {
                 this.track.playLead(this.ctx, this.gainNode, leadNote, this.nextNoteTime, this.stepDuration * 2.2);
             }
-            if (bassNote) {
+            if (bassNote && typeof this.track.playBass === 'function') {
                 this.track.playBass(this.ctx, this.gainNode, bassNote, this.nextNoteTime, this.stepDuration * 3.8);
+            }
+
+            // Дополнительная мелодическая строчка (flourish) при активации шанса 30%
+            if (this.activeFlourishPattern) {
+                const fStep = step % this.activeFlourishPattern.length;
+                const flourishNote = this.activeFlourishPattern[fStep];
+                if (flourishNote) {
+                    if (typeof this.track.playFlourish === 'function') {
+                        this.track.playFlourish(this.ctx, this.gainNode, flourishNote, this.nextNoteTime, this.stepDuration * 2.0);
+                    } else if (typeof this.track.playLead === 'function') {
+                        this.track.playLead(this.ctx, this.gainNode, flourishNote, this.nextNoteTime, this.stepDuration * 1.8);
+                    }
+                }
             }
 
             this.nextNoteTime += this.stepDuration;
             this.currentStep++;
+            this.stepInPattern = (this.stepInPattern + 1) % patternLen;
         }
     }
 
@@ -72,6 +129,7 @@ export class AudioEngine {
 
     init() {
         if (this.ctx) return;
+        if (typeof window === 'undefined') return;
 
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         this.ctx = new AudioContextClass();
@@ -169,7 +227,7 @@ export class AudioEngine {
 
     playSfx(name) {
         this.ensureReady();
-        if (this.isMuted) return;
+        if (this.isMuted || !this.ctx) return;
 
         if (typeof Sfx[name] === 'function') {
             Sfx[name](this.ctx, this.sfxGain);

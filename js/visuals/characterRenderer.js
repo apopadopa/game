@@ -1,5 +1,5 @@
 export class CharacterRenderer {
-    static render(visuals, classId) {
+    static render(visuals, classId, equipment = null) {
         const isFemale = visuals.gender === 'female';
 
         return `
@@ -25,23 +25,24 @@ export class CharacterRenderer {
 
                 <g filter="url(#hero-unified-outline)">
                     ${this.renderHairBack(visuals, isFemale)}
-                    ${this.renderQuiver(classId)}
-                    ${this.renderPants(visuals, isFemale)}
-                    ${this.renderBoots(isFemale)}
+                    ${this.renderQuiver(classId, equipment)}
+                    ${this.renderPants(visuals, isFemale, equipment)}
+                    ${this.renderBoots(visuals, isFemale, equipment)}
                     ${this.renderNeck(visuals)}
-                    ${this.renderTorso(visuals, classId, isFemale)}
-                    ${this.renderLeftArm(visuals, classId, isFemale)}
-                    ${this.renderRightArm(visuals, classId, isFemale)}
+                    ${this.renderTorso(visuals, classId, isFemale, equipment)}
+                    ${this.renderLeftArm(visuals, classId, isFemale, equipment)}
+                    ${this.renderRightArm(visuals, classId, isFemale, equipment)}
                     ${this.renderHead(visuals, isFemale)}
                     ${this.renderFaceFeatures(visuals, isFemale)}
                     ${this.renderAccessories(visuals, isFemale)}
                     ${this.renderHairFront(visuals, isFemale)}
+                    ${this.renderHelmet(equipment)}
                 </g>
             </svg>
         `;
     }
 
-    static renderBust(visuals, classId) {
+    static renderBust(visuals, classId, equipment = null) {
         const isFemale = visuals.gender === 'female';
 
         return `
@@ -55,11 +56,12 @@ export class CharacterRenderer {
                 <rect x="88" y="12" width="64" height="90" fill="url(#bustBg)"/>
                 ${this.renderHairBack(visuals, isFemale)}
                 ${this.renderNeck(visuals)}
-                ${this.renderTorso(visuals, classId, isFemale)}
+                ${this.renderTorso(visuals, classId, isFemale, equipment)}
                 ${this.renderHead(visuals, isFemale)}
                 ${this.renderFaceFeatures(visuals, isFemale)}
                 ${this.renderAccessories(visuals, isFemale)}
                 ${this.renderHairFront(visuals, isFemale)}
+                ${this.renderHelmet(equipment)}
             </svg>
         `;
     }
@@ -71,8 +73,9 @@ export class CharacterRenderer {
         `;
     }
 
-    static renderQuiver(classId) {
+    static renderQuiver(classId, equipment = null) {
         if (classId === 'ranger') {
+            if (equipment && !equipment.mainHand) return '';
             return `
                 <g transform="translate(138, 76)">
                     <rect x="0" y="10" width="10" height="54" rx="2" fill="#3a2515" stroke="#1c1109" stroke-width="1"/>
@@ -86,10 +89,24 @@ export class CharacterRenderer {
         return '';
     }
 
-    static renderPants(visuals, isFemale) {
+    static renderPants(visuals, isFemale, equipment = null) {
         const leftX = isFemale ? 105 : 102;
         const rightX = isFemale ? 121 : 122;
         const legW = isFemale ? 14 : 16;
+
+        // Если штаны сняты в инвентаре: нижнее льняное белье + голые ноги
+        if (equipment && !equipment.legs) {
+            return `
+                <g id="char-pants-bare">
+                    <!-- Голые ноги -->
+                    <path d="M${leftX},168 L${leftX + legW},168 L${leftX + legW - 1},228 L${leftX - 1},228 Z" fill="${visuals.skinColor}" stroke="#1b120c" stroke-width="0.8"/>
+                    <path d="M${rightX},168 L${rightX + legW},168 L${rightX + legW + 1},228 L${rightX + 1},228 Z" fill="${visuals.skinColor}" stroke="#1b120c" stroke-width="0.8"/>
+                    <!-- Простое исподнее белье -->
+                    <path d="M${leftX - 2},148 L${rightX + legW + 2},148 L${rightX + legW},172 L${rightX},172 L120,162 L${leftX + legW},172 L${leftX - 2},172 Z" fill="#b0a28f" stroke="#262018" stroke-width="1"/>
+                    <line x1="${leftX - 2}" y1="151" x2="${rightX + legW + 2}" y2="151" stroke="#695b4a" stroke-width="1.2"/>
+                </g>
+            `;
+        }
 
         return `
             <g id="char-pants">
@@ -100,10 +117,28 @@ export class CharacterRenderer {
         `;
     }
 
-    static renderBoots(isFemale) {
+    static renderBoots(visuals, isFemale, equipment = null) {
         const bL = isFemale ? 102 : 98;
         const bR = isFemale ? 123 : 122;
         const w = isFemale ? 16 : 18;
+
+        // Если обувь снята: босые ступни с пальцами
+        if (equipment && !equipment.boots) {
+            return `
+                <g id="char-bare-feet">
+                    <!-- Левая стопа -->
+                    <path d="M${bL},225 L${bL + w - 1},225 L${bL + w - 1},265 Q${bL + w - 2},270 ${bL + 1},270 L${bL - 2},270 L${bL},240 Z" fill="${visuals.skinColor}" stroke="#1b120c" stroke-width="0.8"/>
+                    <line x1="${bL + 3}" y1="266" x2="${bL + 3}" y2="270" stroke="#1b120c" stroke-width="0.8"/>
+                    <line x1="${bL + 7}" y1="266" x2="${bL + 7}" y2="270" stroke="#1b120c" stroke-width="0.8"/>
+                    <line x1="${bL + 11}" y1="266" x2="${bL + 11}" y2="270" stroke="#1b120c" stroke-width="0.8"/>
+                    <!-- Правая стопа -->
+                    <path d="M${bR},225 L${bR + w - 1},225 L${bR + w},240 L${bR + w + 1},270 L${bR - 1},270 Q${bR + 2},270 ${bR},265 Z" fill="${visuals.skinColor}" stroke="#1b120c" stroke-width="0.8"/>
+                    <line x1="${bR + 4}" y1="266" x2="${bR + 4}" y2="270" stroke="#1b120c" stroke-width="0.8"/>
+                    <line x1="${bR + 8}" y1="266" x2="${bR + 8}" y2="270" stroke="#1b120c" stroke-width="0.8"/>
+                    <line x1="${bR + 12}" y1="266" x2="${bR + 12}" y2="270" stroke="#1b120c" stroke-width="0.8"/>
+                </g>
+            `;
+        }
 
         return `
             <g id="char-boots">
@@ -128,11 +163,62 @@ export class CharacterRenderer {
         `;
     }
 
-    static renderTorso(visuals, classId, isFemale) {
+    static renderTorso(visuals, classId, isFemale, equipment = null) {
         const sL = isFemale ? 90 : 86;
         const sR = isFemale ? 150 : 154;
         const wL = isFemale ? 101 : 98;
         const wR = isFemale ? 139 : 142;
+
+        // Если броня снята: обнаженный торс / льняная нательная повязка
+        if (equipment && !equipment.torso) {
+            if (isFemale) {
+                return `
+                    <g id="char-torso-bare">
+                        <path d="M112,88 Q120,85 128,88 L${sR},96 Q${sR - 2},126 ${wR},152 L${wL},152 Q${sL + 2},126 ${sL},96 Z" fill="${visuals.skinColor}" stroke="#1c140d" stroke-width="1"/>
+                        <!-- Льняная нагрудная повязка -->
+                        <path d="M${sL + 5},108 L${sR - 5},108 L${sR - 7},134 L${sL + 7},134 Z" fill="#c4b59f" stroke="#262018" stroke-width="1.2"/>
+                        <line x1="${sL + 6}" y1="121" x2="${sR - 6}" y2="121" stroke="#8a7962" stroke-width="1.4"/>
+                        <circle cx="120" cy="144" r="1.5" fill="#875338" opacity="0.7"/>
+                    </g>
+                `;
+            } else {
+                return `
+                    <g id="char-torso-bare">
+                        <path d="M112,88 Q120,85 128,88 L${sR},96 Q${sR - 2},126 ${wR},152 L${wL},152 Q${sL + 2},126 ${sL},96 Z" fill="${visuals.skinColor}" stroke="#1c140d" stroke-width="1"/>
+                        <!-- Рельеф мускулатуры и ключиц -->
+                        <path d="M112,94 Q120,97 128,94" stroke="#1c140d" stroke-width="1.2" fill="none" opacity="0.3"/>
+                        <path d="M104,110 Q119,118 119,134 Q119,118 136,110" stroke="#1c140d" stroke-width="1.2" fill="none" opacity="0.35"/>
+                        <path d="M108,124 Q114,126 119,124 Q125,126 131,124" stroke="#1c140d" stroke-width="1" fill="none" opacity="0.3"/>
+                        <line x1="119" y1="125" x2="119" y2="148" stroke="#1c140d" stroke-width="1.1" opacity="0.3"/>
+                        <circle cx="111" cy="120" r="1.8" fill="#875338" opacity="0.8"/>
+                        <circle cx="128" cy="120" r="1.8" fill="#875338" opacity="0.8"/>
+                        <circle cx="119" cy="146" r="1.5" fill="#875338" opacity="0.7"/>
+                    </g>
+                `;
+            }
+        }
+
+        // Если надета кольчуга (из кузницы)
+        if (equipment && equipment.torso && equipment.torso.id === 'chainmail_vest') {
+            return `
+                <g id="char-torso-chainmail">
+                    <!-- Базовая кольчужная рубаха -->
+                    <path d="M112,88 Q120,85 128,88 L${sR},96 Q${sR - 2},126 ${wR},152 L${wL},152 Q${sL + 2},126 ${sL},96 Z" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                    <path d="M${wL},152 L${wR},152 L${wR + 4},166 L${wL - 4},166 Z" fill="#334155" stroke="#1e293b" stroke-width="1.2"/>
+                    <!-- Стальные наплечники -->
+                    <path d="M${sL - 2},94 Q${sL + 12},90 ${sL + 20},98 L${sL + 14},114 Q${sL + 4},108 ${sL - 2},112 Z" fill="#94a3b8" stroke="#1e293b" stroke-width="1"/>
+                    <path d="M${sR + 2},94 Q${sR - 12},90 ${sR - 20},98 L${sR - 14},114 Q${sR - 4},108 ${sR + 2},112 Z" fill="#94a3b8" stroke="#1e293b" stroke-width="1"/>
+                    <!-- Кольчужные ряды колец -->
+                    <line x1="${sL + 8}" y1="110" x2="${sR - 8}" y2="110" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+                    <line x1="${sL + 10}" y1="120" x2="${sR - 10}" y2="120" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3"/>
+                    <line x1="${sL + 12}" y1="130" x2="${sR - 12}" y2="130" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+                    <line x1="${sL + 14}" y1="140" x2="${sR - 14}" y2="140" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3"/>
+                    <!-- Прочный кожаный пояс с латунной пряжкой -->
+                    <rect x="${wL - 2}" y="144" width="${wR - wL + 4}" height="9" fill="#1c1917" stroke="#0f0703" stroke-width="1"/>
+                    <rect x="114" y="143" width="12" height="11" rx="1.5" fill="#eab308" stroke="#713f12" stroke-width="1"/>
+                </g>
+            `;
+        }
 
         let tunicBody = `
             <path d="M112,88 Q120,85 128,88 L${sR},96 Q${sR - 2},126 ${wR},152 L${wL},152 Q${sL + 2},126 ${sL},96 Z" fill="${visuals.outfitColor}" stroke="#1c140d" stroke-width="1.2"/>
@@ -158,7 +244,7 @@ export class CharacterRenderer {
             `;
             tunicOverlay = `
                 <path d="M115,90 L125,90 L128,244 L112,244 Z" fill="#383042"/>
-                <path d="${sL + 2},96 Q120,106 ${sR - 2},96 L${sR - 6},116 Q120,126 ${sL + 6},116 Z" fill="#292033"/>
+                <path d="M${sL + 2},96 Q120,106 ${sR - 2},96 L${sR - 6},116 Q120,126 ${sL + 6},116 Z" fill="#292033"/>
             `;
         } else if (classId === 'ranger') {
             tunicOverlay = `
@@ -180,29 +266,22 @@ export class CharacterRenderer {
         `;
     }
 
-    static renderLeftArm(visuals, classId, isFemale) {
+    static renderLeftArm(visuals, classId, isFemale, equipment = null) {
         const sX = isFemale ? 90 : 86;
+        const hasTorso = !equipment || !!equipment.torso;
+        const sleeveFill = hasTorso ? visuals.outfitColor : visuals.skinColor;
 
-        let weaponSvg = '';
-        if (classId === 'warrior') {
-            weaponSvg = `
+        let shieldSvg = '';
+        const hasShield = equipment ? !!equipment.offHand : (classId === 'warrior');
+
+        if (hasShield) {
+            shieldSvg = `
                 <g transform="translate(68, 145)">
-                    <circle cx="0" cy="0" r="18" fill="#473423" stroke="#21150c" stroke-width="2"/>
-                    <circle cx="0" cy="0" r="6" fill="#696259" stroke="#21150c" stroke-width="1.2"/>
-                </g>
-            `;
-        } else if (classId === 'rogue') {
-            weaponSvg = `
-                <g transform="translate(68, 142)">
-                    <path d="M-2,6 Q-6,28 0,48 L4,48 Q0,28 4,6 Z" fill="#88939c" stroke="#20252a" stroke-width="1"/>
-                    <rect x="-5" y="16" width="10" height="3" fill="#2b231c"/>
-                </g>
-            `;
-        } else if (classId === 'ranger') {
-            weaponSvg = `
-                <g transform="translate(64, 86)">
-                    <path d="M12,10 Q-6,68 12,126" stroke="#4a3321" stroke-width="3" fill="none" stroke-linecap="round"/>
-                    <line x1="12" y1="10" x2="12" y2="126" stroke="#d5dbdb" stroke-width="1"/>
+                    <circle cx="0" cy="0" r="19" fill="#3a2818" stroke="#1b120a" stroke-width="2"/>
+                    <circle cx="0" cy="0" r="16" fill="none" stroke="#71717a" stroke-width="1.5"/>
+                    <circle cx="0" cy="0" r="6" fill="#94a3b8" stroke="#334155" stroke-width="1.2"/>
+                    <line x1="-12" y1="0" x2="12" y2="0" stroke="#d4af37" stroke-width="1"/>
+                    <line x1="0" y1="-12" x2="0" y2="12" stroke="#d4af37" stroke-width="1"/>
                 </g>
             `;
         }
@@ -210,49 +289,93 @@ export class CharacterRenderer {
         return `
             <g id="char-left-arm">
                 <path d="M${sX + 4},96 L${sX - 6},124 L${sX - 14},150 L${sX - 6},152 L${sX + 2},126 L${sX + 8},98 Z" fill="${visuals.skinColor}" stroke="#1c140d" stroke-width="0.8"/>
-                <path d="M${sX + 5},96 L${sX - 5},120 L${sX + 3},122 L${sX + 9},98 Z" fill="${visuals.outfitColor}" stroke="#1c140d" stroke-width="1"/>
+                <path d="M${sX + 5},96 L${sX - 5},120 L${sX + 3},122 L${sX + 9},98 Z" fill="${sleeveFill}" stroke="#1c140d" stroke-width="1"/>
                 <circle cx="${sX - 10}" cy="150" r="5.5" fill="${visuals.skinColor}" stroke="#1c140d" stroke-width="0.8"/>
-                ${weaponSvg}
+                ${shieldSvg}
             </g>
         `;
     }
 
-    static renderRightArm(visuals, classId, isFemale) {
+    static renderRightArm(visuals, classId, isFemale, equipment = null) {
         const sX = isFemale ? 150 : 154;
+        const hasTorso = !equipment || !!equipment.torso;
+        const sleeveFill = hasTorso ? visuals.outfitColor : visuals.skinColor;
 
         let weaponSvg = '';
-        if (classId === 'warrior') {
-            weaponSvg = `
-                <g transform="translate(${sX + 10}, 66)">
-                    <rect x="-2" y="0" width="4" height="80" fill="#a4afba" stroke="#31373e" stroke-width="1"/>
-                    <rect x="-10" y="80" width="20" height="4.5" rx="1" fill="#4d4640" stroke="#1f1b17" stroke-width="0.8"/>
-                    <rect x="-1.5" y="84.5" width="3" height="15" fill="#2d1e13"/>
-                    <circle cx="0" cy="101" r="3.5" fill="#4d4640"/>
-                </g>
-            `;
-        } else if (classId === 'rogue') {
-            weaponSvg = `
-                <g transform="translate(${sX + 10}, 142) scale(-1, 1)">
-                    <path d="M-2,6 Q-6,28 0,48 L4,48 Q0,28 4,6 Z" fill="#88939c" stroke="#20252a" stroke-width="1"/>
-                    <rect x="-5" y="16" width="10" height="3" fill="#2b231c"/>
-                </g>
-            `;
-        } else if (classId === 'mage') {
-            weaponSvg = `
-                <g transform="translate(${sX + 10}, 56)">
-                    <rect x="-2" y="0" width="4.5" height="195" fill="#422f20" rx="2" stroke="#1c1209" stroke-width="1"/>
-                    <path d="-5,0 Q-8,-12 0,-16 Q8,-12 5,0 Z" fill="#5e442f"/>
-                    <circle cx="0" cy="-6" r="3.5" fill="#78c9e6" opacity="0.9"/>
-                </g>
-            `;
+        const hasWeapon = equipment ? !!equipment.mainHand : true;
+
+        if (hasWeapon) {
+            const weaponId = equipment?.mainHand?.id;
+            if (weaponId === 'iron_broadsword') {
+                // Широкий закаленный палаш с золотой гардой
+                weaponSvg = `
+                    <g transform="translate(${sX + 10}, 50)">
+                        <rect x="-3.5" y="0" width="7" height="96" fill="#cbd5e1" stroke="#334155" stroke-width="1"/>
+                        <line x1="0" y1="2" x2="0" y2="92" stroke="#64748b" stroke-width="1.2"/>
+                        <polygon points="0,-8 -3.5,0 3.5,0" fill="#cbd5e1"/>
+                        <rect x="-12" y="96" width="24" height="6" rx="1.5" fill="#ca8a04" stroke="#854d0e" stroke-width="1"/>
+                        <rect x="-2" y="102" width="4" height="18" fill="#451a03"/>
+                        <circle cx="0" cy="122" r="4.5" fill="#ca8a04" stroke="#854d0e" stroke-width="1"/>
+                    </g>
+                `;
+            } else if (classId === 'warrior') {
+                weaponSvg = `
+                    <g transform="translate(${sX + 10}, 66)">
+                        <rect x="-2" y="0" width="4" height="80" fill="#a4afba" stroke="#31373e" stroke-width="1"/>
+                        <rect x="-10" y="80" width="20" height="4.5" rx="1" fill="#4d4640" stroke="#1f1b17" stroke-width="0.8"/>
+                        <rect x="-1.5" y="84.5" width="3" height="15" fill="#2d1e13"/>
+                        <circle cx="0" cy="101" r="3.5" fill="#4d4640"/>
+                    </g>
+                `;
+            } else if (classId === 'rogue') {
+                weaponSvg = `
+                    <g transform="translate(${sX + 10}, 142) scale(-1, 1)">
+                        <path d="M-2,6 Q-6,28 0,48 L4,48 Q0,28 4,6 Z" fill="#88939c" stroke="#20252a" stroke-width="1"/>
+                        <rect x="-5" y="16" width="10" height="3" fill="#2b231c"/>
+                    </g>
+                `;
+            } else if (classId === 'mage') {
+                weaponSvg = `
+                    <g transform="translate(${sX + 10}, 56)">
+                        <rect x="-2" y="0" width="4.5" height="195" fill="#422f20" rx="2" stroke="#1c1209" stroke-width="1"/>
+                        <path d="M-5,0 Q-8,-12 0,-16 Q8,-12 5,0 Z" fill="#5e442f"/>
+                        <circle cx="0" cy="-6" r="3.5" fill="#78c9e6" opacity="0.9"/>
+                    </g>
+                `;
+            } else if (classId === 'ranger') {
+                weaponSvg = `
+                    <g transform="translate(${sX + 8}, 86)">
+                        <path d="M2,10 Q20,68 2,126" stroke="#4a3321" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <line x1="2" y1="10" x2="2" y2="126" stroke="#d5dbdb" stroke-width="1"/>
+                    </g>
+                `;
+            }
         }
 
         return `
             <g id="char-right-arm">
                 <path d="M${sX - 4},96 L${sX + 6},124 L${sX + 14},150 L${sX + 6},152 L${sX - 2},126 L${sX - 8},98 Z" fill="${visuals.skinColor}" stroke="#1c140d" stroke-width="0.8"/>
-                <path d="M${sX - 5},96 L${sX + 5},120 L${sX - 3},122 L${sX - 9},98 Z" fill="${visuals.outfitColor}" stroke="#1c140d" stroke-width="1"/>
+                <path d="M${sX - 5},96 L${sX + 5},120 L${sX - 3},122 L${sX - 9},98 Z" fill="${sleeveFill}" stroke="#1c140d" stroke-width="1"/>
                 ${weaponSvg}
                 <circle cx="${sX + 10}" cy="150" r="5.5" fill="${visuals.skinColor}" stroke="#1c140d" stroke-width="0.8"/>
+            </g>
+        `;
+    }
+
+    static renderHelmet(equipment = null) {
+        if (!equipment || !equipment.head) return '';
+        return `
+            <g id="char-helmet" transform="translate(120, 36)">
+                <!-- Купол шлема -->
+                <path d="M-20,12 C-21,-18 21,-18 20,12 L17,20 L-17,20 Z" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                <path d="M-18,2 C-19,-14 19,-14 18,2" stroke="#94a3b8" stroke-width="2" fill="none"/>
+                <!-- Верхний гребень/навершие -->
+                <polygon points="0,-20 -3,-10 3,-10" fill="#ca8a04"/>
+                <rect x="-16" y="16" width="32" height="4" fill="#334155" stroke="#1e293b" stroke-width="1"/>
+                <!-- Наносник (nasal guard) -->
+                <path d="M-3,16 L-2,30 L2,30 L3,16 Z" fill="#94a3b8" stroke="#1e293b" stroke-width="1"/>
+                <circle cx="-10" cy="18" r="1.5" fill="#facc15"/>
+                <circle cx="10" cy="18" r="1.5" fill="#facc15"/>
             </g>
         `;
     }
@@ -279,8 +402,8 @@ export class CharacterRenderer {
         let eyelashesSvg = '';
         if (isFemale) {
             eyelashesSvg = `
-                <path d="${eyeLX - 4},${eyeY - 2} Q${eyeLX},${eyeY - 4} ${eyeLX + 4},${eyeY - 2}" stroke="#1c120c" stroke-width="1.3" fill="none"/>
-                <path d="${eyeRX - 4},${eyeY - 2} Q${eyeRX},${eyeY - 4} ${eyeRX + 4},${eyeY - 2}" stroke="#1c120c" stroke-width="1.3" fill="none"/>
+                <path d="M${eyeLX - 4},${eyeY - 2} Q${eyeLX},${eyeY - 4} ${eyeLX + 4},${eyeY - 2}" stroke="#1c120c" stroke-width="1.3" fill="none"/>
+                <path d="M${eyeRX - 4},${eyeY - 2} Q${eyeRX},${eyeY - 4} ${eyeRX + 4},${eyeY - 2}" stroke="#1c120c" stroke-width="1.3" fill="none"/>
             `;
         }
 
@@ -464,5 +587,39 @@ export class CharacterRenderer {
             }
         }
         return '';
+    }
+
+    /**
+     * Отрисовка персонажа в полный рост для перемещения по подземелью
+     */
+    static renderDungeonFigure(visuals, classId, equipment = null, width = 64, height = 88) {
+        const isFemale = visuals.gender === 'female';
+
+        return `
+            <svg viewBox="0 0 240 300" width="${width}" height="${height}">
+                <defs>
+                    <radialGradient id="heroFeetShadow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#000000" stop-opacity="0.8"/>
+                        <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+                <ellipse cx="120" cy="272" rx="44" ry="9" fill="url(#heroFeetShadow)"/>
+                <g id="hero-figure-layers">
+                    ${this.renderHairBack(visuals, isFemale)}
+                    ${this.renderQuiver(classId, equipment)}
+                    ${this.renderPants(visuals, isFemale, equipment)}
+                    ${this.renderBoots(visuals, isFemale, equipment)}
+                    ${this.renderNeck(visuals)}
+                    ${this.renderTorso(visuals, classId, isFemale, equipment)}
+                    ${this.renderLeftArm(visuals, classId, isFemale, equipment)}
+                    ${this.renderRightArm(visuals, classId, isFemale, equipment)}
+                    ${this.renderHead(visuals, isFemale)}
+                    ${this.renderFaceFeatures(visuals, isFemale)}
+                    ${this.renderAccessories(visuals, isFemale)}
+                    ${this.renderHairFront(visuals, isFemale)}
+                    ${this.renderHelmet(equipment)}
+                </g>
+            </svg>
+        `;
     }
 }
