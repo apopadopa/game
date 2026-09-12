@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dungeon Crawler</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app-wrapper">
+        <header id="external-bar">
+            <span class="app-title">DUNGEON CRAWLER RPG</span>
+            <button id="btn-open-settings" class="external-btn">Настройки звука</button>
+        </header>
+
+        <div id="game-container">
+            <div id="screen-container"></div>
+        </div>
+
+        <div id="settings-modal" class="modal-backdrop hidden">
+            <div class="modal-window">
+                <div class="modal-header">
+                    <h3>Настройки звука</h3>
+                    <button id="btn-close-settings" class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-row">
+                        <div class="setting-label-row">
+                            <span>Общая громкость</span>
+                            <span id="label-master-val">80%</span>
+                        </div>
+                        <input type="range" id="slider-master" min="0" max="100" value="80">
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-label-row">
+                            <span>Музыка</span>
+                            <span id="label-music-val">50%</span>
+                        </div>
+                        <input type="range" id="slider-music" min="0" max="100" value="50">
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-label-row">
+                            <span>Звуковые эффекты</span>
+                            <span id="label-sfx-val">70%</span>
+                        </div>
+                        <input type="range" id="slider-sfx" min="0" max="100" value="70">
+                    </div>
+
+                    <div class="setting-row checkbox-row">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="chk-mute">
+                            <span class="checkmark"></span>
+                            Отключить весь звук
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
