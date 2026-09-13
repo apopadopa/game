@@ -5,6 +5,8 @@ import { CharacterRenderer } from '../../visuals/characterRenderer.js';
 import { NpcRenderer, NPC_CONFIGS } from '../../visuals/npcRenderer.js';
 import { Icons } from '../../visuals/icons.js';
 import { getTraderStock } from '../../data/itemsData.js';
+import { QuestSystem } from '../../services/questSystem.js';
+import { QuestRenderer } from '../../ui/questRenderer.js';
 
 export class ShopScreen {
     constructor(player, callbacks) {
@@ -27,7 +29,7 @@ export class ShopScreen {
             <div class="interior-screen">
                 <div class="interior-top-bar">
                     <div class="loc-character-badge">
-                        <div class="hud-avatar-frame">${CharacterRenderer.renderBust(this.player.visuals, this.player.classId)}</div>
+                        <div class="hud-avatar-frame">${CharacterRenderer.renderBust(this.player.visuals, this.player.classId, this.player.equipment)}</div>
                         <div class="loc-player-meta">
                             <span class="loc-player-name">${this.player.name}</span>
                             <span class="loc-gold">${Icons.coin(14)} <strong id="loc-gold-val">${this.player.gold}</strong></span>
@@ -243,11 +245,17 @@ export class ShopScreen {
                             <div class="npc-speech-bubble" id="rashid-speech">
                                 «Мир твоему пути, почтенный путник! Смотри, выбирай — редчайшие снадобья, древние пергаменты. А если принесёшь сокровища из глубин — взвешу на золотых весах без обмана!»
                             </div>
+                            <div id="npc-quest-prompt-slot">
+                                ${QuestRenderer.renderNpcQuestPrompts(this.player, 'rashid')}
+                            </div>
                         </div>
 
                         <div class="goods-tabs">
                             <button class="goods-tab-btn ${this.activeTab === 'buy' ? 'active' : ''}" id="tab-buy">Купить товары</button>
                             <button class="goods-tab-btn ${this.activeTab === 'sell' ? 'active' : ''}" id="tab-sell">Продать трофеи (${this.player.inventory.length})</button>
+                            <button class="goods-tab-btn ${this.activeTab === 'quests' ? 'active' : ''}" id="tab-quests">
+                                Поручения ${QuestSystem.hasAvailableQuestsForNpc(this.player, 'rashid') ? `<span class="badge-tab-count">${QuestSystem.getAvailableQuestsForNpc(this.player, 'rashid').length}</span>` : ''}
+                            </button>
                         </div>
 
                         <div class="goods-content-view" id="shop-goods-content"></div>
@@ -280,17 +288,72 @@ export class ShopScreen {
             this.updateTabs();
             this.renderGoodsList();
         });
+
+        const tabQuests = this.container.querySelector('#tab-quests');
+        if (tabQuests) {
+            tabQuests.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.activeTab = 'quests';
+                this.updateTabs();
+                this.renderGoodsList();
+            });
+        }
+
+        this.bindQuestPromptEvents();
+    }
+
+    bindQuestPromptEvents() {
+        const slot = this.container.querySelector('#npc-quest-prompt-slot');
+        if (!slot) return;
+        slot.querySelectorAll('.btn-quest-turnin').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const questId = btn.dataset.questId;
+                const res = QuestSystem.interactWithNpc(this.player, questId, 'rashid');
+                if (res.success) {
+                    this.container.querySelector('#rashid-speech').textContent = res.dialogText;
+                    slot.innerHTML = QuestRenderer.renderNpcQuestPrompts(this.player, 'rashid');
+                    this.updateTabs();
+                    this.renderGoodsList();
+                    this.bindQuestPromptEvents();
+                }
+            });
+        });
     }
 
     updateTabs() {
         this.container.querySelector('#tab-buy').classList.toggle('active', this.activeTab === 'buy');
         this.container.querySelector('#tab-sell').classList.toggle('active', this.activeTab === 'sell');
+        const tabQuests = this.container.querySelector('#tab-quests');
+        if (tabQuests) {
+            tabQuests.classList.toggle('active', this.activeTab === 'quests');
+            const availCount = QuestSystem.getAvailableQuestsForNpc(this.player, 'rashid').length;
+            tabQuests.innerHTML = `Поручения ${availCount > 0 ? `<span class="badge-tab-count">${availCount}</span>` : ''}`;
+        }
         this.container.querySelector('#tab-sell').textContent = `Продать трофеи (${this.player.inventory.length})`;
         this.container.querySelector('#loc-gold-val').textContent = this.player.gold;
     }
 
     renderGoodsList() {
         const view = this.container.querySelector('#shop-goods-content');
+
+        if (this.activeTab === 'quests') {
+            view.innerHTML = QuestRenderer.renderNpcQuestsTab(this.player, 'rashid');
+            view.querySelectorAll('.btn-accept-quest').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const questId = btn.dataset.questId;
+                    const res = QuestSystem.acceptQuest(this.player, questId);
+                    if (res.success) {
+                        this.container.querySelector('#rashid-speech').textContent = res.quest.dialogPending;
+                        const slot = this.container.querySelector('#npc-quest-prompt-slot');
+                        if (slot) slot.innerHTML = QuestRenderer.renderNpcQuestPrompts(this.player, 'rashid');
+                        this.updateTabs();
+                        this.renderGoodsList();
+                        this.bindQuestPromptEvents();
+                    }
+                });
+            });
+            return;
+        }
 
         if (this.activeTab === 'buy') {
             this.updateStock();

@@ -26,23 +26,30 @@ export class Player {
             critChance: 0
         };
 
+        this.tavernBuff = config.tavernBuff || null;
+        this.hasDefeatedFinalBoss = !!config.hasDefeatedFinalBoss;
+        this.quests = config.quests || { active: {}, completed: [] };
+
         this.equipment = config.equipment || {
             head: null,
-            torso: { id: 'starter_tunic', name: 'Холщовая рубаха', slot: 'torso', type: 'armor', defense: 2, desc: 'Простая одежда искателя приключений' },
+            torso: { id: 'starter_tunic', name: 'Холщовая рубаха', slot: 'torso', type: 'armor', defense: 1, desc: 'Простая одежда искателя приключений' },
             legs: { id: 'starter_pants', name: 'Походные штаны', slot: 'legs', type: 'armor', defense: 1, desc: 'Плотные штаны из грубой ткани' },
             boots: { id: 'starter_boots', name: 'Кожаные сапоги', slot: 'boots', type: 'armor', defense: 1, desc: 'Удобная обувь для дальних переходов' },
-            mainHand: { id: 'starter_weapon', name: this.getStarterWeaponName(this.classId), slot: 'mainHand', type: 'weapon', physicalDamage: 3, desc: 'Надежное базовое оружие' },
+            mainHand: { id: 'starter_weapon', name: this.getStarterWeaponName(this.classId), slot: 'mainHand', type: 'weapon', physicalDamage: 2, desc: 'Надежное базовое оружие' },
             offHand: null,
             accessory: null
         };
 
-        this.inventory = config.inventory || [
-            { id: 'starter_shield', name: 'Окованный баклер', desc: 'Легкий щит (+2 к защите)', price: 25, slot: 'offHand', type: 'shield', defense: 2 },
+        const defaultInventory = [
             { id: 'hp_potion', name: 'Зелье исцеления', desc: 'Мгновенно восстанавливает 50 HP', price: 20, type: 'potion', heal: 50 },
             { id: 'hp_potion', name: 'Зелье исцеления', desc: 'Мгновенно восстанавливает 50 HP', price: 20, type: 'potion', heal: 50 },
             { id: 'mp_potion', name: 'Зелье маны', desc: 'Восстанавливает 40 MP', price: 18, type: 'potion', mana: 40 },
             { id: 'torch', name: 'Факел катакомб', desc: 'Освещает тёмные залы и тайники', price: 12, type: 'tool' }
         ];
+        if (this.classId === 'warrior' && !this.equipment?.offHand) {
+            defaultInventory.unshift({ id: 'starter_shield', name: 'Окованный баклер', desc: 'Легкий щит (+1 к защите)', price: 25, slot: 'offHand', type: 'shield', defense: 1 });
+        }
+        this.inventory = config.inventory || defaultInventory;
 
         this.normalizeAllSlots();
         this.recalculateStats();
@@ -51,20 +58,55 @@ export class Player {
         this.currentMp = config.currentMp !== undefined ? Math.min(this.maxMp, config.currentMp) : this.maxMp;
     }
 
+    static isEquippable(item) {
+        if (!item || typeof item !== 'object') return false;
+
+        const type = (item.type || '').toLowerCase();
+        const nonEquipTypes = ['potion', 'scroll', 'tool', 'food', 'consumable', 'material', 'quest', 'junk'];
+        if (nonEquipTypes.includes(type)) return false;
+
+        const validSlots = ['mainHand', 'offHand', 'head', 'torso', 'legs', 'boots', 'accessory'];
+        if (item.slot && validSlots.includes(item.slot)) return true;
+
+        const inferred = Player.inferSlot(item);
+        return Boolean(inferred && validSlots.includes(inferred));
+    }
+
     normalizeAllSlots() {
+        const validSlots = ['mainHand', 'offHand', 'head', 'torso', 'legs', 'boots', 'accessory'];
         if (this.equipment) {
             for (const slotKey in this.equipment) {
                 const item = this.equipment[slotKey];
                 if (item) {
-                    item.slot = item.slot || slotKey || Player.inferSlot(item);
+                    if (!Player.isEquippable(item)) {
+                        delete item.slot;
+                        if (Array.isArray(this.inventory)) {
+                            this.inventory.push(item);
+                        }
+                        this.equipment[slotKey] = null;
+                    } else {
+                        const naturalSlot = item.slot || Player.inferSlot(item);
+                        if (naturalSlot !== slotKey) {
+                            if (Array.isArray(this.inventory)) {
+                                this.inventory.push(item);
+                            }
+                            this.equipment[slotKey] = null;
+                        } else {
+                            item.slot = slotKey;
+                        }
+                    }
                 }
             }
         }
         if (Array.isArray(this.inventory)) {
             for (const item of this.inventory) {
                 if (item) {
-                    const inferred = Player.inferSlot(item);
-                    if (inferred) item.slot = item.slot || inferred;
+                    if (!Player.isEquippable(item)) {
+                        delete item.slot;
+                    } else {
+                        const inferred = Player.inferSlot(item);
+                        if (inferred) item.slot = item.slot || inferred;
+                    }
                 }
             }
         }
@@ -72,13 +114,21 @@ export class Player {
 
     static inferSlot(item) {
         if (!item) return null;
+
+        const type = (item.type || '').toLowerCase();
+        const nonEquipTypes = ['potion', 'scroll', 'tool', 'food', 'consumable', 'material', 'quest', 'junk'];
+        if (nonEquipTypes.includes(type)) return null;
+
         if (item.slot) return item.slot;
 
         const id = (item.id || '').toLowerCase();
-        const type = (item.type || '').toLowerCase();
         const name = (item.name || '').toLowerCase();
 
-        if (id.includes('weapon') || id.includes('sword') || id.includes('blade') || id.includes('dagger') || id.includes('staff') || id.includes('bow') || type === 'weapon' || name.includes('меч') || name.includes('палаш') || name.includes('кинжал') || name.includes('посох') || name.includes('лук') || name.includes('оружие')) {
+        if (id.includes('potion') || id.includes('scroll') || id.includes('torch') || name.includes('зелье') || name.includes('свиток') || name.includes('факел') || name.includes('эликсир')) {
+            return null;
+        }
+
+        if (id.includes('weapon') || id.includes('sword') || id.includes('blade') || id.includes('dagger') || id.includes('staff') || id.includes('bow') || id.includes('axe') || type === 'weapon' || name.includes('меч') || name.includes('палаш') || name.includes('кинжал') || name.includes('посох') || name.includes('лук') || name.includes('топор') || name.includes('секира') || name.includes('оружие')) {
             return 'mainHand';
         }
         if (id.includes('shield') || id.includes('buckler') || type === 'shield' || name.includes('щит') || name.includes('баклер')) {
@@ -96,7 +146,7 @@ export class Player {
         if (id.includes('boots') || id.includes('shoes') || name.includes('сапоги') || name.includes('ботинки') || name.includes('обувь')) {
             return 'boots';
         }
-        if (id.includes('ring') || id.includes('amulet') || id.includes('relic') || type === 'relic' || name.includes('амулет') || name.includes('кольцо') || name.includes('сосуд')) {
+        if (id.includes('ring') || id.includes('amulet') || id.includes('relic') || type === 'relic' || name.includes('амулет') || name.includes('кольцо') || name.includes('реликвия') || (name.includes('сосуд') && type === 'relic')) {
             return 'accessory';
         }
         return null;
@@ -118,19 +168,31 @@ export class Player {
         this.maxHp = vitality * 15 + strength * 5;
         this.maxMp = intelligence * 12;
 
-        this.physicalDamage = Math.round(strength * 1.8 + agility * 0.6);
-        this.magicDamage = Math.round(intelligence * 2.0);
+        this.physicalDamage = Math.round(strength * 1.0 + agility * 0.3);
+        this.magicDamage = Math.round(intelligence * 1.2);
         this.critChance = Math.min(60, Math.round(agility * 1.5));
         this.dodgeChance = Math.min(40, Math.round(agility * 1.2));
-        this.defense = Math.round(vitality * 0.6 + strength * 0.3);
+        this.defense = Math.round(vitality * 0.25 + strength * 0.15);
 
         if (this.trait && this.trait.id === 'eagle_eye') this.critChance += 8;
-        if (this.trait && this.trait.id === 'thick_skin') this.defense += 4;
+        if (this.trait && this.trait.id === 'thick_skin') this.defense += 2;
 
         if (this.smithBonuses) {
             this.physicalDamage += (this.smithBonuses.physicalDamage || 0);
             this.defense += (this.smithBonuses.defense || 0);
             this.critChance += (this.smithBonuses.critChance || 0);
+        }
+
+        // Временный бафф из таверны (эль или еда): эффекты НЕ стакаются и действуют ограниченное время!
+        if (this.tavernBuff) {
+            if (this.tavernBuff.expiresAt && Date.now() > this.tavernBuff.expiresAt) {
+                this.tavernBuff = null;
+            } else {
+                if (this.tavernBuff.physicalDamage) this.physicalDamage += this.tavernBuff.physicalDamage;
+                if (this.tavernBuff.critChance) this.critChance += this.tavernBuff.critChance;
+                if (this.tavernBuff.maxHp) this.maxHp += this.tavernBuff.maxHp;
+                if (this.tavernBuff.maxMp) this.maxMp += this.tavernBuff.maxMp;
+            }
         }
 
         if (this.equipment) {
@@ -149,12 +211,64 @@ export class Player {
         }
     }
 
+    setTavernBuff(buff) {
+        // Заменяет предыдущий трактирный бафф — эффекты НЕ стакаются между собой!
+        const durationSec = buff.durationSeconds || 180;
+        this.tavernBuff = {
+            id: buff.id || 'tavern_buff',
+            name: buff.name || 'Трактирный бафф',
+            desc: buff.desc || '',
+            critChance: buff.critChance || 0,
+            physicalDamage: buff.physicalDamage || buff.damage || 0,
+            maxHp: buff.maxHp || 0,
+            maxMp: buff.maxMp || 0,
+            durationSeconds: durationSec,
+            expiresAt: Date.now() + durationSec * 1000
+        };
+
+        const prevHp = this.currentHp;
+        const prevMp = this.currentMp;
+        this.recalculateStats();
+        if (buff.maxHp && buff.maxHp > 0) {
+            this.currentHp = Math.min(this.maxHp, prevHp + buff.maxHp);
+        }
+        if (buff.maxMp && buff.maxMp > 0) {
+            this.currentMp = Math.min(this.maxMp, prevMp + buff.maxMp);
+        }
+    }
+
+    getTavernBuffRemainingSeconds() {
+        if (!this.tavernBuff || !this.tavernBuff.expiresAt) return 0;
+        const remMs = this.tavernBuff.expiresAt - Date.now();
+        if (remMs <= 0) {
+            this.tavernBuff = null;
+            this.recalculateStats();
+            if (this.currentHp > this.maxHp) this.currentHp = this.maxHp;
+            if (this.currentMp > this.maxMp) this.currentMp = this.maxMp;
+            return 0;
+        }
+        return Math.ceil(remMs / 1000);
+    }
+
+    getTavernBuffFormattedTime() {
+        const sec = this.getTavernBuffRemainingSeconds();
+        if (sec <= 0) return '';
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
     equipItem(inventoryIndex, targetSlot = null) {
         const item = this.inventory[inventoryIndex];
         if (!item) return false;
+        if (!Player.isEquippable(item)) return false;
 
-        const slot = targetSlot || item.slot || Player.inferSlot(item);
-        if (!slot) return false;
+        const naturalSlot = item.slot || Player.inferSlot(item);
+        if (!naturalSlot) return false;
+
+        const slot = targetSlot || naturalSlot;
+        if (slot !== naturalSlot) return false;
+
         item.slot = slot;
 
         const currentEquipped = this.equipment[slot];
@@ -229,27 +343,25 @@ export class Player {
         }
 
         if (item.type === 'food') {
-            let parts = [];
-            if (item.buffHp) {
-                this.maxHp += item.buffHp;
-                this.currentHp = Math.min(this.maxHp, this.currentHp + item.buffHp);
-                parts.push(`+${item.buffHp} к макс. HP`);
-            }
-            if (item.buffMp) {
-                this.maxMp += item.buffMp;
-                this.currentMp = Math.min(this.maxMp, this.currentMp + item.buffMp);
-                parts.push(`+${item.buffMp} к макс. MP`);
-            }
-            if (item.buffCrit) {
-                this.critChance = Math.min(80, this.critChance + item.buffCrit);
-                parts.push(`+${item.buffCrit}% к криту`);
-            }
-            if (item.buffDmg) {
-                this.physicalDamage += item.buffDmg;
-                parts.push(`+${item.buffDmg} к урону`);
-            }
+            const buffData = {
+                id: item.id,
+                name: item.name,
+                desc: item.desc,
+                critChance: item.buffCrit || 0,
+                physicalDamage: item.buffDmg || 0,
+                maxHp: item.buffHp || 0,
+                maxMp: item.buffMp || 0,
+                durationSeconds: 240 // 4 минуты действия
+            };
+            this.setTavernBuff(buffData);
             this.inventory.splice(inventoryIndex, 1);
-            return { success: true, msg: `Вкусно и сытно! ${parts.join(', ')}` };
+
+            let parts = [];
+            if (item.buffHp) parts.push(`+${item.buffHp} HP`);
+            if (item.buffMp) parts.push(`+${item.buffMp} MP`);
+            if (item.buffCrit) parts.push(`+${item.buffCrit}% крита`);
+            if (item.buffDmg) parts.push(`+${item.buffDmg} к урону`);
+            return { success: true, msg: `Сытно подкрепился! Активен бафф «${item.name}» на 4 мин (${parts.join(', ')}). Эффекты еды не стакаются!` };
         }
 
         return { success: false, msg: 'Этот предмет нельзя использовать прямо сейчас' };

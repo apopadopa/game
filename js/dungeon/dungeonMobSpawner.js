@@ -114,6 +114,17 @@ export class DungeonMobSpawner {
     ];
 
     /**
+     * Список самых слабых монстров, гарантированных для 1-го этажа подземелья
+     */
+    static FLOOR_1_WEAKEST_MOBS = [
+        'plague_rat',
+        'giant_bat',
+        'cave_kobold',
+        'goblin_scout',
+        'dungeon_slime'
+    ];
+
+    /**
      * Заселяет подземелье монстрами в соответствии с правилами
      * Гарантирует, что безопасные комнаты не встречаются более 2 раз подряд по пути игрока
      * @param {Object} dungeon - объект подземелья, содержащий floors
@@ -146,7 +157,7 @@ export class DungeonMobSpawner {
 
                     const bossCatalogData = MOBS_CATALOG.find(m => m.id === bossId);
                     if (bossCatalogData) {
-                        room.monster = generateMobInstance(bossCatalogData);
+                        room.monster = generateMobInstance(bossCatalogData, null, fNum);
                         room.hasMonster = true;
                         room.isMonsterDefeated = false;
                         consecutiveSafeRooms = 0;
@@ -190,12 +201,12 @@ export class DungeonMobSpawner {
                     continue;
                 }
 
-                // Подбираем тематически подходящего монстра
-                const mobId = this.selectThematicMobId(room.templateId, spawnConfig.tierWeight);
+                // Подбираем тематически подходящего монстра (с учетом этажа)
+                const mobId = this.selectThematicMobId(room.templateId, spawnConfig.tierWeight, fNum);
                 const mobCatalogData = MOBS_CATALOG.find(m => m.id === mobId);
 
                 if (mobCatalogData) {
-                    room.monster = generateMobInstance(mobCatalogData);
+                    room.monster = generateMobInstance(mobCatalogData, null, fNum);
                     room.hasMonster = true;
                     room.isMonsterDefeated = false;
                     consecutiveSafeRooms = 0;
@@ -267,7 +278,17 @@ export class DungeonMobSpawner {
     /**
      * Выбирает подходящего по теме комнаты и рангу монстра
      */
-    static selectThematicMobId(templateId, tierWeight) {
+    static selectThematicMobId(templateId, tierWeight, floorNum = null) {
+        // На 1 этаже всегда появляются исключительно самые слабые монстры!
+        if (floorNum === 1) {
+            const themeCandidates = this.THEMATIC_MOB_MAPPING[templateId] || [];
+            const matchingWeak = themeCandidates.filter(mobId => this.FLOOR_1_WEAKEST_MOBS.includes(mobId));
+            if (matchingWeak.length > 0) {
+                return matchingWeak[Math.floor(Math.random() * matchingWeak.length)];
+            }
+            return this.FLOOR_1_WEAKEST_MOBS[Math.floor(Math.random() * this.FLOOR_1_WEAKEST_MOBS.length)];
+        }
+
         // Определяем желаемый ранг на основе весов
         const targetTier = (Math.random() < tierWeight.hardened) ? MOB_TIERS.HARDENED : MOB_TIERS.REGULAR;
 

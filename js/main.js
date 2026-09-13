@@ -1,5 +1,6 @@
 import { MainMenu } from './screens/mainMenu.js';
 import { CharacterCreation } from './screens/characterCreation.js';
+import { StoryPrologueScreen } from './screens/storyPrologueScreen.js';
 import { TownScreen } from './screens/townScreen.js';
 import { InventoryScreen } from './screens/inventoryScreen.js';
 import { DungeonScreen } from './screens/dungeonScreen.js';
@@ -90,6 +91,12 @@ class Game {
             },
             onOpenBestiary: () => {
                 this.showBestiaryScreen();
+            },
+            onOpenPrologue: () => {
+                sound.playSfx('selectHero');
+                const samplePlayer = this.player || new Player({ name: 'Искатель приключений', classId: 'warrior' });
+                this.player = samplePlayer;
+                this.showPrologue();
             }
         });
         this.currentScreen.render(this.container);
@@ -123,6 +130,19 @@ class Game {
             onComplete: (createdPlayer) => {
                 sound.playSfx('selectHero');
                 this.player = createdPlayer;
+                this.showPrologue();
+            }
+        });
+        this.currentScreen.render(this.container);
+    }
+
+    showPrologue() {
+        if (this.currentScreen && typeof this.currentScreen.cleanup === 'function') {
+            this.currentScreen.cleanup();
+        }
+        this.previousScreenType = 'prologue';
+        this.currentScreen = new StoryPrologueScreen(this.player, {
+            onFinish: () => {
                 this.enterTown();
             }
         });
@@ -137,7 +157,7 @@ class Game {
         sound.switchMusic(townTheme, 1.6);
 
         this.currentScreen = new TownScreen(this.player, {
-            onOpenMenu: () => this.showInventoryMenu(),
+            onOpenMenu: (tab = 'inventory') => this.showInventoryMenu(null, tab),
             onEnterDungeon: () => this.enterDungeon()
         });
         this.currentScreen.render(this.container);
@@ -150,9 +170,9 @@ class Game {
         this.previousScreenType = 'dungeon';
 
         this.currentScreen = new DungeonScreen(this.player, {
-            onOpenMenu: (state) => {
+            onOpenMenu: (state, tab = 'inventory') => {
                 this.dungeonSavedState = state;
-                this.showInventoryMenu(() => this.enterDungeon());
+                this.showInventoryMenu(() => this.enterDungeon(), tab);
             },
             onExitToTown: (state) => {
                 this.dungeonSavedState = state;
@@ -182,6 +202,9 @@ class Game {
                         fl.rooms[room.roomIndex].isMonsterDefeated = true;
                     }
                 }
+                if (rewardData?.monster?.tier === 'final_boss' || (room && room.floorNum === 30 && room.isBossRoom)) {
+                    this.player.hasDefeatedFinalBoss = true;
+                }
                 this.enterDungeon();
             },
             onDefeat: () => {
@@ -195,7 +218,7 @@ class Game {
         this.currentScreen.render(this.container);
     }
 
-    showInventoryMenu(returnCallback = null) {
+    showInventoryMenu(returnCallback = null, initialTab = 'inventory') {
         if (this.currentScreen && typeof this.currentScreen.cleanup === 'function') {
             this.currentScreen.cleanup();
         }
@@ -211,7 +234,7 @@ class Game {
             onMainMenu: () => {
                 this.showMainMenu();
             }
-        });
+        }, initialTab);
         this.currentScreen.render(this.container);
     }
 }

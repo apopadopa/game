@@ -483,6 +483,17 @@ export class Icons {
         `;
     }
 
+    static message(size = 14) {
+        return `
+            <svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none">
+                <path d="M2 3C2 2.44772 2.44772 2 3 2H13C13.5523 2 14 2.44772 14 3V10C14 10.5523 13.5523 11 13 11H5L2 14V3Z" fill="#0284c7" stroke="#38bdf8" stroke-width="1" stroke-linejoin="round"/>
+                <circle cx="5" cy="6.5" r="1.1" fill="#f0f9ff"/>
+                <circle cx="8" cy="6.5" r="1.1" fill="#f0f9ff"/>
+                <circle cx="11" cy="6.5" r="1.1" fill="#f0f9ff"/>
+            </svg>
+        `;
+    }
+
     static palette(size = 14) {
         return `
             <svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none">
@@ -676,6 +687,107 @@ export class Icons {
                 <ellipse cx="10" cy="8" rx="3.5" ry="2.2" fill="#b91c1c" transform="rotate(-25 10 8)"/>
                 <line x1="3" y1="14" x2="6" y2="10" stroke="#f1f5f9" stroke-width="2.2" stroke-linecap="round"/>
                 <circle cx="2.5" cy="14.5" r="1.5" fill="#e2e8f0"/>
+            </svg>
+        `;
+    }
+
+    static chest(size = 22, isOpened = false, type = 'wooden') {
+        let bodyFill = '#78350f';
+        let strokeColor = '#451a03';
+        let bandColor = '#ca8a04';
+        let lockColor = '#facc15';
+
+        if (type === 'iron') {
+            bodyFill = '#334155';
+            strokeColor = '#1e293b';
+            bandColor = '#94a3b8';
+            lockColor = '#38bdf8';
+        } else if (type === 'gilded') {
+            bodyFill = '#854d0e';
+            strokeColor = '#451a03';
+            bandColor = '#facc15';
+            lockColor = '#ef4444';
+        } else if (type === 'ancient') {
+            bodyFill = '#2e1065';
+            strokeColor = '#170638';
+            bandColor = '#c084fc';
+            lockColor = '#f0abfc';
+        }
+
+        if (isOpened) {
+            return `
+                <svg class="svg-icon chest-icon opened" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
+                    <!-- Нижний корпус открытого сундука -->
+                    <rect x="3" y="10" width="18" height="11" rx="2" fill="${bodyFill}" stroke="${strokeColor}" stroke-width="1.5"/>
+                    <!-- Оковки -->
+                    <rect x="6" y="10" width="3" height="11" fill="${bandColor}"/>
+                    <rect x="15" y="10" width="3" height="11" fill="${bandColor}"/>
+                    <!-- Золотое свечение и сокровища внутри -->
+                    <ellipse cx="12" cy="10" rx="6" ry="2.5" fill="#fef08a"/>
+                    <circle cx="9.5" cy="9.5" r="1.5" fill="#facc15"/>
+                    <circle cx="12" cy="9" r="1.5" fill="#fbbf24"/>
+                    <circle cx="14.5" cy="9.5" r="1.5" fill="#f59e0b"/>
+                    <!-- Откинутая крышка сундука -->
+                    <polygon points="2,4 22,4 20,9 4,9" fill="${bodyFill}" stroke="${strokeColor}" stroke-width="1.5"/>
+                    <line x1="6" y1="4" x2="7.5" y2="9" stroke="${bandColor}" stroke-width="2"/>
+                    <line x1="18" y1="4" x2="16.5" y2="9" stroke="${bandColor}" stroke-width="2"/>
+                </svg>
+            `;
+        }
+
+        return `
+            <svg class="svg-icon chest-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
+                <!-- Нижняя часть сундука -->
+                <rect x="3" y="9" width="18" height="12" rx="1.5" fill="${bodyFill}" stroke="${strokeColor}" stroke-width="1.5"/>
+                <!-- Верхняя скругленная крышка -->
+                <path d="M3,9 C3,4 21,4 21,9 Z" fill="${bodyFill}" stroke="${strokeColor}" stroke-width="1.5"/>
+                <!-- Металлические полосы-оковки -->
+                <path d="M7,5.5 C7,5.5 7,20 7,20" stroke="${bandColor}" stroke-width="2"/>
+                <path d="M17,5.5 C17,5.5 17,20 17,20" stroke="${bandColor}" stroke-width="2"/>
+                <!-- Центральный замок-накладка -->
+                <rect x="10" y="8" width="4" height="6" rx="1" fill="${lockColor}" stroke="${strokeColor}" stroke-width="0.8"/>
+                <circle cx="12" cy="10.5" r="0.9" fill="#1c1917"/>
+                <line x1="12" y1="11" x2="12" y2="13" stroke="#1c1917" stroke-width="0.8"/>
+            </svg>
+        `;
+    }
+
+    static key(size = 16) {
+        return `
+            <svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none">
+                <circle cx="5" cy="6" r="3.5" fill="#ca8a04" stroke="#854d0e" stroke-width="1.2"/>
+                <circle cx="5" cy="6" r="1.5" fill="#18181b"/>
+                <path d="M8 6H14V8H12V10H10V6" stroke="#ca8a04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        `;
+    }
+
+    static gem(size = 16, color = '#38bdf8') {
+        return `
+            <svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none">
+                <polygon points="4,2 12,2 15,6 8,14 1,6" fill="${color}" stroke="#0f172a" stroke-width="1"/>
+                <polygon points="4,2 12,2 10,6 6,6" fill="#f8fafc" opacity="0.4"/>
+                <line x1="6" y1="6" x2="8" y2="14" stroke="#f8fafc" stroke-width="0.8" opacity="0.5"/>
+                <line x1="10" y1="6" x2="8" y2="14" stroke="#0f172a" stroke-width="0.8" opacity="0.5"/>
+            </svg>
+        `;
+    }
+
+    static check(size = 16) {
+        return `
+            <svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" fill="#16a34a" stroke="#14532d" stroke-width="1"/>
+                <path d="M4.5 8.5L6.5 10.5L11.5 5.5" stroke="#f0fdf4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        `;
+    }
+
+    static warning(size = 16) {
+        return `
+            <svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none">
+                <polygon points="8,2 15,14 1,14" fill="#ca8a04" stroke="#854d0e" stroke-width="1"/>
+                <line x1="8" y1="6" x2="8" y2="10" stroke="#1c1917" stroke-width="1.8" stroke-linecap="round"/>
+                <circle cx="8" cy="12" r="0.9" fill="#1c1917"/>
             </svg>
         `;
     }

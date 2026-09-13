@@ -9,12 +9,18 @@ export class MobRenderer {
      * @param {number} height - высота SVG
      * @param {boolean} isInspect - флаг детального режима (увеличенный масштаб и доп. эффекты)
      */
-    static render(mob, width = 180, height = 220, isInspect = false) {
+    static render(mob, width = 180, height = 220, isInspect = false, facing = 'auto') {
         const arch = mob.archetype || 'goblin';
         const skin = mob.skinColor || '#4d7c0f';
         const armor = mob.armorColor || '#78350f';
         const glow = mob.glowColor || '#38bdf8';
         const uniqueId = `mob_${mob.id || 'x'}_${Math.floor(Math.random() * 10000)}`;
+
+        // Определение направления взгляда моба
+        const dir = (facing !== 'auto' && facing !== null && facing !== undefined) ? facing : (mob.facing || 'auto');
+        const rightFacingArchs = ['kobold', 'rat', 'gnoll', 'crypt_chimera'];
+        const isRightFacingArch = rightFacingArchs.includes(arch);
+        const shouldFlip = isRightFacingArch && (dir === 'left' || dir === -1);
 
         let defsHtml = '';
         let auraHtml = '';
@@ -57,7 +63,7 @@ export class MobRenderer {
                 <!-- Теневой пьедестал под лапами/ногами монстра -->
                 ${pedestalHtml}
                 <!-- Фигура монстра -->
-                <g id="mob-actor-${uniqueId}">
+                <g id="mob-actor-${uniqueId}" ${shouldFlip ? 'transform="translate(200, 0) scale(-1, 1)"' : ''}>
                     ${this.renderArchetype(arch, skin, armor, glow, mob.weaponId, isInspect)}
                 </g>
             </svg>

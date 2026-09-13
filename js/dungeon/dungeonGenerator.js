@@ -24,6 +24,15 @@ export class DungeonGenerator {
             // Если rtl: лестница в endRoomIdx (0), босс в endRoomIdx + 1 (1)
             const bossRoomIdx = isBossFloor ? (isOddFloor ? endRoomIdx - 1 : endRoomIdx + 1) : null;
 
+            // Определение типа сундуков для этажа и выбор комнат с сокровищами
+            let floorChestType = 'wooden';
+            if (f >= 24) floorChestType = 'ancient';
+            else if (f >= 16) floorChestType = 'gilded';
+            else if (f >= 8) floorChestType = 'iron';
+
+            const candidateChestIndices = [1, 2, 3, 4, 5].filter(idx => idx !== bossRoomIdx && !(f === 1 && idx === 0));
+            const regularChestIdx = candidateChestIndices[Math.floor(Math.random() * candidateChestIndices.length)];
+
             const rooms = [];
 
             for (let r = 0; r < roomsPerFloor; r++) {
@@ -32,6 +41,17 @@ export class DungeonGenerator {
                 const hasStairsUp = (r === startRoomIdx);
                 const hasStairsDown = (r === endRoomIdx && f < totalFloors);
                 const isFinalVault = (f === totalFloors && r === endRoomIdx);
+
+                let hasChest = false;
+                let roomChestType = floorChestType;
+
+                if (isBossRoom && !isFinalVault) {
+                    hasChest = true;
+                    roomChestType = (f >= 24) ? 'ancient' : (f >= 15 ? 'gilded' : 'iron');
+                } else if (r === regularChestIdx && !isFinalVault && !(f === 1 && r === 0)) {
+                    hasChest = true;
+                    roomChestType = floorChestType;
+                }
 
                 if (f === 1 && r === 0) {
                     templateId = 'entrance_hall';
@@ -94,7 +114,10 @@ export class DungeonGenerator {
                     hasStairsUp,
                     hasStairsDown,
                     stairsUpTarget,
-                    stairsDownTarget
+                    stairsDownTarget,
+                    hasChest,
+                    chestType: hasChest ? roomChestType : null,
+                    chestOpened: false
                 });
             }
 

@@ -1,3 +1,5 @@
+import { EquipmentVisuals } from './equipmentVisuals.js';
+
 export class CharacterRenderer {
     static render(visuals, classId, equipment = null) {
         const isFemale = visuals.gender === 'female';
@@ -26,8 +28,8 @@ export class CharacterRenderer {
                 <g filter="url(#hero-unified-outline)">
                     ${this.renderHairBack(visuals, isFemale)}
                     ${this.renderQuiver(classId, equipment)}
-                    ${this.renderPants(visuals, isFemale, equipment)}
-                    ${this.renderBoots(visuals, isFemale, equipment)}
+                    ${this.renderPants(visuals, classId, isFemale, equipment)}
+                    ${this.renderBoots(visuals, classId, isFemale, equipment)}
                     ${this.renderNeck(visuals)}
                     ${this.renderTorso(visuals, classId, isFemale, equipment)}
                     ${this.renderLeftArm(visuals, classId, isFemale, equipment)}
@@ -89,7 +91,7 @@ export class CharacterRenderer {
         return '';
     }
 
-    static renderPants(visuals, isFemale, equipment = null) {
+    static renderPants(visuals, classId, isFemale, equipment = null) {
         const leftX = isFemale ? 105 : 102;
         const rightX = isFemale ? 121 : 122;
         const legW = isFemale ? 14 : 16;
@@ -108,16 +110,11 @@ export class CharacterRenderer {
             `;
         }
 
-        return `
-            <g id="char-pants">
-                <path d="M${leftX},148 L${leftX + legW},148 L${leftX + legW - 1},228 L${leftX - 2},228 Z" fill="#4d4235" stroke="#262018" stroke-width="1.2"/>
-                <path d="M${rightX},148 L${rightX + legW},148 L${rightX + legW + 2},228 L${rightX + 1},228 Z" fill="#574b3d" stroke="#262018" stroke-width="1.2"/>
-                <path d="M${leftX + legW},148 L120,162 L${rightX},148 Z" fill="#362e24"/>
-            </g>
-        `;
+        const legsId = equipment?.legs?.id || 'starter_pants';
+        return EquipmentVisuals.renderPants(legsId, { visuals, classId, isFemale, isHero: true });
     }
 
-    static renderBoots(visuals, isFemale, equipment = null) {
+    static renderBoots(visuals, classId, isFemale, equipment = null) {
         const bL = isFemale ? 102 : 98;
         const bR = isFemale ? 123 : 122;
         const w = isFemale ? 16 : 18;
@@ -140,18 +137,8 @@ export class CharacterRenderer {
             `;
         }
 
-        return `
-            <g id="char-boots">
-                <path d="M${bL},220 L${bL + w},220 L${bL + w - 1},270 L${bL - 3},270 Z" fill="#322013" stroke="#160d07" stroke-width="1.2"/>
-                <path d="M${bR},220 L${bR + w},220 L${bR + w + 3},270 L${bR + 1},270 Z" fill="#322013" stroke="#160d07" stroke-width="1.2"/>
-
-                <rect x="${bL - 2}" y="219" width="${w + 3}" height="7" rx="1.5" fill="#472f1e" stroke="#160d07" stroke-width="1"/>
-                <rect x="${bR - 1}" y="219" width="${w + 3}" height="7" rx="1.5" fill="#472f1e" stroke="#160d07" stroke-width="1"/>
-
-                <line x1="${bL - 3}" y1="269" x2="${bL + w - 1}" y2="269" stroke="#110904" stroke-width="2.5"/>
-                <line x1="${bR + 1}" y1="269" x2="${bR + w + 3}" y2="269" stroke="#110904" stroke-width="2.5"/>
-            </g>
-        `;
+        const bootsId = equipment?.boots?.id || 'starter_boots';
+        return EquipmentVisuals.renderBoots(bootsId, { visuals, classId, isFemale, isHero: true });
     }
 
     static renderNeck(visuals) {
@@ -198,26 +185,14 @@ export class CharacterRenderer {
             }
         }
 
-        // Если надета кольчуга (из кузницы)
-        if (equipment && equipment.torso && equipment.torso.id === 'chainmail_vest') {
-            return `
-                <g id="char-torso-chainmail">
-                    <!-- Базовая кольчужная рубаха -->
-                    <path d="M112,88 Q120,85 128,88 L${sR},96 Q${sR - 2},126 ${wR},152 L${wL},152 Q${sL + 2},126 ${sL},96 Z" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
-                    <path d="M${wL},152 L${wR},152 L${wR + 4},166 L${wL - 4},166 Z" fill="#334155" stroke="#1e293b" stroke-width="1.2"/>
-                    <!-- Стальные наплечники -->
-                    <path d="M${sL - 2},94 Q${sL + 12},90 ${sL + 20},98 L${sL + 14},114 Q${sL + 4},108 ${sL - 2},112 Z" fill="#94a3b8" stroke="#1e293b" stroke-width="1"/>
-                    <path d="M${sR + 2},94 Q${sR - 12},90 ${sR - 20},98 L${sR - 14},114 Q${sR - 4},108 ${sR + 2},112 Z" fill="#94a3b8" stroke="#1e293b" stroke-width="1"/>
-                    <!-- Кольчужные ряды колец -->
-                    <line x1="${sL + 8}" y1="110" x2="${sR - 8}" y2="110" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
-                    <line x1="${sL + 10}" y1="120" x2="${sR - 10}" y2="120" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3"/>
-                    <line x1="${sL + 12}" y1="130" x2="${sR - 12}" y2="130" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
-                    <line x1="${sL + 14}" y1="140" x2="${sR - 14}" y2="140" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3"/>
-                    <!-- Прочный кожаный пояс с латунной пряжкой -->
-                    <rect x="${wL - 2}" y="144" width="${wR - wL + 4}" height="9" fill="#1c1917" stroke="#0f0703" stroke-width="1"/>
-                    <rect x="114" y="143" width="12" height="11" rx="1.5" fill="#eab308" stroke="#713f12" stroke-width="1"/>
-                </g>
-            `;
+        // Если надета экипировка на торс
+        if (equipment && equipment.torso) {
+            return EquipmentVisuals.renderTorso(equipment.torso.id, {
+                visuals,
+                classId,
+                isFemale,
+                isHero: true
+            });
         }
 
         let tunicBody = `
@@ -266,24 +241,53 @@ export class CharacterRenderer {
         `;
     }
 
+    static getTorsoSleeveColor(visuals, equipment) {
+        const hasTorso = !equipment || !!equipment.torso;
+        if (!hasTorso) return visuals.skinColor;
+
+        const torsoId = equipment?.torso?.id || 'starter_tunic';
+        if (torsoId === 'starter_tunic' || torsoId === 'starter_torso' || torsoId === 'gambeson') {
+            return visuals.outfitColor || '#5a4634';
+        }
+
+        const torsoSleeveColors = {
+            chainmail_vest: '#475569',
+            scale_mail_cuirass: '#78350f',
+            knight_plate_armor: '#94a3b8',
+            mithril_cuirass_of_titans: '#1e3a8a',
+            immortal_dragon_armor: '#7f1d1d',
+            bone_golem_ribcage: '#1c1917',
+            arachna_silk_mantle: '#3b0764',
+            astral_weave_robe: '#0f172a',
+            demonic_carapace: '#18181b',
+            cuirass_of_the_unbroken: '#f8fafc',
+            regalia_of_genesis: '#fef08a',
+            thief_leather_vest: '#262626',
+            shadow_leather_armor: '#1e1b4b',
+            assassin_garb: '#18181b',
+            nightstalker_tunic: '#09090b',
+            apprentice_robe: '#1e1b4b',
+            elemental_robe: '#1e293b',
+            sorcerer_vestments: '#3b0764',
+            archmage_robe: '#0f172a',
+            hunter_tunic: '#27272a',
+            scout_leather_jerkin: '#14532d',
+            ranger_camouflage_armor: '#166534',
+            warden_coat: '#064e3b'
+        };
+        return torsoSleeveColors[torsoId] || visuals.outfitColor;
+    }
+
     static renderLeftArm(visuals, classId, isFemale, equipment = null) {
         const sX = isFemale ? 90 : 86;
-        const hasTorso = !equipment || !!equipment.torso;
-        const sleeveFill = hasTorso ? visuals.outfitColor : visuals.skinColor;
+        const sleeveFill = this.getTorsoSleeveColor(visuals, equipment);
 
         let shieldSvg = '';
         const hasShield = equipment ? !!equipment.offHand : (classId === 'warrior');
 
         if (hasShield) {
-            shieldSvg = `
-                <g transform="translate(68, 145)">
-                    <circle cx="0" cy="0" r="19" fill="#3a2818" stroke="#1b120a" stroke-width="2"/>
-                    <circle cx="0" cy="0" r="16" fill="none" stroke="#71717a" stroke-width="1.5"/>
-                    <circle cx="0" cy="0" r="6" fill="#94a3b8" stroke="#334155" stroke-width="1.2"/>
-                    <line x1="-12" y1="0" x2="12" y2="0" stroke="#d4af37" stroke-width="1"/>
-                    <line x1="0" y1="-12" x2="0" y2="12" stroke="#d4af37" stroke-width="1"/>
-                </g>
-            `;
+            const shieldId = equipment?.offHand?.id || 'round_wooden_shield';
+            shieldSvg = EquipmentVisuals.renderShield(shieldId, { isHero: true });
         }
 
         return `
@@ -298,58 +302,14 @@ export class CharacterRenderer {
 
     static renderRightArm(visuals, classId, isFemale, equipment = null) {
         const sX = isFemale ? 150 : 154;
-        const hasTorso = !equipment || !!equipment.torso;
-        const sleeveFill = hasTorso ? visuals.outfitColor : visuals.skinColor;
+        const sleeveFill = this.getTorsoSleeveColor(visuals, equipment);
 
         let weaponSvg = '';
         const hasWeapon = equipment ? !!equipment.mainHand : true;
 
         if (hasWeapon) {
             const weaponId = equipment?.mainHand?.id;
-            if (weaponId === 'iron_broadsword') {
-                // Широкий закаленный палаш с золотой гардой
-                weaponSvg = `
-                    <g transform="translate(${sX + 10}, 50)">
-                        <rect x="-3.5" y="0" width="7" height="96" fill="#cbd5e1" stroke="#334155" stroke-width="1"/>
-                        <line x1="0" y1="2" x2="0" y2="92" stroke="#64748b" stroke-width="1.2"/>
-                        <polygon points="0,-8 -3.5,0 3.5,0" fill="#cbd5e1"/>
-                        <rect x="-12" y="96" width="24" height="6" rx="1.5" fill="#ca8a04" stroke="#854d0e" stroke-width="1"/>
-                        <rect x="-2" y="102" width="4" height="18" fill="#451a03"/>
-                        <circle cx="0" cy="122" r="4.5" fill="#ca8a04" stroke="#854d0e" stroke-width="1"/>
-                    </g>
-                `;
-            } else if (classId === 'warrior') {
-                weaponSvg = `
-                    <g transform="translate(${sX + 10}, 66)">
-                        <rect x="-2" y="0" width="4" height="80" fill="#a4afba" stroke="#31373e" stroke-width="1"/>
-                        <rect x="-10" y="80" width="20" height="4.5" rx="1" fill="#4d4640" stroke="#1f1b17" stroke-width="0.8"/>
-                        <rect x="-1.5" y="84.5" width="3" height="15" fill="#2d1e13"/>
-                        <circle cx="0" cy="101" r="3.5" fill="#4d4640"/>
-                    </g>
-                `;
-            } else if (classId === 'rogue') {
-                weaponSvg = `
-                    <g transform="translate(${sX + 10}, 142) scale(-1, 1)">
-                        <path d="M-2,6 Q-6,28 0,48 L4,48 Q0,28 4,6 Z" fill="#88939c" stroke="#20252a" stroke-width="1"/>
-                        <rect x="-5" y="16" width="10" height="3" fill="#2b231c"/>
-                    </g>
-                `;
-            } else if (classId === 'mage') {
-                weaponSvg = `
-                    <g transform="translate(${sX + 10}, 56)">
-                        <rect x="-2" y="0" width="4.5" height="195" fill="#422f20" rx="2" stroke="#1c1209" stroke-width="1"/>
-                        <path d="M-5,0 Q-8,-12 0,-16 Q8,-12 5,0 Z" fill="#5e442f"/>
-                        <circle cx="0" cy="-6" r="3.5" fill="#78c9e6" opacity="0.9"/>
-                    </g>
-                `;
-            } else if (classId === 'ranger') {
-                weaponSvg = `
-                    <g transform="translate(${sX + 8}, 86)">
-                        <path d="M2,10 Q20,68 2,126" stroke="#4a3321" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <line x1="2" y1="10" x2="2" y2="126" stroke="#d5dbdb" stroke-width="1"/>
-                    </g>
-                `;
-            }
+            weaponSvg = EquipmentVisuals.renderWeapon(weaponId, { isHero: true, classId, sX });
         }
 
         return `
@@ -364,20 +324,7 @@ export class CharacterRenderer {
 
     static renderHelmet(equipment = null) {
         if (!equipment || !equipment.head) return '';
-        return `
-            <g id="char-helmet" transform="translate(120, 36)">
-                <!-- Купол шлема -->
-                <path d="M-20,12 C-21,-18 21,-18 20,12 L17,20 L-17,20 Z" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
-                <path d="M-18,2 C-19,-14 19,-14 18,2" stroke="#94a3b8" stroke-width="2" fill="none"/>
-                <!-- Верхний гребень/навершие -->
-                <polygon points="0,-20 -3,-10 3,-10" fill="#ca8a04"/>
-                <rect x="-16" y="16" width="32" height="4" fill="#334155" stroke="#1e293b" stroke-width="1"/>
-                <!-- Наносник (nasal guard) -->
-                <path d="M-3,16 L-2,30 L2,30 L3,16 Z" fill="#94a3b8" stroke="#1e293b" stroke-width="1"/>
-                <circle cx="-10" cy="18" r="1.5" fill="#facc15"/>
-                <circle cx="10" cy="18" r="1.5" fill="#facc15"/>
-            </g>
-        `;
+        return EquipmentVisuals.renderHelmet(equipment.head.id, { isHero: true });
     }
 
     static renderHead(visuals, isFemale) {

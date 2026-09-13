@@ -120,6 +120,7 @@ export class AudioEngine {
         this.masterVolume = 0.8;
         this.musicVolume = 0.5;
         this.sfxVolume = 0.7;
+        this.textVolume = 0.7;
         this.isMuted = false;
 
         this.activeTracks = [];
@@ -145,6 +146,10 @@ export class AudioEngine {
         this.sfxGain = this.ctx.createGain();
         this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
         this.sfxGain.connect(this.masterGain);
+
+        this.textGain = this.ctx.createGain();
+        this.textGain.gain.setValueAtTime(this.textVolume, this.ctx.currentTime);
+        this.textGain.connect(this.masterGain);
 
         this.startSchedulerClock();
     }
@@ -175,6 +180,7 @@ export class AudioEngine {
 
     switchMusic(track, fadeDuration = 1.2) {
         this.ensureReady();
+        if (!this.ctx) return;
         if (this.currentTrackData && this.currentTrackData.name === track.name) {
             return;
         }
@@ -190,6 +196,7 @@ export class AudioEngine {
 
     stopMusic(fadeDuration = 0.8) {
         this.currentTrackData = null;
+        if (!this.ctx) return;
         this.activeTracks.forEach(t => t.fadeOutAndDestroy(fadeDuration));
     }
 
@@ -215,6 +222,20 @@ export class AudioEngine {
         if (this.sfxGain) {
             this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
         }
+    }
+
+    setTextVolume(val) {
+        this.ensureReady();
+        this.textVolume = Math.max(0, Math.min(1, val));
+        if (this.textGain) {
+            this.textGain.gain.setValueAtTime(this.textVolume, this.ctx.currentTime);
+        }
+    }
+
+    playTextSound() {
+        this.ensureReady();
+        if (this.isMuted || !this.ctx || this.textVolume <= 0) return;
+        Sfx.typewriter(this.ctx, this.textGain);
     }
 
     setMute(muteState) {

@@ -3,7 +3,7 @@ import { battleTheme } from '../audio/music/battleTheme.js';
 import { Icons } from '../visuals/icons.js';
 import { CharacterRenderer } from '../visuals/characterRenderer.js';
 import { MobRenderer } from '../visuals/mobRenderer.js';
-import { getRandomBattleLoot } from '../data/itemsData.js';
+import { getRandomBattleLoot, getMobRareDrop } from '../data/itemsData.js';
 
 export class BattleScreen {
     constructor(player, monster, room, callbacks = {}) {
@@ -118,7 +118,9 @@ export class BattleScreen {
                             </div>
 
                             <!-- Классовый ресурс героя -->
-                            ${this.renderPlayerResourceBar()}
+                            <div id="hero-resource-bar-wrap">
+                                ${this.renderPlayerResourceBar()}
+                            </div>
 
                             <!-- Активные статусы героя -->
                             <div class="combatant-buffs-row" id="hero-buffs">
@@ -176,7 +178,7 @@ export class BattleScreen {
 
                         <!-- Фигура монстра с анимацией устрашения -->
                         <div class="combatant-figure mob-figure-node mob-idle-menace" id="mob-figure-node">
-                            ${MobRenderer.render(this.monster, 240, 270, true)}
+                            ${MobRenderer.render(this.monster, 240, 270, true, 'left')}
                         </div>
                     </div>
                 </div>
@@ -292,6 +294,9 @@ export class BattleScreen {
 
     renderPlayerBuffs() {
         const badges = [];
+        if (this.player.tavernBuff && this.player.getTavernBuffRemainingSeconds() > 0) {
+            badges.push(`<span class="status-badge buff" title="${this.player.tavernBuff.name}: ${this.player.tavernBuff.desc || ''}">${Icons.ale(12)} ${this.player.tavernBuff.name} (${this.player.getTavernBuffFormattedTime()})</span>`);
+        }
         if (this.playerStatus.defending) {
             badges.push(`<span class="status-badge buff">${Icons.shield(12)} Оборона (-50%)</span>`);
         }
@@ -1548,6 +1553,10 @@ export class BattleScreen {
         if (heroHpBar) heroHpBar.style.width = `${Math.max(0, (this.player.currentHp / this.player.maxHp) * 100)}%`;
         if (heroHpText) heroHpText.textContent = `${this.player.currentHp} / ${this.player.maxHp}`;
 
+        // Шкала классового ресурса героя (Ярость, Энергия/Комбо, Мана, Концентрация)
+        const heroResourceWrap = this.container.querySelector('#hero-resource-bar-wrap');
+        if (heroResourceWrap) heroResourceWrap.innerHTML = this.renderPlayerResourceBar();
+
         // Шкала HP монстра
         const mobHpBar = this.container.querySelector('#mob-hp-bar');
         const mobHpText = this.container.querySelector('#mob-hp-text');
@@ -1588,7 +1597,11 @@ export class BattleScreen {
         sound.playSfx('victory');
 
         // Расчет наград
-        const isBoss = (this.monster.tier === 'boss' || this.monster.tier === 'final_boss');
+        const isFinalBoss = (this.monster.tier === 'final_boss' || (this.room && this.room.floorNum === 30 && this.room.isBossRoom));
+        if (isFinalBoss) {
+            this.player.hasDefeatedFinalBoss = true;
+        }
+        const isBoss = (this.monster.tier === 'boss' || isFinalBoss);
         const baseExp = Math.round((this.monsterMaxHp * 0.9 + this.monster.dmg * 2.2) * (isBoss ? 2.5 : 1.0));
         const gainedGold = Math.round((this.monster.dmg * 1.6 + Math.random() * 8) * (isBoss ? 3.0 : 1.0));
 
@@ -1596,13 +1609,23 @@ export class BattleScreen {
         this.player.gold += gainedGold;
         const expResult = this.player.addExp(baseExp);
 
-        // Дроп предмета с шансом
+        // Дроп предмета с шансом: сначала проверяем редкий трофей монстра!
         let droppedItem = null;
-        const dropChance = isBoss ? 1.0 : (this.monster.tier === 'hardened' ? 0.65 : 0.35);
-        if (Math.random() < dropChance) {
-            droppedItem = this.generateBattleLoot(isBoss);
-            if (droppedItem) {
-                this.player.inventory.push(droppedItem);
+        let isRareMobTrophy = false;
+
+        const mobDrop = getMobRareDrop(this.monster, this.room?.floorNum || 1);
+        if (mobDrop) {
+            droppedItem = mobDrop;
+            isRareMobTrophy = true;
+            this.player.inventory.push(droppedItem);
+            sound.playSfx('rareDrop');
+        } else {
+            const dropChance = isBoss ? 1.0 : (this.monster.tier === 'hardened' ? 0.65 : 0.35);
+            if (Math.random() < dropChance) {
+                droppedItem = this.generateBattleLoot(isBoss);
+                if (droppedItem) {
+                    this.player.inventory.push(droppedItem);
+                }
             }
         }
 
@@ -1616,6 +1639,26 @@ export class BattleScreen {
                     <h2>ПОБЕДА!</h2>
                 </div>
                 <p class="victory-subtext">Грозный враг «${this.monster.fullName}» повержен в честном бою!</p>
+
+                ${isFinalBoss ? `
+                    <div class="final-boss-triumph-banner anim-pop-in">
+                        <span class="final-boss-icon">${Icons.crown(24)}</span>
+                        <div class="final-boss-text">
+                            <div class="final-boss-title">ВЕЛИКАЯ ПОБЕДА НАД ВЛАДЫКОЙ БЕЗДНЫ!</div>
+                            <div class="final-boss-desc">Тьма катакомб повержена! Врата Южного тракта в городе теперь открыты!</div>
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${isRareMobTrophy ? `
+                    <div class="rare-mob-trophy-banner anim-pop-in">
+                        <span class="rare-trophy-icon">${Icons.crown(22)}</span>
+                        <div class="rare-trophy-text">
+                            <div class="rare-trophy-title">УНИКАЛЬНЫЙ ТРОФЕЙ МОНСТРА!</div>
+                            <div class="rare-trophy-desc">Выбита редчайшая экипировка чудовища: <strong>«${droppedItem.name}»</strong>!</div>
+                        </div>
+                    </div>
+                ` : ''}
 
                 ${expResult.leveledUp ? `
                     <div class="level-up-banner">
@@ -1634,9 +1677,13 @@ export class BattleScreen {
                         <strong class="reward-val">+${gainedGold} золотых</strong>
                     </div>
                     ${droppedItem ? `
-                        <div class="reward-entry drop-entry">
+                        <div class="reward-entry drop-entry rarity-${droppedItem.rarity || 'common'}">
                             <span class="reward-label">${Icons.backpack(14)} Трофей:</span>
-                            <strong class="reward-val drop-item-name">${droppedItem.name}</strong>
+                            <div class="drop-item-preview">
+                                <span class="drop-item-icon">${droppedItem.icon || Icons.spark(16)}</span>
+                                <strong class="reward-val drop-item-name">${droppedItem.name}</strong>
+                                <span class="drop-item-badge rarity-${droppedItem.rarity || 'common'}">${droppedItem.rarity || 'common'}</span>
+                            </div>
                         </div>
                     ` : ''}
                 </div>

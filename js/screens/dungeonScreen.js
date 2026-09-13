@@ -5,6 +5,7 @@ import { DungeonMobSpawner } from '../dungeon/dungeonMobSpawner.js';
 import { Icons } from '../visuals/icons.js';
 import { CharacterRenderer } from '../visuals/characterRenderer.js';
 import { MobRenderer } from '../visuals/mobRenderer.js';
+import { openDungeonChest } from '../data/itemsData.js';
 
 export class DungeonScreen {
     constructor(player, callbacks = {}, savedState = null) {
@@ -107,6 +108,7 @@ export class DungeonScreen {
                         <div class="dungeon-hero-stats">
                             <span class="stat-item">${Icons.heart(14)} <strong id="hud-hp">${this.player.currentHp}/${this.player.maxHp}</strong> HP</span>
                             <span class="stat-item">${Icons.coin(14)} <strong id="hud-gold">${this.player.gold}</strong></span>
+                            <span id="dungeon-tavern-buff-badge">${this.renderTavernBuffHudBadge()}</span>
                         </div>
                     </div>
 
@@ -155,6 +157,16 @@ export class DungeonScreen {
                                 <stop offset="50%" stop-color="#1e2230"/>
                                 <stop offset="100%" stop-color="#0f1117"/>
                             </linearGradient>
+                            <pattern id="fogPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                                <rect width="40" height="40" fill="#05070c"/>
+                                <circle cx="20" cy="20" r="14" fill="#0d111a" opacity="0.7"/>
+                                <path d="M-5,20 Q10,10 25,20 T55,20" stroke="#161d2e" stroke-width="2.5" fill="none" opacity="0.6"/>
+                                <path d="M-5,32 Q15,22 35,32 T75,32" stroke="#0f1522" stroke-width="3" fill="none" opacity="0.6"/>
+                            </pattern>
+                            <radialGradient id="fogRadial" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#0b0f19" stop-opacity="0.9"/>
+                                <stop offset="100%" stop-color="#030408" stop-opacity="0.98"/>
+                            </radialGradient>
                         </defs>
 
                         <!-- ТРАНСФОРМИРУЕМЫЙ СЛОЙ МИРА -->
@@ -317,8 +329,8 @@ export class DungeonScreen {
         // 1. ФОН И СЕТКА ГЛУБИН
         svg += `<rect width="${this.WORLD_W}" height="${this.WORLD_H}" fill="#08090d"/>`;
 
-        // 2. ВЕРТИКАЛЬНЫЕ И ГОРИЗОНТАЛЬНЫЕ ШАХТЫ И ПЕРЕХОДЫ
-        svg += this.renderCorridorsAndShafts();
+        // 2. ВЕРТИКАЛЬНЫЕ И ГОРИЗОНТАЛЬНЫЕ ШАХТЫ И ПЕРЕХОДЫ (с туманом войны)
+        svg += `<g id="corridors-shafts-group">${this.renderCorridorsAndShafts()}</g>`;
 
         // 3. ОТРИСОВКА ВСЕХ КОМНАТ ПО ЭТАЖАМ
         this.dungeon.floors.forEach(floor => {
@@ -345,6 +357,26 @@ export class DungeonScreen {
         return svg;
     }
 
+    isRoomAdjacent(floorNum, roomIndex) {
+        if (floorNum === this.currentFloor) {
+            return Math.abs(roomIndex - this.currentRoomIndex) <= 1;
+        }
+        const curRoom = this.dungeon ? this.dungeon.getRoom(this.currentFloor, this.currentRoomIndex) : null;
+        if (curRoom) {
+            if (curRoom.hasStairsDown && curRoom.stairsDownTarget) {
+                if (curRoom.stairsDownTarget.floor === floorNum && curRoom.stairsDownTarget.room === roomIndex) {
+                    return true;
+                }
+            }
+            if (curRoom.hasStairsUp && curRoom.stairsUpTarget) {
+                if (curRoom.stairsUpTarget.floor === floorNum && curRoom.stairsUpTarget.room === roomIndex) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     renderCorridorsAndShafts() {
         let svg = '';
 
@@ -357,17 +389,32 @@ export class DungeonScreen {
                 const corridorX = c1.x + this.ROOM_W;
                 const corridorY = c1.y + this.ROOM_H / 2 - 20;
 
+                const isVis = this.visitedRooms.has(`${f}_${r}`) || 
+                              this.visitedRooms.has(`${f}_${r + 1}`) || 
+                              this.isRoomAdjacent(f, r) || 
+                              this.isRoomAdjacent(f, r + 1);
+                const corrOpacity = isVis ? '1' : '0.12';
+
                 svg += `
-                    <rect x="${corridorX}" y="${corridorY}" width="${this.GAP_X}" height="40" fill="#181a24" stroke="#334155" stroke-width="2"/>
-                    <line x1="${corridorX}" y1="${corridorY}" x2="${corridorX + this.GAP_X}" y2="${corridorY}" stroke="#475569" stroke-width="2"/>
-                    <line x1="${corridorX}" y1="${corridorY + 40}" x2="${corridorX + this.GAP_X}" y2="${corridorY + 40}" stroke="#475569" stroke-width="2"/>
-                    <line x1="${corridorX + this.GAP_X / 2}" y1="${corridorY}" x2="${corridorX + this.GAP_X / 2}" y2="${corridorY + 40}" stroke="#272b3b" stroke-width="1.5"/>
+                    <g class="corridor-segment" opacity="${corrOpacity}">
+                        <rect x="${corridorX}" y="${corridorY}" width="${this.GAP_X}" height="40" fill="#181a24" stroke="#334155" stroke-width="2"/>
+                        <line x1="${corridorX}" y1="${corridorY}" x2="${corridorX + this.GAP_X}" y2="${corridorY}" stroke="#475569" stroke-width="2"/>
+                        <line x1="${corridorX}" y1="${corridorY + 40}" x2="${corridorX + this.GAP_X}" y2="${corridorY + 40}" stroke="#475569" stroke-width="2"/>
+                        <line x1="${corridorX + this.GAP_X / 2}" y1="${corridorY}" x2="${corridorX + this.GAP_X / 2}" y2="${corridorY + 40}" stroke="#272b3b" stroke-width="1.5"/>
+                    </g>
                 `;
             }
 
             // Вертикальная шахта лестницы вниз на следующий этаж
             if (f < this.dungeon.totalFloors) {
                 const ladderRoomIdx = floor.endRoomIdx;
+                const nextFloorStartIdx = (f < this.dungeon.floors.length) ? this.dungeon.floors[f].startRoomIdx : 0;
+                const isShaftVis = this.visitedRooms.has(`${f}_${ladderRoomIdx}`) ||
+                                   this.visitedRooms.has(`${f + 1}_${nextFloorStartIdx}`) ||
+                                   this.isRoomAdjacent(f, ladderRoomIdx) ||
+                                   this.isRoomAdjacent(f + 1, nextFloorStartIdx);
+                const shaftOpacity = isShaftVis ? '1' : '0.12';
+
                 const cRoom = this.getRoomCoords(f, ladderRoomIdx);
                 const shaftX = cRoom.x + this.ROOM_W / 2 - 22;
                 const shaftY = cRoom.y + this.ROOM_H;
@@ -375,9 +422,10 @@ export class DungeonScreen {
                 const shaftH = this.GAP_Y;
 
                 svg += `
-                    <rect x="${shaftX}" y="${shaftY}" width="${shaftW}" height="${shaftH}" fill="url(#shaftWallGrad)" stroke="#334155" stroke-width="2"/>
-                    <line x1="${shaftX + 10}" y1="${shaftY}" x2="${shaftX + 10}" y2="${shaftY + shaftH}" stroke="#78350f" stroke-width="3.5"/>
-                    <line x1="${shaftX + shaftW - 10}" y1="${shaftY}" x2="${shaftX + shaftW - 10}" y2="${shaftY + shaftH}" stroke="#78350f" stroke-width="3.5"/>
+                    <g class="shaft-segment" opacity="${shaftOpacity}">
+                        <rect x="${shaftX}" y="${shaftY}" width="${shaftW}" height="${shaftH}" fill="url(#shaftWallGrad)" stroke="#334155" stroke-width="2"/>
+                        <line x1="${shaftX + 10}" y1="${shaftY}" x2="${shaftX + 10}" y2="${shaftY + shaftH}" stroke="#78350f" stroke-width="3.5"/>
+                        <line x1="${shaftX + shaftW - 10}" y1="${shaftY}" x2="${shaftX + shaftW - 10}" y2="${shaftY + shaftH}" stroke="#78350f" stroke-width="3.5"/>
                 `;
 
                 const rungs = 5;
@@ -389,7 +437,8 @@ export class DungeonScreen {
                 }
 
                 svg += `
-                    <polygon points="${shaftX + shaftW / 2},${shaftY + shaftH - 6} ${shaftX + shaftW / 2 - 5},${shaftY + shaftH - 14} ${shaftX + shaftW / 2 + 5},${shaftY + shaftH - 14}" fill="#f59e0b" opacity="0.8"/>
+                        <polygon points="${shaftX + shaftW / 2},${shaftY + shaftH - 6} ${shaftX + shaftW / 2 - 5},${shaftY + shaftH - 14} ${shaftX + shaftW / 2 + 5},${shaftY + shaftH - 14}" fill="#f59e0b" opacity="0.8"/>
+                    </g>
                 `;
             }
         });
@@ -412,6 +461,8 @@ export class DungeonScreen {
         const { x, y } = this.getRoomCoords(room.floorNum, room.roomIndex);
         const isCurrent = (room.floorNum === this.currentFloor && room.roomIndex === this.currentRoomIndex);
         const isVisited = this.visitedRooms.has(`${room.floorNum}_${room.roomIndex}`);
+        const isAdjacent = !isVisited && this.isRoomAdjacent(room.floorNum, room.roomIndex);
+        const isFogged = !isVisited && !isAdjacent;
         const isBoss = room.isBossRoom;
 
         let strokeColor = isBoss ? '#ef4444' : '#334155';
@@ -420,9 +471,44 @@ export class DungeonScreen {
         if (isCurrent) {
             strokeColor = '#38bdf8';
             strokeWidth = '3.5';
+        } else if (isFogged) {
+            strokeColor = isBoss ? '#7f1d1d' : '#1e293b';
+            strokeWidth = isBoss ? '2' : '1.5';
+        } else if (isAdjacent) {
+            strokeColor = isBoss ? '#dc2626' : '#475569';
+            strokeWidth = '2';
         }
 
-        const roomOpacity = isVisited ? '1' : '0.65';
+        // КОМНАТА В ГЛУБОКОМ ТУМАНЕ ВОЙНЫ: НЕИЗВЕДАННАЯ ТЬМА
+        if (isFogged) {
+            return `
+                <g class="dungeon-room-node room-fogged ${isBoss ? 'fog-boss-glow' : ''}" 
+                   id="room-node-${room.floorNum}-${room.roomIndex}"
+                   data-floor="${room.floorNum}" 
+                   data-room="${room.roomIndex}" 
+                   transform="translate(${x}, ${y})"
+                   opacity="0.92"
+                   style="cursor: pointer;">
+                    <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="#05070c" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
+                    <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="url(#fogPattern)" opacity="0.65"/>
+                    <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="url(#fogRadial)" opacity="0.82"/>
+                    
+                    <!-- Символ неизвестности в тумане -->
+                    <g transform="translate(${this.ROOM_W / 2}, ${this.ROOM_H / 2})">
+                        <circle cx="0" cy="0" r="20" fill="#090d16" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <text x="0" y="7" text-anchor="middle" fill="#475569" font-size="18" font-weight="bold" font-family="'Segoe UI', sans-serif">?</text>
+                    </g>
+
+                    <rect x="0" y="0" width="${this.ROOM_W}" height="24" rx="6" fill="#04060a" opacity="0.85"/>
+                    <text x="10" y="16" fill="#64748b" font-size="10.5" font-weight="600" font-family="'Segoe UI', sans-serif">
+                        ${isBoss ? '☠ Сокрыто туманом (Босс?)' : '??? (Неизведанная тьма)'}
+                    </text>
+                </g>
+            `;
+        }
+
+        // КОМНАТА ПОСЕЩЕНА ИЛИ СОСЕДНЯЯ (ВИДНА ВО МГЛЕ)
+        const roomOpacity = isVisited ? '1' : '0.82';
         const innerSvg = room.template.renderSvg(this.ROOM_W, this.ROOM_H);
 
         let cornerBadgeSvg = '';
@@ -470,37 +556,50 @@ export class DungeonScreen {
                 const mw = isBossMob ? 62 : 54;
                 const mh = isBossMob ? 74 : 64;
                 const mx = this.ROOM_W - mw - 14;
-                // Основание моба на линии пола y = ROOM_H - 14 (116)
                 const my = (this.ROOM_H - 14) - Math.round(mh * (208 / 240));
 
-                const hpPercent = Math.max(5, Math.min(100, Math.round((m.hp / m.maxHp) * 100)));
-                const barW = isBossMob ? 46 : 38;
-                const barFillW = Math.round((barW * hpPercent) / 100);
-                const barX = (mw - barW) / 2;
-                const hpColor = isBossMob ? '#ef4444' : (m.tier === 'hardened' ? '#f59e0b' : '#22c55e');
-
-                monsterSvg = `
-                    <g class="room-mob-entity ${m.tierClass}" id="mob-${room.floorNum}-${room.roomIndex}" transform="translate(${mx}, ${my})">
-                        <!-- Мини шкала HP над монстром -->
-                        <g transform="translate(${barX}, -10)">
-                            <rect width="${barW}" height="4.5" rx="2" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
-                            <rect width="${barFillW}" height="4.5" rx="2" fill="${hpColor}"/>
+                if (isAdjacent) {
+                    // Соседняя комната: угроза скрыта во мгле тумана
+                    monsterSvg = `
+                        <g class="room-mob-silhouette" transform="translate(${mx}, ${my})" opacity="0.85">
+                            <ellipse cx="${mw / 2}" cy="${mh - 4}" rx="${mw * 0.4}" ry="6" fill="#000000" opacity="0.6"/>
+                            <path d="M${mw/2 - 14},${mh - 8} Q${mw/2 - 18},${mh/2} ${mw/2},${mh * 0.25} Q${mw/2 + 18},${mh/2} ${mw/2 + 14},${mh - 8} Z" fill="#090d16" stroke="#334155" stroke-width="1.2"/>
+                            <!-- Горящие во мгле глаза -->
+                            <circle cx="${mw / 2 - 5}" cy="${mh * 0.38}" r="2" fill="#ef4444"/>
+                            <circle cx="${mw / 2 + 5}" cy="${mh * 0.38}" r="2" fill="#ef4444"/>
+                            <text x="${mw / 2}" y="-4" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="bold">???</text>
                         </g>
-                        <!-- Значок босса над шкалой -->
-                        ${isBossMob ? `
-                            <g transform="translate(${mw / 2}, -16)">
-                                <polygon points="-7,5 7,5 7,-1 4,2 0,-4 -4,2 -7,-1" fill="#f59e0b" stroke="#b45309" stroke-width="0.8"/>
-                                <circle cx="-7" cy="-1" r="0.8" fill="#ef4444"/>
-                                <circle cx="0" cy="-4" r="1" fill="#38bdf8"/>
-                                <circle cx="7" cy="-1" r="0.8" fill="#ef4444"/>
-                                ${m.tier === 'final_boss' ? `
-                                    <circle cx="0" cy="1" r="1.2" fill="#7f1d1d"/>
-                                ` : ''}
+                    `;
+                } else {
+                    const hpPercent = Math.max(5, Math.min(100, Math.round((m.hp / m.maxHp) * 100)));
+                    const barW = isBossMob ? 46 : 38;
+                    const barFillW = Math.round((barW * hpPercent) / 100);
+                    const barX = (mw - barW) / 2;
+                    const hpColor = isBossMob ? '#ef4444' : (m.tier === 'hardened' ? '#f59e0b' : '#22c55e');
+
+                    monsterSvg = `
+                        <g class="room-mob-entity ${m.tierClass}" id="mob-${room.floorNum}-${room.roomIndex}" transform="translate(${mx}, ${my})">
+                            <!-- Мини шкала HP над монстром -->
+                            <g transform="translate(${barX}, -10)">
+                                <rect width="${barW}" height="4.5" rx="2" fill="#090d16" stroke="#334155" stroke-width="0.8"/>
+                                <rect width="${barFillW}" height="4.5" rx="2" fill="${hpColor}"/>
                             </g>
-                        ` : ''}
-                        ${MobRenderer.render(m, mw, mh)}
-                    </g>
-                `;
+                            <!-- Значок босса над шкалой -->
+                            ${isBossMob ? `
+                                <g transform="translate(${mw / 2}, -16)">
+                                    <polygon points="-7,5 7,5 7,-1 4,2 0,-4 -4,2 -7,-1" fill="#f59e0b" stroke="#b45309" stroke-width="0.8"/>
+                                    <circle cx="-7" cy="-1" r="0.8" fill="#ef4444"/>
+                                    <circle cx="0" cy="-4" r="1" fill="#38bdf8"/>
+                                    <circle cx="7" cy="-1" r="0.8" fill="#ef4444"/>
+                                    ${m.tier === 'final_boss' ? `
+                                        <circle cx="0" cy="1" r="1.2" fill="#7f1d1d"/>
+                                    ` : ''}
+                                </g>
+                            ` : ''}
+                            ${MobRenderer.render(m, mw, mh, false, this.getMobFacing(room))}
+                        </g>
+                    `;
+                }
             } else {
                 monsterSvg = `
                     <g class="room-mob-defeated" transform="translate(${this.ROOM_W - 46}, ${this.ROOM_H - 32})">
@@ -513,8 +612,43 @@ export class DungeonScreen {
             }
         }
 
+        let chestSvg = '';
+        if (room.hasChest) {
+            const hasMonster = room.hasMonster && !room.isMonsterDefeated;
+            const chestX = hasMonster ? (this.ROOM_W / 2 + 6) : (this.ROOM_W - 56);
+            const chestY = this.ROOM_H - 36;
+            const isOpened = !!room.chestOpened;
+
+            if (isAdjacent) {
+                chestSvg = `
+                    <g class="room-chest-silhouette" transform="translate(${chestX}, ${chestY})" opacity="0.6">
+                        ${Icons.chest(28, false, 'wooden')}
+                    </g>
+                `;
+            } else {
+                const chestGlow = !isOpened ? `
+                    <ellipse cx="14" cy="18" rx="16" ry="6" fill="#facc15" opacity="0.35" class="anim-chest-pulse"/>
+                ` : '';
+
+                chestSvg = `
+                    <g class="room-chest-interactive ${isOpened ? 'opened' : 'closed'}" 
+                       transform="translate(${chestX}, ${chestY})"
+                       data-floor="${room.floorNum}"
+                       data-room="${room.roomIndex}"
+                       title="${isOpened ? 'Открытый сундук' : 'Сундук с сокровищами!'}">
+                        ${chestGlow}
+                        ${Icons.chest(28, isOpened, room.chestType || 'wooden')}
+                    </g>
+                `;
+            }
+        }
+
+        const mistOverlay = isAdjacent ? `
+            <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="#090d16" opacity="0.25" pointer-events="none"/>
+        ` : '';
+
         return `
-            <g class="dungeon-room-node ${isCurrent ? 'current-room' : ''}" 
+            <g class="dungeon-room-node ${isCurrent ? 'current-room' : ''} ${isAdjacent ? 'room-adjacent' : ''}" 
                id="room-node-${room.floorNum}-${room.roomIndex}"
                data-floor="${room.floorNum}" 
                data-room="${room.roomIndex}" 
@@ -527,12 +661,15 @@ export class DungeonScreen {
                     ${innerSvg}
                 </g>
 
+                ${mistOverlay}
+
                 <rect x="0" y="0" width="${this.ROOM_W}" height="24" rx="6" fill="#090a0f" opacity="0.65"/>
                 <text x="10" y="16" fill="#cbd5e1" font-size="11" font-weight="600" font-family="'Segoe UI', sans-serif">
                     ${room.name}
                 </text>
 
                 ${cornerBadgeSvg}
+                ${chestSvg}
                 ${monsterSvg}
             </g>
         `;
@@ -861,8 +998,91 @@ export class DungeonScreen {
     // ЛОГИКА ДВИЖЕНИЯ ИГРОКА
     // ==========================================
 
+    getMobFacing(room) {
+        if (!room) return 'left';
+        if (room.floorNum === this.currentFloor) {
+            if (room.roomIndex > this.currentRoomIndex) {
+                // Игрок находится левее комнаты монстра и идёт на него слева -> моб смотрит влево
+                return 'left';
+            } else if (room.roomIndex < this.currentRoomIndex) {
+                // Игрок находится правее комнаты монстра и идёт на него справа -> моб смотрит вправо
+                return 'right';
+            } else {
+                // В той же комнате: герой стоит слева (x=64), монстр справа (x=132) -> моб смотрит влево на героя
+                return 'left';
+            }
+        }
+        const isOdd = (room.floorNum % 2 === 1);
+        return isOdd ? 'left' : 'right';
+    }
+
+    updateAllMobsFacing() {
+        const floor = this.dungeon ? this.dungeon.floors[this.currentFloor - 1] : null;
+        if (!floor) return;
+
+        const rightFacingArchs = ['kobold', 'rat', 'gnoll', 'crypt_chimera'];
+        floor.rooms.forEach(r => {
+            if (r.hasMonster && r.monster && !r.isMonsterDefeated) {
+                const mobEl = this.container.querySelector(`#mob-${r.floorNum}-${r.roomIndex}`);
+                if (mobEl && rightFacingArchs.includes(r.monster.archetype)) {
+                    const facing = this.getMobFacing(r);
+                    const svgFigure = mobEl.querySelector('.mob-svg-figure');
+                    if (svgFigure) {
+                        const actorNode = svgFigure.querySelector('g[id^="mob-actor-"]');
+                        if (actorNode) {
+                            if (facing === 'left' || facing === -1) {
+                                actorNode.setAttribute('transform', 'translate(200, 0) scale(-1, 1)');
+                            } else {
+                                actorNode.removeAttribute('transform');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    showToast(message) {
+        this.toastMessage = message;
+        if (this.toastTimer) clearTimeout(this.toastTimer);
+
+        let banner = this.container.querySelector('#dungeon-toast');
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'dungeon-toast';
+            banner.className = 'dungeon-toast-banner';
+            const hudBottom = this.container.querySelector('.dungeon-hud-bottom');
+            if (hudBottom) {
+                hudBottom.insertBefore(banner, hudBottom.firstChild);
+            }
+        }
+
+        if (banner) {
+            banner.innerHTML = message;
+            banner.classList.add('visible');
+        }
+
+        this.toastTimer = setTimeout(() => {
+            if (banner) banner.classList.remove('visible');
+            this.toastMessage = null;
+            this.toastTimer = null;
+        }, 3200);
+    }
+
     moveLeft() {
         if (this.isMoving) return;
+        const currentRoom = this.dungeon.getRoom(this.currentFloor, this.currentRoomIndex);
+        const hasUndefeatedMonster = currentRoom && currentRoom.hasMonster && currentRoom.monster && !currentRoom.isMonsterDefeated;
+        const isEvenFloor = (this.currentFloor % 2 === 0);
+
+        // На чётном этаже движение влево — это продвижение вперёд ("дальше")
+        if (hasUndefeatedMonster && isEvenFloor) {
+            sound.playSfx('threat');
+            this.showToast(`${Icons.skull(14)} Путь преграждает ${currentRoom.monster.fullName}! Вы не можете пройти дальше, пока не победите его.`);
+            this.inspectRoom(this.currentFloor, this.currentRoomIndex);
+            return;
+        }
+
         if (this.currentRoomIndex > 0) {
             const oldIdx = this.currentRoomIndex;
             const newIdx = oldIdx - 1;
@@ -877,6 +1097,18 @@ export class DungeonScreen {
 
     moveRight() {
         if (this.isMoving) return;
+        const currentRoom = this.dungeon.getRoom(this.currentFloor, this.currentRoomIndex);
+        const hasUndefeatedMonster = currentRoom && currentRoom.hasMonster && currentRoom.monster && !currentRoom.isMonsterDefeated;
+        const isOddFloor = (this.currentFloor % 2 === 1);
+
+        // На нечётном этаже движение вправо — это продвижение вперёд ("дальше")
+        if (hasUndefeatedMonster && isOddFloor) {
+            sound.playSfx('threat');
+            this.showToast(`${Icons.skull(14)} Путь преграждает ${currentRoom.monster.fullName}! Вы не можете пройти дальше, пока не победите его.`);
+            this.inspectRoom(this.currentFloor, this.currentRoomIndex);
+            return;
+        }
+
         if (this.currentRoomIndex < 6) {
             const oldIdx = this.currentRoomIndex;
             const newIdx = oldIdx + 1;
@@ -892,6 +1124,13 @@ export class DungeonScreen {
     descendStairs() {
         if (this.isMoving) return;
         const room = this.dungeon.getRoom(this.currentFloor, this.currentRoomIndex);
+        if (room && room.hasMonster && room.monster && !room.isMonsterDefeated) {
+            sound.playSfx('threat');
+            this.showToast(`${Icons.skull(14)} Спуск заблокирован! Победите ${room.monster.fullName}, чтобы спуститься глубже.`);
+            this.inspectRoom(this.currentFloor, this.currentRoomIndex);
+            return;
+        }
+
         if (room && room.hasStairsDown && room.stairsDownTarget) {
             const targetFloor = room.stairsDownTarget.floor;
             const targetRoom = room.stairsDownTarget.room;
@@ -932,6 +1171,9 @@ export class DungeonScreen {
     onPlayerArrived(isFloorChange = false) {
         this.visitedRooms.add(`${this.currentFloor}_${this.currentRoomIndex}`);
 
+        // Рассеиваем туман войны вокруг игрока и обновляем видимость комнат
+        this.updateFogOfWar();
+
         // Обновляем визуальный статус комнат (снимаем/ставим рамку current-room)
         const oldCurrent = this.container.querySelector('.dungeon-room-node.current-room');
         if (oldCurrent) {
@@ -958,20 +1200,80 @@ export class DungeonScreen {
             this.inspectRoom(this.currentFloor, this.currentRoomIndex);
         }
 
+        this.updateAllMobsFacing();
         this.updateHudState();
         this.updateButtonsState();
     }
 
+    updateFogOfWar() {
+        const floorsToUpdate = new Set([this.currentFloor - 1, this.currentFloor, this.currentFloor + 1]);
+        floorsToUpdate.forEach(fNum => {
+            if (fNum >= 1 && fNum <= this.dungeon.totalFloors) {
+                const floor = this.dungeon.floors[fNum - 1];
+                if (floor) {
+                    floor.rooms.forEach(room => {
+                        const oldNode = this.container.querySelector(`#room-node-${room.floorNum}-${room.roomIndex}`);
+                        if (oldNode) {
+                            const temp = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                            temp.innerHTML = this.renderRoomSvg(room);
+                            const newNode = temp.firstElementChild;
+                            if (newNode) {
+                                oldNode.replaceWith(newNode);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        // Обновляем коридоры и шахты
+        const corridorsGroup = this.container.querySelector('#corridors-shafts-group');
+        if (corridorsGroup) {
+            corridorsGroup.innerHTML = this.renderCorridorsAndShafts();
+        }
+    }
+
     updateButtonsState() {
+        const currentRoom = this.dungeon ? this.dungeon.getRoom(this.currentFloor, this.currentRoomIndex) : null;
+        const hasUndefeatedMonster = currentRoom && currentRoom.hasMonster && currentRoom.monster && !currentRoom.isMonsterDefeated;
+        const isOddFloor = (this.currentFloor % 2 === 1);
+
         const btnLeft = this.container.querySelector('#btn-move-left');
         const btnRight = this.container.querySelector('#btn-move-right');
-        if (btnLeft) btnLeft.disabled = (this.isMoving || this.currentRoomIndex <= 0);
-        if (btnRight) btnRight.disabled = (this.isMoving || this.currentRoomIndex >= 6);
+
+        const isRightBlocked = this.currentRoomIndex >= 6 || (hasUndefeatedMonster && isOddFloor);
+        const isLeftBlocked = this.currentRoomIndex <= 0 || (hasUndefeatedMonster && !isOddFloor);
+
+        if (btnLeft) {
+            btnLeft.disabled = (this.isMoving || isLeftBlocked);
+            if (hasUndefeatedMonster && !isOddFloor) {
+                btnLeft.title = `Путь влево преграждает ${currentRoom.monster.fullName}! Победите его, чтобы пройти.`;
+            } else {
+                btnLeft.title = 'Идти влево (Клавиша A или стрелка влево)';
+            }
+        }
+        if (btnRight) {
+            btnRight.disabled = (this.isMoving || isRightBlocked);
+            if (hasUndefeatedMonster && isOddFloor) {
+                btnRight.title = `Путь вправо преграждает ${currentRoom.monster.fullName}! Победите его, чтобы пройти.`;
+            } else {
+                btnRight.title = 'Идти вправо (Клавиша D или стрелка вправо)';
+            }
+        }
 
         const stairsGroup = this.container.querySelector('#controls-stairs-group');
         if (stairsGroup) {
-            const stairsBtns = stairsGroup.querySelectorAll('button');
-            stairsBtns.forEach(b => { b.disabled = this.isMoving; });
+            const btnDown = stairsGroup.querySelector('#btn-stairs-down');
+            if (btnDown) {
+                btnDown.disabled = (this.isMoving || Boolean(hasUndefeatedMonster));
+                if (hasUndefeatedMonster) {
+                    btnDown.title = `Спуск заблокирован монстром (${currentRoom.monster.fullName})!`;
+                }
+            }
+            const btnUp = stairsGroup.querySelector('#btn-stairs-up');
+            if (btnUp) {
+                btnUp.disabled = this.isMoving;
+            }
         }
     }
 
@@ -1017,6 +1319,37 @@ export class DungeonScreen {
         title.textContent = room.name;
         desc.textContent = room.desc;
 
+        const isVisited = this.visitedRooms.has(`${floorNum}_${roomIndex}`);
+        const isAdjacent = !isVisited && this.isRoomAdjacent(floorNum, roomIndex);
+
+        if (!isVisited && !isAdjacent) {
+            title.textContent = '??? (Неизведанная тьма)';
+            desc.textContent = 'Этот сектор скрыт непроглядным туманом войны. Пройдите глубже в подземелье, чтобы исследовать неизведанные залы.';
+            badge.textContent = 'Туман войны';
+            badge.className = 'room-card-badge';
+            enemyBox.innerHTML = `
+                <div class="card-peaceful-box">
+                    <span class="peaceful-icon">${Icons.eye(22)}</span>
+                    <span class="peaceful-text">Сектор еще не исследован. Сделайте шаг в этом направлении, чтобы развеять мрак.</span>
+                </div>
+            `;
+            enemyBox.style.display = 'block';
+            actions.innerHTML = `
+                <button class="btn btn-secondary btn-sm" id="btn-card-center">Смотреть сюда</button>
+            `;
+            actions.querySelector('#btn-card-center').addEventListener('click', () => {
+                sound.playSfx('click');
+                const c = this.getRoomCoords(floorNum, roomIndex);
+                const vp = this.container.querySelector('#dungeon-viewport');
+                this.panX = (vp?.clientWidth || 960) / 2 - (c.x + this.ROOM_W / 2) * this.zoom;
+                this.panY = (vp?.clientHeight || 510) / 2 - (c.y + this.ROOM_H / 2) * this.zoom;
+                this.applyTransform();
+            });
+            card.classList.remove('hidden');
+            this.toggleRoomCard(false);
+            return;
+        }
+
         if (room.isFinalVault || room.templateId === 'final_mystery') {
             badge.innerHTML = `${Icons.question(14)} Великая Тайна`;
             badge.className = 'room-card-badge mystery';
@@ -1054,39 +1387,68 @@ export class DungeonScreen {
                 ? `<span class="enemy-status-defeated">${Icons.check(13)} Повержен</span>`
                 : `<span class="enemy-status-active">${Icons.sword(13)} На страже</span>`;
 
-            enemyBox.innerHTML = `
-                <div class="card-enemy-box ${m.tierClass}">
-                    <div class="card-enemy-top">
-                        <div class="card-enemy-badges">
-                            <span class="card-enemy-tier-badge">${Icons.tierDot(m.tier, 10)} ${m.tierBadge}</span>
-                            <span class="card-enemy-elem-badge">${elemIcon} ${m.element}</span>
+            if (isAdjacent && !room.isMonsterDefeated) {
+                enemyBox.innerHTML = `
+                    <div class="card-enemy-box tier-regular">
+                        <div class="card-enemy-top">
+                            <div class="card-enemy-badges">
+                                <span class="card-enemy-tier-badge">${Icons.tierDot(m.tier, 10)} Таинственная угроза</span>
+                            </div>
+                            <span class="enemy-status-active">${Icons.sword(13)} Затаился во мгле</span>
                         </div>
-                        ${statusHtml}
-                    </div>
-
-                    <div class="card-enemy-main">
-                        <div class="card-enemy-figure">
-                            ${MobRenderer.render(m, 110, 130, true)}
-                        </div>
-                        <div class="card-enemy-info">
-                            <h5 class="card-enemy-name">${m.fullName}</h5>
-                            <span class="card-enemy-sub">${m.variantTitle}</span>
-
-                            <div class="card-enemy-stats-grid">
-                                <div class="enemy-stat-pill hp">${Icons.heart(13)} HP: <strong>${m.hp}/${m.maxHp}</strong></div>
-                                <div class="enemy-stat-pill dmg">${Icons.sword(13)} DMG: <strong>${m.dmg}</strong></div>
-                                <div class="enemy-stat-pill def">${Icons.shield(13)} DEF: <strong>${m.def}</strong></div>
-                                <div class="enemy-stat-pill spd">${Icons.lightning(13)} SPD: <strong>${m.spd}</strong></div>
+                        <div class="card-enemy-main">
+                            <div class="card-enemy-figure" style="display: flex; align-items: center; justify-content: center; background: #05070c; border-radius: 6px; padding: 10px;">
+                                <svg viewBox="0 0 60 70" width="80" height="95">
+                                    <ellipse cx="30" cy="58" rx="24" ry="7" fill="#000" opacity="0.6"/>
+                                    <path d="M16,56 Q10,25 30,12 Q50,25 44,56 Z" fill="#090d16" stroke="#334155" stroke-width="1.5"/>
+                                    <circle cx="25" cy="28" r="2.5" fill="#ef4444"/>
+                                    <circle cx="35" cy="28" r="2.5" fill="#ef4444"/>
+                                </svg>
+                            </div>
+                            <div class="card-enemy-info">
+                                <h5 class="card-enemy-name">Неизвестное существо</h5>
+                                <span class="card-enemy-sub">Сквозь клубящийся туман доносится глухое рычание... Войдите в комнату, чтобы сразиться!</span>
                             </div>
                         </div>
                     </div>
+                `;
+                enemyBox.style.display = 'block';
+            } else {
+                enemyBox.innerHTML = `
+                    <div class="card-enemy-box ${m.tierClass}">
+                        <div class="card-enemy-top">
+                            <div class="card-enemy-badges">
+                                <span class="card-enemy-tier-badge">${Icons.tierDot(m.tier, 10)} ${m.tierBadge}</span>
+                                <span class="card-enemy-elem-badge">${elemIcon} ${m.element}</span>
+                            </div>
+                            ${statusHtml}
+                        </div>
 
-                    <div class="card-enemy-ability">
-                        <div class="ability-title">${Icons.spark(14)} Способность: ${m.ability.name}</div>
-                        <div class="ability-desc">${m.ability.desc}</div>
+                        <div class="card-enemy-main">
+                            <div class="card-enemy-figure">
+                                ${MobRenderer.render(m, 110, 130, true, 'left')}
+                            </div>
+                            <div class="card-enemy-info">
+                                <h5 class="card-enemy-name">${m.fullName}</h5>
+                                <span class="card-enemy-sub">${m.variantTitle}</span>
+
+                                <div class="card-enemy-stats-grid">
+                                    <div class="enemy-stat-pill hp">${Icons.heart(13)} HP: <strong>${m.hp}/${m.maxHp}</strong></div>
+                                    <div class="enemy-stat-pill dmg">${Icons.sword(13)} DMG: <strong>${m.dmg}</strong></div>
+                                    <div class="enemy-stat-pill def">${Icons.shield(13)} DEF: <strong>${m.def}</strong></div>
+                                    <div class="enemy-stat-pill spd">${Icons.lightning(13)} SPD: <strong>${m.spd}</strong></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-enemy-ability">
+                            <div class="ability-title">${Icons.spark(14)} Способность: ${m.ability.name}</div>
+                            <div class="ability-desc">${m.ability.desc}</div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+                enemyBox.style.display = 'block';
+            }
             enemyBox.style.display = 'block';
         } else {
             enemyBox.innerHTML = `
@@ -1098,13 +1460,77 @@ export class DungeonScreen {
             enemyBox.style.display = 'block';
         }
 
+        let chestHtml = '';
         const isHere = (floorNum === this.currentFloor && roomIndex === this.currentRoomIndex);
+        if (room.hasChest) {
+            const isOpened = !!room.chestOpened;
+            const typeNames = { wooden: 'Деревянный', iron: 'Кованый железный', gilded: 'Позолоченный', ancient: 'Древний реликтовый' };
+            const typeName = typeNames[room.chestType] || 'Сундук сокровищ';
+            const hasAliveMonster = room.hasMonster && room.monster && !room.isMonsterDefeated;
+
+            if (isOpened) {
+                chestHtml = `
+                    <div class="card-chest-section opened">
+                        <div class="chest-sec-header">
+                            <span class="chest-sec-icon">${Icons.chest(20, true, room.chestType)}</span>
+                            <strong class="chest-sec-title">${typeName} сундук</strong>
+                            <span class="chest-sec-status opened">${Icons.check(12)} Опустошен</span>
+                        </div>
+                    </div>
+                `;
+            } else if (hasAliveMonster) {
+                chestHtml = `
+                    <div class="card-chest-section guarded">
+                        <div class="chest-sec-header">
+                            <span class="chest-sec-icon">${Icons.chest(20, false, room.chestType)}</span>
+                            <strong class="chest-sec-title">${typeName} сундук</strong>
+                            <span class="chest-sec-status guarded">${Icons.warning(12)} Под охраной</span>
+                        </div>
+                        <p class="chest-sec-hint">Охраняется монстром «${room.monster.fullName}». Победите его в бою, чтобы забрать сокровища!</p>
+                    </div>
+                `;
+            } else if (isHere) {
+                chestHtml = `
+                    <div class="card-chest-section ready">
+                        <div class="chest-sec-header">
+                            <span class="chest-sec-icon">${Icons.chest(20, false, room.chestType)}</span>
+                            <strong class="chest-sec-title">${typeName} сундук</strong>
+                            <span class="chest-sec-status ready">${Icons.spark(12)} Доступен</span>
+                        </div>
+                        <p class="chest-sec-hint">Охрана повержена, замок можно вскрыть!</p>
+                        <button class="btn btn-warning btn-sm btn-open-chest" id="btn-card-open-chest">
+                            ${Icons.key(14)} Открыть сундук
+                        </button>
+                    </div>
+                `;
+            } else {
+                chestHtml = `
+                    <div class="card-chest-section distant">
+                        <div class="chest-sec-header">
+                            <span class="chest-sec-icon">${Icons.chest(20, false, room.chestType)}</span>
+                            <strong class="chest-sec-title">${typeName} сундук</strong>
+                        </div>
+                        <p class="chest-sec-hint">Подойдите в этот сектор, чтобы открыть сундук.</p>
+                    </div>
+                `;
+            }
+        }
+
+        enemyBox.innerHTML += chestHtml;
+
         const canAttack = isHere && room.hasMonster && room.monster && !room.isMonsterDefeated;
 
         actions.innerHTML = `
             <button class="btn btn-secondary btn-sm" id="btn-card-center">Смотреть сюда</button>
             ${canAttack ? `<button class="btn btn-danger btn-sm" id="btn-card-fight">${Icons.sword(14)} Атаковать!</button>` : ''}
         `;
+
+        const btnOpenChest = enemyBox.querySelector('#btn-card-open-chest');
+        if (btnOpenChest) {
+            btnOpenChest.addEventListener('click', () => {
+                this.openRoomChest(floorNum, roomIndex);
+            });
+        }
 
         card.querySelector('#btn-card-center').addEventListener('click', () => {
             const { x, y } = this.getRoomCoords(floorNum, roomIndex);
@@ -1131,6 +1557,107 @@ export class DungeonScreen {
         } else {
             this.toggleRoomCard(this.isRoomCardCollapsed);
         }
+    }
+
+    openRoomChest(floorNum, roomIndex) {
+        const room = this.dungeon.getRoom(floorNum, roomIndex);
+        if (!room || !room.hasChest || room.chestOpened) return;
+
+        // Открываем сундук
+        room.chestOpened = true;
+        const reward = openDungeonChest(room.chestType || 'wooden', floorNum);
+
+        // Начисляем золото и предметы
+        this.player.gold += reward.gold;
+        reward.items.forEach(item => {
+            this.player.inventory.push(item);
+        });
+
+        sound.playSfx('chestOpen');
+
+        // Обновляем отображение узла комнаты в SVG
+        const roomNode = this.container.querySelector(`#room-node-${floorNum}-${roomIndex}`);
+        if (roomNode) {
+            const chestEl = roomNode.querySelector('.room-chest-interactive');
+            if (chestEl) {
+                chestEl.classList.remove('closed');
+                chestEl.classList.add('opened');
+                chestEl.innerHTML = Icons.chest(28, true, room.chestType || 'wooden');
+                chestEl.setAttribute('title', 'Открытый сундук');
+            }
+        }
+
+        // Обновляем HUD золота
+        const hudGold = this.container.querySelector('#hud-gold');
+        if (hudGold) hudGold.textContent = this.player.gold;
+
+        // Показываем окно награды за сундук
+        this.showChestRewardModal(reward, room);
+
+        // Обновляем карточку комнаты
+        this.inspectRoom(floorNum, roomIndex);
+    }
+
+    showChestRewardModal(reward, room) {
+        let modal = this.container.querySelector('#dungeon-chest-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'dungeon-chest-modal';
+            modal.className = 'dungeon-chest-modal-backdrop';
+            this.container.appendChild(modal);
+        }
+
+        const typeNames = { wooden: 'Деревянный', iron: 'Кованый железный', gilded: 'Позолоченный', ancient: 'Древний реликтовый' };
+        const typeName = typeNames[room.chestType] || 'Сундук сокровищ';
+
+        modal.innerHTML = `
+            <div class="chest-modal-dialog anim-pop-in">
+                <div class="chest-modal-header">
+                    <div class="chest-modal-icon-wrap">
+                        ${Icons.chest(46, true, room.chestType || 'wooden')}
+                    </div>
+                    <h3 class="chest-modal-title">СОКРОВИЩА НАЙДЕНЫ!</h3>
+                    <div class="chest-modal-sub">${typeName} ларец открыт</div>
+                </div>
+
+                <div class="chest-modal-content">
+                    <div class="chest-reward-row gold-reward">
+                        <span class="reward-icon">${Icons.coin(20)}</span>
+                        <span class="reward-desc">Золотые монеты:</span>
+                        <strong class="reward-amount">+${reward.gold} золота</strong>
+                    </div>
+
+                    <div class="chest-items-section">
+                        <div class="chest-items-title">${Icons.backpack(16)} Найденные предметы (${reward.items.length}):</div>
+                        <div class="chest-items-grid">
+                            ${reward.items.map(item => `
+                                <div class="chest-item-card rarity-${item.rarity || 'common'}">
+                                    <div class="chest-item-icon">${item.icon || Icons.spark(24)}</div>
+                                    <div class="chest-item-info">
+                                        <div class="chest-item-name">${item.name}</div>
+                                        <div class="chest-item-desc">${item.desc}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chest-modal-actions">
+                    <button class="btn btn-primary btn-lg" id="btn-close-chest-modal">
+                        ${Icons.check(16)} Забрать в вещмешок
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+
+        modal.querySelector('#btn-close-chest-modal').addEventListener('click', () => {
+            sound.playSfx('selectHero');
+            modal.style.display = 'none';
+        });
     }
 
     toggleRoomCard(forceState = null) {
@@ -1280,6 +1807,28 @@ export class DungeonScreen {
 
         this.initRoomNodeClicks();
         this.setupKeyboard();
+        this.startBuffTicker();
+    }
+
+    renderTavernBuffHudBadge() {
+        if (!this.player || !this.player.tavernBuff) return '';
+        const sec = this.player.getTavernBuffRemainingSeconds();
+        if (sec <= 0) return '';
+        return `
+            <span class="hud-buff-pill" title="${this.player.tavernBuff.name}: ${this.player.tavernBuff.desc || ''}" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(180, 83, 9, 0.25); border: 1px solid #f59e0b; padding: 2px 8px; border-radius: 12px; font-size: 0.76rem; color: #fde047; margin-left: 8px;">
+                ${Icons.ale(13)} ${this.player.tavernBuff.name} <strong>${this.player.getTavernBuffFormattedTime()}</strong>
+            </span>
+        `;
+    }
+
+    startBuffTicker() {
+        if (this.buffTickerInterval) clearInterval(this.buffTickerInterval);
+        this.buffTickerInterval = setInterval(() => {
+            const badge = this.container?.querySelector('#dungeon-tavern-buff-badge');
+            if (badge) {
+                badge.innerHTML = this.renderTavernBuffHudBadge();
+            }
+        }, 1000);
     }
 
     initStairsButtons() {
@@ -1295,14 +1844,23 @@ export class DungeonScreen {
     }
 
     initRoomNodeClicks() {
-        const nodes = this.container.querySelectorAll('.dungeon-room-node');
-        nodes.forEach(node => {
-            node.addEventListener('click', () => {
-                if (this.hasMovedDrag) return;
-                const f = parseInt(node.getAttribute('data-floor'), 10);
-                const r = parseInt(node.getAttribute('data-room'), 10);
-                this.inspectRoom(f, r);
-            });
+        const viewport = this.container.querySelector('#dungeon-viewport');
+        if (!viewport) return;
+        viewport.addEventListener('click', (e) => {
+            if (this.hasMovedDrag) return;
+            const node = e.target.closest('.dungeon-room-node');
+            if (!node) return;
+            const f = parseInt(node.getAttribute('data-floor'), 10);
+            const r = parseInt(node.getAttribute('data-room'), 10);
+            this.inspectRoom(f, r);
+
+            const chestTarget = e.target.closest('.room-chest-interactive');
+            if (chestTarget) {
+                const room = this.dungeon.getRoom(f, r);
+                if (room && room.hasChest && !room.chestOpened && f === this.currentFloor && r === this.currentRoomIndex && (!room.hasMonster || room.isMonsterDefeated)) {
+                    this.openRoomChest(f, r);
+                }
+            }
         });
     }
 
@@ -1329,6 +1887,10 @@ export class DungeonScreen {
     }
 
     cleanup() {
+        if (this.buffTickerInterval) {
+            clearInterval(this.buffTickerInterval);
+            this.buffTickerInterval = null;
+        }
         if (this.boundKeyHandler) {
             window.removeEventListener('keydown', this.boundKeyHandler);
             this.boundKeyHandler = null;

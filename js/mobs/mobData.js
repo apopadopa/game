@@ -951,7 +951,7 @@ export const MOBS_CATALOG = [
 ];
 
 // Вспомогательный метод для получения случайной вариации моба
-export function generateMobInstance(mobData, variantIndex = null) {
+export function generateMobInstance(mobData, variantIndex = null, floorNum = null) {
     const vCount = mobData.variants.length;
     const vIdx = (variantIndex !== null && variantIndex >= 0 && variantIndex < vCount) 
         ? variantIndex 
@@ -975,10 +975,24 @@ export function generateMobInstance(mobData, variantIndex = null) {
 
     // Случайные небольшие колебания характеристик (±10%)
     const statFactor = 0.95 + Math.random() * 0.1;
-    const hp = Math.round(mobData.baseHp * statFactor);
-    const dmg = Math.round(mobData.baseDmg * statFactor);
-    const def = Math.round(mobData.baseDef * statFactor);
-    const spd = Math.round(mobData.baseSpd * statFactor);
+    let hp = Math.round(mobData.baseHp * statFactor);
+    let dmg = Math.round(mobData.baseDmg * statFactor);
+    let def = Math.round(mobData.baseDef * statFactor);
+    let spd = Math.round(mobData.baseSpd * statFactor);
+
+    // На первом этаже монстры сбалансированы как самые слабые противники для старта
+    if (floorNum === 1) {
+        hp = Math.max(28, Math.round(hp * 0.68));
+        dmg = Math.max(5, Math.round(dmg * 0.6));
+        def = Math.max(1, Math.round(def * 0.45));
+    } else if (floorNum && floorNum > 1) {
+        // Каждый этаж вглубь усиливает монстров: +1 к урону за каждый этаж ниже первого, растущее HP, броня и скорость
+        const floorBonus = floorNum - 1;
+        dmg += floorBonus * 1;
+        hp += floorBonus * 6;
+        def += Math.floor(floorBonus * 0.5);
+        spd += Math.floor(floorBonus * 0.3);
+    }
 
     return {
         id: mobData.id,

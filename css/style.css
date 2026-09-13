@@ -37,27 +37,164 @@ body {
 .menu-screen {
     width: 100%;
     height: 100%;
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.4);
+    background: radial-gradient(circle at 50% 40%, rgba(26, 24, 34, 0.6) 0%, rgba(10, 10, 14, 0.95) 100%);
+}
+
+.menu-content-wrap {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Освещение факелов подземелья по бокам */
+.torch-ambient-glow {
+    position: absolute;
+    top: 0;
+    width: 220px;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.torch-left {
+    left: 0;
+    background: radial-gradient(ellipse at 0% 45%, rgba(245, 158, 11, 0.22) 0%, rgba(180, 83, 9, 0.1) 45%, transparent 75%);
+    animation: torchAmbientFlickerLeft 4.5s ease-in-out infinite;
+}
+
+.torch-right {
+    right: 0;
+    background: radial-gradient(ellipse at 100% 45%, rgba(245, 158, 11, 0.22) 0%, rgba(180, 83, 9, 0.1) 45%, transparent 75%);
+    animation: torchAmbientFlickerRight 5s ease-in-out infinite;
+}
+
+@keyframes torchAmbientFlickerLeft {
+    0%, 100% { opacity: 0.65; transform: scaleX(1); }
+    25% { opacity: 0.85; transform: scaleX(1.12); }
+    40% { opacity: 0.55; transform: scaleX(0.95); }
+    60% { opacity: 0.9; transform: scaleX(1.18); }
+    80% { opacity: 0.7; transform: scaleX(1.04); }
+}
+
+@keyframes torchAmbientFlickerRight {
+    0%, 100% { opacity: 0.7; transform: scaleX(1); }
+    30% { opacity: 0.95; transform: scaleX(1.15); }
+    50% { opacity: 0.5; transform: scaleX(0.92); }
+    75% { opacity: 0.85; transform: scaleX(1.1); }
+    90% { opacity: 0.6; transform: scaleX(0.98); }
+}
+
+/* Дрейфующий туман подземелья */
+.menu-fog-layer {
+    position: absolute;
+    bottom: -20px;
+    left: -20%;
+    width: 140%;
+    height: 240px;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.25;
+}
+
+.menu-fog-1 {
+    background: radial-gradient(ellipse at 50% 100%, rgba(148, 163, 184, 0.35) 0%, transparent 70%);
+    animation: fogDrift 16s ease-in-out infinite alternate;
+}
+
+.menu-fog-2 {
+    background: radial-gradient(ellipse at 60% 100%, rgba(192, 132, 252, 0.18) 0%, transparent 65%);
+    animation: fogDrift 22s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes fogDrift {
+    0% { transform: translateX(-40px) scaleY(1); }
+    100% { transform: translateX(40px) scaleY(1.15); }
+}
+
+/* Контейнер парящих искр (embers) */
+.menu-embers-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 4;
+}
+
+.ember-particle {
+    position: absolute;
+    bottom: -15px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fef08a 0%, #f59e0b 60%, rgba(239, 68, 68, 0.8) 100%);
+    box-shadow: 0 0 6px #f59e0b, 0 0 10px #ea580c;
+    opacity: 0;
+    pointer-events: none;
+    animation: emberRise linear infinite;
+}
+
+@keyframes emberRise {
+    0% {
+        transform: translateY(0) translateX(0) scale(0.5);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.85;
+    }
+    50% {
+        opacity: 0.7;
+        transform: translateY(-280px) translateX(calc(var(--drift, 20px) * 0.5)) scale(1);
+    }
+    90% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateY(-660px) translateX(var(--drift, 40px)) scale(0.6);
+        opacity: 0;
+    }
 }
 
 .game-title {
-    font-size: 3rem;
-    color: #d4af37;
-    text-shadow: 0 0 15px rgba(212, 175, 55, 0.4), 2px 2px 5px #000;
+    font-size: 3.2rem;
+    color: #f6e05e;
+    background: linear-gradient(180deg, #fffbeb 0%, #facc15 50%, #b45309 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 14px rgba(234, 179, 8, 0.45)) drop-shadow(2px 3px 4px rgba(0, 0, 0, 0.9));
     margin-bottom: 8px;
-    letter-spacing: 3px;
+    letter-spacing: 4px;
     text-transform: uppercase;
+    animation: titleGlowPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlowPulse {
+    0% {
+        filter: drop-shadow(0 0 10px rgba(234, 179, 8, 0.35)) drop-shadow(2px 3px 4px rgba(0, 0, 0, 0.9));
+        transform: scale(1);
+    }
+    100% {
+        filter: drop-shadow(0 0 26px rgba(250, 204, 21, 0.8)) drop-shadow(0 0 38px rgba(234, 88, 12, 0.35)) drop-shadow(2px 3px 4px rgba(0, 0, 0, 0.9));
+        transform: scale(1.02);
+    }
 }
 
 .game-subtitle {
-    font-size: 1.1rem;
-    color: #8a8880;
+    font-size: 1.15rem;
+    color: #a8a29e;
     margin-bottom: 40px;
     font-style: italic;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
 }
 
 .menu-buttons {
@@ -75,16 +212,66 @@ body {
     font-size: 1.1rem;
     border-radius: 4px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.22s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-menu-item {
+    animation: menuBtnEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.btn-menu-item::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -70%;
+    width: 25%;
+    height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: rotate(25deg);
+    pointer-events: none;
+}
+
+.btn-menu-item:hover::after {
+    left: 150%;
+    transition: left 0.75s ease-in-out;
+}
+
+@keyframes menuBtnEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-pulse-save:not(:disabled) {
+    border-color: #ca8a04;
+    animation: continuePulseGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes continuePulseGlow {
+    0%, 100% {
+        border-color: #854d0e;
+        box-shadow: 0 0 6px rgba(202, 138, 4, 0.25);
+    }
+    50% {
+        border-color: #facc15;
+        box-shadow: 0 0 16px rgba(250, 204, 21, 0.65), inset 0 0 10px rgba(250, 204, 21, 0.15);
+    }
 }
 
 .btn:hover:not(:disabled) {
     background: linear-gradient(180deg, #443c33 0%, #29241f 100%);
     border-color: #d4af37;
     color: #fff;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+    box-shadow: 0 0 14px rgba(212, 175, 55, 0.45);
     transform: translateY(-2px);
 }
 
@@ -99,7 +286,7 @@ body {
     position: absolute;
     bottom: 15px;
     font-size: 0.8rem;
-    color: #4a4944;
+    color: #57534e;
 }
 
 /* ================= КОРЗИНА КАСТОМИЗАЦИИ ================= */
@@ -135,6 +322,74 @@ body {
 #avatar-svg-container {
     width: 100%;
     height: 100%;
+    position: relative;
+    z-index: 5;
+}
+
+.hero-idle-breathe {
+    transform-origin: 50% 90%;
+    animation: heroIdleBreathe 3.6s ease-in-out infinite;
+}
+
+@keyframes heroIdleBreathe {
+    0%, 100% {
+        transform: translateY(0) scaleY(1);
+    }
+    50% {
+        transform: translateY(-2.5px) scaleY(1.012);
+    }
+}
+
+.hero-update-pulse {
+    animation: heroUpdatePulse 0.35s ease-out;
+}
+
+@keyframes heroUpdatePulse {
+    0% { filter: brightness(1); }
+    40% { filter: brightness(1.22) drop-shadow(0 0 10px rgba(250, 204, 21, 0.6)); }
+    100% { filter: brightness(1); }
+}
+
+.pedestal-ambient-ring {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.3) 0%, rgba(202, 138, 4, 0.12) 50%, transparent 75%);
+    border: 1.5px solid rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 18px rgba(212, 175, 55, 0.35), inset 0 0 10px rgba(212, 175, 55, 0.25);
+    pointer-events: none;
+    z-index: 2;
+    animation: pedestalRingPulse 3.5s ease-in-out infinite;
+}
+
+@keyframes pedestalRingPulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 0.6;
+        box-shadow: 0 0 14px rgba(212, 175, 55, 0.3), inset 0 0 8px rgba(212, 175, 55, 0.2);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.06);
+        opacity: 0.95;
+        box-shadow: 0 0 24px rgba(250, 204, 21, 0.6), inset 0 0 14px rgba(250, 204, 21, 0.35);
+    }
+}
+
+.pedestal-light-cone {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 180px;
+    background: linear-gradient(180deg, transparent 0%, rgba(212, 175, 55, 0.04) 60%, rgba(212, 175, 55, 0.15) 100%);
+    clip-path: polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%);
+    pointer-events: none;
+    z-index: 1;
 }
 
 .name-input-group {
@@ -166,6 +421,28 @@ body {
     padding: 0 10px;
     cursor: pointer;
     font-size: 1.1rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-small:hover {
+    background: #3d3428;
+    border-color: #d4af37;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+    transform: scale(1.08);
+}
+
+.dice-roll-anim {
+    animation: diceRollAnim 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes diceRollAnim {
+    0% { transform: rotate(0deg) scale(1); }
+    40% { transform: rotate(200deg) scale(1.3); color: #fef08a; }
+    80% { transform: rotate(380deg) scale(1.1); color: #facc15; }
+    100% { transform: rotate(360deg) scale(1); }
 }
 
 .derived-stats-card {
@@ -228,6 +505,11 @@ body {
     transition: all 0.2s;
 }
 
+.tab-btn:hover {
+    color: #e2e8f0;
+    border-color: #64748b;
+}
+
 .tab-btn.active {
     background: #383023;
     color: #f1ebd8;
@@ -270,16 +552,26 @@ body {
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid #222;
-    transition: transform 0.15s;
+    transition: transform 0.18s ease-out;
 }
 
 .color-dot:hover {
-    transform: scale(1.15);
+    transform: scale(1.18);
 }
 
 .color-dot.active {
     border-color: #fff;
-    box-shadow: 0 0 6px #d4af37;
+    transform: scale(1.15);
+    animation: dotActivePulse 2.2s ease-in-out infinite;
+}
+
+@keyframes dotActivePulse {
+    0%, 100% {
+        box-shadow: 0 0 0 2px #fff, 0 0 8px rgba(212, 175, 55, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 2.5px #fef08a, 0 0 14px rgba(250, 204, 21, 0.95);
+    }
 }
 
 .btn-group {
@@ -296,12 +588,19 @@ body {
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.82rem;
+    transition: all 0.2s;
+}
+
+.choice-btn:hover {
+    border-color: #854d0e;
+    color: #f1ebd8;
 }
 
 .choice-btn.active {
     background: #463b2a;
     border-color: #d4af37;
     color: #fff;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
 }
 
 .cards-grid {
@@ -316,18 +615,51 @@ body {
     border-radius: 6px;
     padding: 10px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
 }
 
 .selection-card:hover {
-    border-color: #796645;
-    background: #1e1f2b;
+    border-color: #92753a;
+    background: #1c1e2b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
 }
 
 .selection-card.active {
     border-color: #d4af37;
-    background: #2b271d;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    background: linear-gradient(145deg, #2c251a 0%, #1a1924 100%);
+    transform: translateY(-1px);
+    animation: cardActiveGlow 3s ease-in-out infinite;
+}
+
+@keyframes cardActiveGlow {
+    0%, 100% {
+        box-shadow: 0 0 8px rgba(212, 175, 55, 0.35), inset 0 0 6px rgba(212, 175, 55, 0.15);
+    }
+    50% {
+        box-shadow: 0 0 16px rgba(250, 204, 21, 0.65), inset 0 0 10px rgba(250, 204, 21, 0.3);
+    }
+}
+
+#points-counter.has-points {
+    color: #4ade80;
+    font-weight: bold;
+    display: inline-block;
+    animation: pointsPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pointsPulse {
+    0%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 4px rgba(74, 222, 128, 0.5);
+    }
+    50% {
+        transform: scale(1.2);
+        color: #facc15;
+        text-shadow: 0 0 10px rgba(250, 204, 21, 0.9);
+    }
 }
 
 .card-title {
@@ -1837,6 +2169,29 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .save-toast-banner.visible {
+    opacity: 1;
+}
+
+.dungeon-toast-banner {
+    min-height: 26px;
+    font-size: 0.82rem;
+    color: #fca5a5;
+    text-align: center;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    background: rgba(127, 29, 29, 0.45);
+    border: 1px solid #ef4444;
+    border-radius: 4px;
+    padding: 3px 12px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.dungeon-toast-banner.visible {
     opacity: 1;
 }
 
@@ -5993,5 +6348,2060 @@ input[type="range"]::-webkit-slider-thumb:hover {
     100% { transform: translate(8px, -36px); opacity: 0.15; }
 }
 
+/* =========================================================================
+   РЕДКОСТЬ ПРЕДМЕТОВ И СТИЛИ ИНВЕНТАРЯ (ITEM RARITY & EQUIPMENT STYLING)
+   ========================================================================= */
 
+/* Иконки экипировки SVG */
+.item-eq-icon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Рамки слотов инвентаря по редкости */
+.inv-slot.item-filled.rarity-common {
+    border-color: #475569;
+}
+.inv-slot.item-filled.rarity-uncommon {
+    border-color: #16a34a;
+    background: radial-gradient(circle at center, rgba(22, 163, 74, 0.15) 0%, rgba(20, 21, 27, 0.8) 100%);
+}
+.inv-slot.item-filled.rarity-rare {
+    border-color: #0284c7;
+    background: radial-gradient(circle at center, rgba(2, 132, 199, 0.2) 0%, rgba(20, 21, 27, 0.8) 100%);
+    box-shadow: inset 0 0 8px rgba(56, 189, 248, 0.25);
+}
+.inv-slot.item-filled.rarity-epic {
+    border-color: #9333ea;
+    background: radial-gradient(circle at center, rgba(147, 51, 234, 0.22) 0%, rgba(20, 21, 27, 0.8) 100%);
+    box-shadow: inset 0 0 10px rgba(192, 132, 252, 0.35);
+}
+.inv-slot.item-filled.rarity-legendary {
+    border-color: #f59e0b;
+    background: radial-gradient(circle at center, rgba(245, 158, 11, 0.25) 0%, rgba(20, 21, 27, 0.8) 100%);
+    box-shadow: inset 0 0 12px rgba(251, 191, 36, 0.45);
+}
+
+/* Слоты куклы экипировки */
+.equip-slot-box.filled.rarity-common { border-color: #475569; }
+.equip-slot-box.filled.rarity-uncommon { border-color: #16a34a; box-shadow: 0 0 8px rgba(22, 163, 74, 0.3); }
+.equip-slot-box.filled.rarity-rare { border-color: #0284c7; box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+.equip-slot-box.filled.rarity-epic { border-color: #9333ea; box-shadow: 0 0 12px rgba(192, 132, 252, 0.45); }
+.equip-slot-box.filled.rarity-legendary { border-color: #f59e0b; box-shadow: 0 0 15px rgba(251, 191, 36, 0.55); }
+
+/* Рамка иконки в инспекторе */
+.inspect-icon-frame.rarity-common { border-color: #475569; }
+.inspect-icon-frame.rarity-uncommon { border-color: #16a34a; box-shadow: 0 0 10px rgba(22, 163, 74, 0.35); }
+.inspect-icon-frame.rarity-rare { border-color: #0284c7; box-shadow: 0 0 14px rgba(56, 189, 248, 0.45); }
+.inspect-icon-frame.rarity-epic { border-color: #9333ea; box-shadow: 0 0 16px rgba(192, 132, 252, 0.5); }
+.inspect-icon-frame.rarity-legendary { border-color: #f59e0b; box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); }
+
+/* Шильдики редкости в инспекторе */
+.inspect-meta-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.inspect-item-rarity-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+}
+.inspect-item-rarity-badge.rarity-common { color: #94a3b8; background: rgba(148, 163, 184, 0.1); }
+.inspect-item-rarity-badge.rarity-uncommon { color: #4ade80; background: rgba(34, 197, 94, 0.12); }
+.inspect-item-rarity-badge.rarity-rare { color: #38bdf8; background: rgba(56, 189, 248, 0.15); }
+.inspect-item-rarity-badge.rarity-epic { color: #c084fc; background: rgba(192, 132, 252, 0.18); }
+.inspect-item-rarity-badge.rarity-legendary { color: #fbbf24; background: rgba(245, 158, 11, 0.2); }
+
+/* =========================================================================
+   ИНТЕРАКТИВНЫЕ СУНДУКИ В КАТАКОМБАХ (DUNGEON TREASURE CHESTS)
+   ========================================================================= */
+
+.room-chest-interactive {
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+.room-chest-interactive:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.8));
+}
+.room-chest-interactive.opened {
+    opacity: 0.7;
+    filter: grayscale(0.2);
+}
+
+/* Пульсация свечения нетронутого сундука */
+.anim-chest-pulse {
+    animation: chestAuraPulse 2.4s ease-in-out infinite alternate;
+}
+@keyframes chestAuraPulse {
+    0% { opacity: 0.2; transform: scale(0.9); }
+    50% { opacity: 0.55; transform: scale(1.1); }
+    100% { opacity: 0.2; transform: scale(0.9); }
+}
+
+/* Секция сундука в карточке осмотра комнаты */
+.card-chest-section {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #12141c;
+    border: 1px solid #334155;
+}
+.card-chest-section.ready {
+    border-color: #f59e0b;
+    background: radial-gradient(circle at center, rgba(245, 158, 11, 0.12) 0%, #12141c 100%);
+}
+.card-chest-section.guarded {
+    border-color: #ef4444;
+    background: radial-gradient(circle at center, rgba(239, 68, 68, 0.1) 0%, #12141c 100%);
+}
+.card-chest-section.opened {
+    border-color: #475569;
+    opacity: 0.8;
+}
+
+.chest-sec-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.chest-sec-icon {
+    display: flex;
+    align-items: center;
+}
+.chest-sec-title {
+    color: #f1f5f9;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+.chest-sec-status {
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.chest-sec-status.ready { color: #f59e0b; background: rgba(245, 158, 11, 0.15); }
+.chest-sec-status.guarded { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+.chest-sec-status.opened { color: #94a3b8; background: rgba(148, 163, 184, 0.15); }
+
+.chest-sec-hint {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 4px;
+    line-height: 1.35;
+}
+
+.btn-open-chest {
+    margin-top: 8px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+    color: #fff;
+    font-weight: 600;
+}
+.btn-open-chest:hover {
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+}
+
+/* Модальное окно открытия сундука */
+.dungeon-chest-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(8, 9, 13, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+}
+
+.dungeon-chest-modal-backdrop.hidden {
+    display: none !important;
+}
+
+.chest-modal-dialog {
+    width: 440px;
+    background: #161822;
+    border: 2px solid #f59e0b;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 35px rgba(245, 158, 11, 0.35), 0 0 15px rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+}
+
+.chest-modal-icon-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6));
+}
+
+.chest-modal-title {
+    color: #facc15;
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.chest-modal-sub {
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
+.chest-reward-row.gold-reward {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    background: #1e2230;
+    border: 1px solid #d97706;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+.chest-reward-row.gold-reward strong {
+    color: #facc15;
+    font-size: 1.1rem;
+}
+
+.chest-items-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.chest-items-title {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chest-items-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.chest-item-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #10121a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+}
+.chest-item-card.rarity-uncommon { border-color: #16a34a; }
+.chest-item-card.rarity-rare { border-color: #0284c7; box-shadow: 0 0 8px rgba(56, 189, 248, 0.25); }
+.chest-item-card.rarity-epic { border-color: #9333ea; box-shadow: 0 0 10px rgba(192, 132, 252, 0.3); }
+.chest-item-card.rarity-legendary { border-color: #f59e0b; box-shadow: 0 0 12px rgba(251, 191, 36, 0.4); }
+
+.chest-item-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.chest-item-info {
+    flex: 1;
+}
+.chest-item-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+.chest-item-desc {
+    font-size: 0.76rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* Баннер редкого трофея монстра в окне победы */
+.rare-mob-trophy-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: linear-gradient(90deg, rgba(147, 51, 234, 0.25) 0%, rgba(245, 158, 11, 0.25) 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.35);
+}
+.rare-trophy-icon {
+    color: #facc15;
+    flex-shrink: 0;
+    display: flex;
+}
+.rare-trophy-text {
+    text-align: left;
+}
+.rare-trophy-title {
+    color: #facc15;
+    font-weight: bold;
+    font-size: 0.92rem;
+    letter-spacing: 0.5px;
+}
+.rare-trophy-desc {
+    color: #e2e8f0;
+    font-size: 0.82rem;
+    margin-top: 2px;
+}
+
+.drop-item-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.drop-item-icon {
+    display: flex;
+    align-items: center;
+}
+.drop-item-badge {
+    font-size: 0.68rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+}
+.drop-item-badge.rarity-uncommon { color: #4ade80; }
+.drop-item-badge.rarity-rare { color: #38bdf8; }
+.drop-item-badge.rarity-epic { color: #c084fc; }
+.drop-item-badge.rarity-legendary { color: #fbbf24; }
+
+/* Inventory slot rarity borders and glow */
+.inv-slot.rarity-common {
+    border-color: #94a3b8;
+}
+.inv-slot.rarity-uncommon {
+    border-color: #22c55e;
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+}
+.inv-slot.rarity-rare {
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+.inv-slot.rarity-epic {
+    border-color: #a855f7;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
+}
+.inv-slot.rarity-legendary {
+    border-color: #f59e0b;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+    animation: legendary-pulse 2s infinite;
+}
+
+@keyframes legendary-pulse {
+    0% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
+    50% { box-shadow: 0 0 16px rgba(245, 158, 11, 1); }
+    100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
+}
+
+/* Equipment slot rarity borders */
+.equip-slot-box.rarity-common {
+    border-color: #94a3b8;
+}
+.equip-slot-box.rarity-uncommon {
+    border-color: #22c55e;
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+}
+.equip-slot-box.rarity-rare {
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+.equip-slot-box.rarity-epic {
+    border-color: #a855f7;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
+}
+.equip-slot-box.rarity-legendary {
+    border-color: #f59e0b;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+    animation: legendary-pulse 2s infinite;
+}
+
+/* Inspect panel rarity badge */
+.rarity-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+}
+
+/* Chest section in room inspection card */
+.card-chest-section {
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    background: #1a1c28;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+}
+.card-chest-section.opened {
+    opacity: 0.6;
+    background: #141620;
+}
+.card-chest-section.guarded {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+.card-chest-section.ready {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+.card-chest-section.distant {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.chest-sec-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.chest-sec-icon {
+    flex-shrink: 0;
+}
+.chest-sec-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #f1f5f9;
+}
+.chest-sec-status {
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: auto;
+}
+.chest-sec-status.opened {
+    color: #22c55e;
+}
+.chest-sec-status.guarded {
+    color: #ef4444;
+}
+.chest-sec-status.ready {
+    color: #facc15;
+}
+.chest-sec-hint {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #94a3b8;
+    margin-top: 5px;
+}
+.btn-open-chest {
+    background: #d4af37;
+    color: #141620;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+    transition: background 0.2s;
+}
+.btn-open-chest:hover {
+    background: #facc15;
+}
+
+/* Chest glow animation */
+@keyframes anim-chest-pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+.chest-glow {
+    animation: anim-chest-pulse 2s infinite ease-in-out;
+}
+
+/* Chest reward modal */
+#dungeon-chest-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+}
+.chest-modal-inner {
+    background: #141620;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 90%;
+    width: 400px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    color: #e2e8f0;
+}
+.drop-item-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.drop-item-icon {
+    display: flex;
+    align-items: center;
+}
+.drop-item-badge {
+    font-size: 0.68rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+}
+.drop-item-badge.rarity-uncommon { color: #4ade80; }
+.drop-item-badge.rarity-rare { color: #38bdf8; }
+.drop-item-badge.rarity-epic { color: #c084fc; }
+.drop-item-badge.rarity-legendary { color: #fbbf24; }
+
+/* Inventory slot rarity borders and glow */
+.inv-slot.rarity-common {
+    border-color: #94a3b8;
+}
+.inv-slot.rarity-uncommon {
+    border-color: #22c55e;
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+}
+.inv-slot.rarity-rare {
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+.inv-slot.rarity-epic {
+    border-color: #a855f7;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
+}
+.inv-slot.rarity-legendary {
+    border-color: #f59e0b;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+    animation: legendary-pulse 2s infinite;
+}
+
+@keyframes legendary-pulse {
+    0% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
+    50% { box-shadow: 0 0 16px rgba(245, 158, 11, 1); }
+    100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
+}
+
+/* Equipment slot rarity borders */
+.equip-slot-box.rarity-common {
+    border-color: #94a3b8;
+}
+.equip-slot-box.rarity-uncommon {
+    border-color: #22c55e;
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+}
+.equip-slot-box.rarity-rare {
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+.equip-slot-box.rarity-epic {
+    border-color: #a855f7;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
+}
+.equip-slot-box.rarity-legendary {
+    border-color: #f59e0b;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+    animation: legendary-pulse 2s infinite;
+}
+
+/* Inspect panel rarity badge */
+.rarity-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+}
+
+/* Chest section in room inspection card */
+.card-chest-section {
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    background: #1a1c28;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+}
+.card-chest-section.opened {
+    opacity: 0.6;
+    background: #141620;
+}
+.card-chest-section.guarded {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+.card-chest-section.ready {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+.card-chest-section.distant {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.chest-sec-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.chest-sec-icon {
+    flex-shrink: 0;
+}
+.chest-sec-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #f1f5f9;
+}
+.chest-sec-status {
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: auto;
+}
+.chest-sec-status.opened {
+    color: #22c55e;
+}
+.chest-sec-status.guarded {
+    color: #ef4444;
+}
+.chest-sec-status.ready {
+    color: #facc15;
+}
+.chest-sec-hint {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #94a3b8;
+    margin-top: 5px;
+}
+.btn-open-chest {
+    background: #d4af37;
+    color: #141620;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+    transition: background 0.2s;
+}
+.btn-open-chest:hover {
+    background: #facc15;
+}
+
+/* Chest glow animation */
+@keyframes anim-chest-pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+.chest-glow {
+    animation: anim-chest-pulse 2s infinite ease-in-out;
+}
+
+/* Chest reward modal */
+#dungeon-chest-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+}
+.chest-modal-inner {
+    background: #141620;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 90%;
+    width: 400px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    color: #e2e8f0;
+}
+.chest-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+}
+.chest-modal-close:hover {
+    color: #f1f5f9;
+}
+
+/* Character Creation Starter Gear Preview */
+.starter-gear-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+.starter-gear-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    background: rgba(30, 41, 59, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 6px;
+    transition: background 0.2s, border-color 0.2s;
+}
+.starter-gear-card:hover {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(203, 213, 225, 0.35);
+}
+.starter-gear-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+.starter-gear-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+.starter-gear-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+.starter-gear-desc {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+/* Модальное окно "Об игре" */
+.about-modal-window {
+    width: 560px;
+    max-width: 92vw;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: #14151e;
+    border: 2px solid #b45309;
+    border-radius: 10px;
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.95), 0 0 15px rgba(180, 83, 9, 0.2);
+    padding: 22px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: #e2e8f0;
+}
+
+.about-modal-window .modal-header {
+    border-bottom: 1px solid #78350f;
+    padding-bottom: 10px;
+}
+
+.about-modal-window .modal-header h3 {
+    color: #f59e0b;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.about-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.about-section h4 {
+    color: #fbbf24;
+    font-size: 0.95rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px dashed rgba(180, 83, 9, 0.4);
+    padding-bottom: 4px;
+}
+
+.about-section p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+}
+
+.about-controls-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.about-control-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(30, 41, 59, 0.5);
+    padding: 6px 12px;
+    border-radius: 4px;
+    border-left: 3px solid #f59e0b;
+}
+
+.about-kbd {
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 0.8rem;
+    font-family: monospace;
+    font-weight: bold;
+    color: #38bdf8;
+    white-space: nowrap;
+}
+
+.about-tips-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.86rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+}
+
+.about-tips-list li {
+    margin-bottom: 6px;
+}
+
+.about-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #334155;
+    padding-top: 12px;
+}
+
+/* =========================================
+   ТУМАН ВОЙНЫ В ПОДЗЕМЕЛЬЕ (FOG OF WAR)
+========================================= */
+
+.room-fogged {
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.room-fogged:hover {
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.35));
+}
+
+.fog-boss-glow {
+    animation: fogBossPulse 2.5s infinite alternate ease-in-out;
+}
+
+@keyframes fogBossPulse {
+    0% { filter: drop-shadow(0 0 3px rgba(220, 38, 38, 0.4)); }
+    100% { filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8)); }
+}
+
+.room-adjacent {
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.room-adjacent:hover {
+    filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.4));
+}
+
+/* Мерцающие во мгле глаза врага в соседней комнате */
+@keyframes silhouetteEyesGlow {
+    0% { opacity: 0.6; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1.15); filter: drop-shadow(0 0 4px #ef4444); }
+    100% { opacity: 0.6; transform: scale(0.9); }
+}
+
+.room-mob-silhouette circle {
+    animation: silhouetteEyesGlow 1.8s infinite ease-in-out;
+}
+
+.corridor-segment, .shaft-segment {
+    transition: opacity 0.35s ease;
+}
+
+/* =========================================
+   ЗАСТАВА ЮЖНОГО ТРАКТА И СТРАЖНИКИ
+========================================= */
+
+.south-road-screen {
+    background: radial-gradient(circle at 50% 20%, #1e293b 0%, #090d16 100%);
+}
+
+.interactive-guard {
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.interactive-guard:hover {
+    filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8)) brightness(1.12);
+    transform: scale(1.02);
+}
+
+.interactive-guard:active {
+    transform: scale(0.98);
+}
+
+@keyframes torchFlicker {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.88; }
+    50% { transform: scale(1.15) rotate(2deg); opacity: 1; filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.8)); }
+    100% { transform: scale(0.95) rotate(-2deg); opacity: 0.82; }
+}
+
+.torch-flame-anim {
+    transform-origin: center center;
+    animation: torchFlicker 0.7s infinite alternate ease-in-out;
+}
+
+/* Баннер статуса врат */
+.gate-status-banner {
+    padding: 14px 18px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.gate-status-banner.locked {
+    background: linear-gradient(135deg, rgba(30, 27, 24, 0.95) 0%, rgba(20, 15, 12, 0.98) 100%);
+    border: 1.5px solid #b45309;
+    border-left: 4px solid #f59e0b;
+}
+
+.gate-status-banner.unlocked {
+    background: linear-gradient(135deg, rgba(20, 36, 25, 0.95) 0%, rgba(10, 24, 15, 0.98) 100%);
+    border: 1.5px solid #16a34a;
+    border-left: 4px solid #4ade80;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.25);
+}
+
+.gate-status-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.gate-status-icon {
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gate-status-banner.locked .gate-status-icon {
+    color: #f59e0b;
+}
+
+.gate-status-banner.unlocked .gate-status-icon {
+    color: #facc15;
+    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.6));
+}
+
+.gate-status-title {
+    margin: 0;
+    font-size: 1.05rem;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+}
+
+.gate-status-banner.locked .gate-status-title {
+    color: #fef08a;
+}
+
+.gate-status-banner.unlocked .gate-status-title {
+    color: #86efac;
+}
+
+.gate-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 3px;
+}
+
+.gate-status-badge.warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.gate-status-badge.success {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.gate-status-desc {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+}
+
+.south-road-panel {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border-color: #334155 !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 14px;
+}
+
+/* Окно диалога стражи */
+.guard-dialog-box {
+    min-height: 150px;
+    max-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+}
+
+.dialog-idle-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    color: #64748b;
+    border: 1px dashed #334155;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.86rem;
+    font-style: italic;
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.placeholder-icon {
+    color: #38bdf8;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+}
+
+.guard-dialog-card {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1.5px solid #38bdf8;
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(2, 132, 199, 0.1);
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.dialog-speaker-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+    padding-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.speaker-avatar-frame {
+    width: 34px;
+    height: 34px;
+    background: #0f172a;
+    border: 1.5px solid #38bdf8;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #38bdf8;
+}
+
+.speaker-avatar-frame.varran {
+    border-color: #facc15;
+    color: #facc15;
+}
+
+.dialog-speaker-name {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #38bdf8;
+}
+
+.dialog-speaker-sub {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+.dialog-speech-bubble {
+    background: rgba(2, 6, 23, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    border-radius: 6px;
+    padding: 8px 10px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.dialog-speech-text {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: #f1f5f9;
+}
+
+.dialog-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.btn-dialog-option {
+    text-align: left !important;
+    white-space: normal !important;
+    font-size: 0.8rem !important;
+    padding: 6px 10px !important;
+    line-height: 1.3 !important;
+    border-color: #0284c7 !important;
+    background: rgba(2, 132, 199, 0.15) !important;
+    color: #e0f2fe !important;
+}
+
+.btn-dialog-option:hover {
+    background: rgba(2, 132, 199, 0.35) !important;
+    border-color: #38bdf8 !important;
+    color: #ffffff !important;
+}
+
+/* Действия на южном тракте */
+.south-road-actions-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.south-road-actions-grid .btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+}
+
+.btn-action-pass {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 12px 18px;
+}
+
+@keyframes pulseGoldPass {
+    0% { box-shadow: 0 0 10px rgba(250, 204, 21, 0.4); border-color: #ca8a04; }
+    50% { box-shadow: 0 0 24px rgba(250, 204, 21, 0.8); border-color: #fde047; }
+    100% { box-shadow: 0 0 10px rgba(250, 204, 21, 0.4); border-color: #ca8a04; }
+}
+
+.btn-pulse-gold {
+    animation: pulseGoldPass 1.8s infinite ease-in-out;
+}
+
+/* Модальное окно эпилога победы */
+.epilogue-dialog {
+    max-width: 600px;
+    background: radial-gradient(circle at 50% 20%, #1c1a27 0%, #0b0c13 100%);
+    border: 2px solid #ca8a04;
+    box-shadow: 0 0 45px rgba(202, 138, 4, 0.35), 0 0 80px rgba(0, 0, 0, 0.9);
+}
+
+.epilogue-header {
+    text-align: center;
+    border-bottom: 1px solid #78350f;
+    padding-bottom: 16px;
+}
+
+.epilogue-header .victory-icon {
+    color: #facc15;
+    filter: drop-shadow(0 0 12px rgba(250, 204, 21, 0.7));
+    display: block;
+    margin-bottom: 8px;
+}
+
+.epilogue-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 0;
+}
+
+.epilogue-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+}
+
+.epilogue-hero-summary {
+    display: flex;
+    justify-content: space-around;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 8px;
+}
+
+/* Баннер триумфа над финальным боссом в бою */
+.final-boss-triumph-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, rgba(88, 28, 135, 0.6) 0%, rgba(120, 53, 15, 0.7) 100%);
+    border: 2px solid #facc15;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+    margin: 8px 0;
+    text-align: left;
+}
+
+.final-boss-icon {
+    color: #facc15;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.8));
+}
+
+.final-boss-title {
+    color: #fde047;
+    font-weight: bold;
+    font-size: 0.98rem;
+    letter-spacing: 0.5px;
+}
+
+.final-boss-desc {
+    color: #f8fafc;
+    font-size: 0.84rem;
+    margin-top: 2px;
+}
+
+/* Значок активного баффа таверны в HUD города и подземелья */
+.hud-buff-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, rgba(180, 83, 9, 0.35) 0%, rgba(120, 53, 15, 0.45) 100%) !important;
+    border: 1px solid #f59e0b !important;
+    padding: 3px 10px !important;
+    border-radius: 14px !important;
+    font-size: 0.78rem !important;
+    color: #fde047 !important;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+    animation: buffPillGlow 2.5s ease-in-out infinite alternate;
+    user-select: none;
+    cursor: default;
+    transition: all 0.2s ease;
+}
+
+.hud-buff-pill:hover {
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
+    border-color: #fbbf24 !important;
+}
+
+.hud-buff-pill svg {
+    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.7));
+}
+
+@keyframes buffPillGlow {
+    0% {
+        box-shadow: 0 0 6px rgba(245, 158, 11, 0.2);
+        border-color: #d97706;
+    }
+    100% {
+        box-shadow: 0 0 12px rgba(245, 158, 11, 0.45);
+        border-color: #fbbf24;
+    }
+}
+
+/* ==========================================================================
+   СЮЖЕТНЫЙ ПРОЛОГ: СЦЕНЫ, АРТ И ТЕКСТОВАЯ НОРАТИВНАЯ ПАНЕЛЬ
+   ========================================================================== */
+.story-screen-wrap {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(circle at center, #111420 0%, #06070a 100%);
+    user-select: none;
+}
+
+/* Верхняя панель пролога */
+.story-header-bar {
+    height: 52px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    background: rgba(15, 17, 26, 0.85);
+    border-bottom: 1px solid #334155;
+    backdrop-filter: blur(4px);
+    z-index: 10;
+}
+
+.story-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.story-badge-prologue {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(202, 138, 4, 0.2);
+    border: 1px solid #ca8a04;
+    color: #facc15;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.story-chapter-title {
+    font-size: 0.98rem;
+    color: #f1ebd8;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin: 0;
+    text-shadow: 0 0 8px rgba(250, 204, 21, 0.3);
+}
+
+.story-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.story-dots-tracker {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.story-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 1px solid #475569;
+    transition: all 0.3s ease;
+}
+
+.story-dot.active {
+    background: #facc15;
+    border-color: #fef08a;
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.85);
+    transform: scale(1.35);
+}
+
+.story-dot.completed {
+    background: #b45309;
+    border-color: #d97706;
+}
+
+.story-btn-skip {
+    font-size: 0.78rem !important;
+    padding: 5px 12px !important;
+    color: #cbd5e1 !important;
+    border-color: #475569 !important;
+}
+
+.story-btn-skip:hover {
+    color: #f8fafc !important;
+    border-color: #ca8a04 !important;
+    background: rgba(202, 138, 4, 0.2) !important;
+}
+
+/* Центральный вьюпорт иллюстраций */
+.story-art-stage {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.story-art-viewport {
+    width: 780px;
+    height: 420px;
+    max-width: 100%;
+    max-height: 100%;
+    border: 2px solid #ca8a04;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.95), 0 0 15px rgba(202, 138, 4, 0.25);
+    background: #030408;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.story-svg-art {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.art-fade-in {
+    animation: storyArtFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes storyArtFadeIn {
+    0% {
+        opacity: 0.15;
+        transform: scale(0.985);
+        filter: blur(3px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+}
+
+/* Нижняя диалоговая панель */
+.story-narrative-bar {
+    min-height: 140px;
+    background: linear-gradient(180deg, #151722 0%, #0a0b10 100%);
+    border-top: 2px solid #ca8a04;
+    box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+    z-index: 10;
+    cursor: pointer;
+}
+
+.story-narrative-inner {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.story-speaker-badge {
+    width: 135px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.story-speaker-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    background: #0f172a;
+    border: 2px solid #ca8a04;
+    box-shadow: 0 0 12px rgba(202, 138, 4, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    color: #facc15;
+}
+
+.story-speaker-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.story-speaker-info {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.story-speaker-name {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #fde047;
+    line-height: 1.2;
+    text-shadow: 0 0 6px rgba(250, 204, 21, 0.3);
+}
+
+.story-hint-speed {
+    font-size: 0.65rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.story-text-body {
+    flex: 1;
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    position: relative;
+}
+
+.story-typewriter-line {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: #f8fafc;
+    margin: 0;
+    font-family: 'Segoe UI', 'Georgia', serif;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.story-blinking-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 18px;
+    background: #facc15;
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: storyCursorBlink 0.75s ease-in-out infinite;
+}
+
+.story-blinking-cursor.idle {
+    animation: storyCursorPulse 1.2s ease-in-out infinite;
+    background: #ca8a04;
+}
+
+@keyframes storyCursorBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+@keyframes storyCursorPulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.3); opacity: 0.4; }
+}
+
+.story-action-row {
+    width: 140px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.story-progress-counter {
+    font-size: 0.75rem;
+    color: #ca8a04;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.story-btn-next {
+    padding: 8px 16px !important;
+    font-size: 0.88rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+/* ================= СИСТЕМА КВЕСТОВ И ПОРУЧЕНИЙ ================= */
+
+/* Бейдж счетчика заданий на вкладках */
+.badge-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f59e0b;
+    color: #0f172a;
+    font-size: 0.72rem;
+    font-weight: bold;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    margin-left: 6px;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* Навигация в шапке инвентаря: Инвентарь / Журнал */
+.inv-nav-tabs {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.inv-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* Слот для интерактивных квестовых кнопок у NPC */
+.npc-quest-prompt-box {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-npc-quest-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    border-radius: 6px;
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%);
+    border: 1px solid #f59e0b;
+    color: #fef08a;
+    text-align: left;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.btn-npc-quest-action:hover {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(217, 119, 6, 0.45) 100%);
+    border-color: #fbbf24;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-npc-quest-action.pulse-hint {
+    animation: questActionPulse 2s infinite ease-in-out;
+}
+
+@keyframes questActionPulse {
+    0%, 100% { border-color: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.3); }
+    50% { border-color: #fbbf24; box-shadow: 0 0 14px rgba(251, 191, 36, 0.6); }
+}
+
+/* Вкладка «Поручения» в интерьерах торговцев */
+.quest-tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.quest-tab-intro {
+    color: #a8a29e;
+    font-size: 0.85rem;
+    font-style: italic;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(61, 52, 41, 0.6);
+}
+
+.quest-cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    padding-right: 6px;
+    flex: 1;
+}
+
+.quest-card {
+    background: rgba(22, 20, 28, 0.75);
+    border: 1.5px solid #3d3429;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+.quest-card:hover {
+    border-color: #d4af37;
+    background: rgba(30, 26, 38, 0.85);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.15);
+}
+
+.quest-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quest-title {
+    color: #f1ebd8;
+    font-size: 1.05rem;
+    font-weight: bold;
+    margin: 0;
+    flex: 1;
+}
+
+.quest-type-tag {
+    font-size: 0.72rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.quest-type-tag.delivery {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.quest-type-tag.inquire {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.quest-lvl-badge {
+    font-size: 0.75rem;
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.quest-speech-quote {
+    color: #d1c7b7;
+    font-size: 0.88rem;
+    font-style: italic;
+    border-left: 3px solid #d4af37;
+    padding-left: 10px;
+    line-height: 1.45;
+}
+
+.quest-desc {
+    color: #94a3b8;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.quest-objective-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.objective-label {
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.quest-item-provided {
+    font-size: 0.82rem;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px dashed rgba(56, 189, 248, 0.3);
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-flex;
+}
+
+.quest-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 10px;
+    gap: 12px;
+}
+
+.quest-rewards-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.82rem;
+    flex-wrap: wrap;
+}
+
+.reward-title {
+    color: #94a3b8;
+    font-weight: bold;
+}
+
+.reward-val.gold {
+    color: #facc15;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.reward-val.exp {
+    color: #c084fc;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.reward-val.item {
+    color: #38bdf8;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.reward-val.bonus {
+    color: #ef4444;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.quest-empty {
+    text-align: center;
+    color: #78716c;
+    padding: 40px 20px;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+/* Дневник заданий в меню инвентаря */
+.inv-journal-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 4px 6px;
+}
+
+.quest-journal-wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 12px;
+}
+
+.journal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #3d3429;
+    padding-bottom: 8px;
+}
+
+.journal-header h3 {
+    color: #e2d9c8;
+    font-size: 1.15rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.journal-stats-badge {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid #3d3429;
+}
+
+.journal-content-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.journal-column {
+    background: rgba(18, 17, 24, 0.7);
+    border: 1px solid #3d3429;
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+.journal-col-title {
+    color: #d4af37;
+    font-size: 0.95rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    padding-bottom: 6px;
+}
+
+.journal-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 30px 14px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.journal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.journal-quest-card {
+    background: rgba(28, 25, 36, 0.8);
+    border: 1px solid #4a3e2e;
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.15s;
+}
+
+.journal-quest-card.active:hover {
+    border-color: #d4af37;
+}
+
+.journal-quest-card.completed {
+    background: rgba(18, 28, 20, 0.45);
+    border-color: #274b33;
+}
+
+.journal-quest-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.94rem;
+    color: #f8fafc;
+}
+
+.journal-desc {
+    font-size: 0.83rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.45;
+}
+
+.journal-meta-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 10px;
+    border-radius: 4px;
+}
+
+.journal-reward-row {
+    font-size: 0.8rem;
+    color: #ca8a04;
+}
+
+.quest-status-check {
+    font-size: 0.75rem;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 4px;
+    padding: 2px 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Анимация маркеров квестов на карте города */
+@keyframes questMarkerBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+.anim-bounce-glow {
+    animation: questMarkerBounce 1.6s ease-in-out infinite;
+}
 

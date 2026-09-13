@@ -5,12 +5,15 @@ import { CharacterRenderer } from '../../visuals/characterRenderer.js';
 import { NpcRenderer, NPC_CONFIGS } from '../../visuals/npcRenderer.js';
 import { Icons } from '../../visuals/icons.js';
 import { getTraderStock } from '../../data/itemsData.js';
+import { QuestSystem } from '../../services/questSystem.js';
+import { QuestRenderer } from '../../ui/questRenderer.js';
 
 export class TavernScreen {
     constructor(player, callbacks) {
         this.player = player;
         this.callbacks = callbacks;
         this.npc = NPC_CONFIGS.brok;
+        this.activeTab = 'services';
 
         sound.switchMusic(tavernMusic, 1.2);
 
@@ -28,7 +31,7 @@ export class TavernScreen {
             <div class="interior-screen">
                 <div class="interior-top-bar">
                     <div class="loc-character-badge">
-                        <div class="hud-avatar-frame">${CharacterRenderer.renderBust(this.player.visuals, this.player.classId)}</div>
+                        <div class="hud-avatar-frame">${CharacterRenderer.renderBust(this.player.visuals, this.player.classId, this.player.equipment)}</div>
                         <div class="loc-player-meta">
                             <span class="loc-player-name">${this.player.name}</span>
                             <span class="loc-gold">${Icons.coin(14)} <strong id="loc-gold-val">${this.player.gold}</strong></span>
@@ -280,77 +283,22 @@ export class TavernScreen {
                             <div class="npc-speech-bubble" id="brok-speech">
                                 «Здорово, путник! Проходи к очагу. В такую сырость кружка доброго эля и мягкая постель — лучшее лекарство от могильного холода катакомб.»
                             </div>
+                            <div id="npc-quest-prompt-slot">
+                                ${QuestRenderer.renderNpcQuestPrompts(this.player, 'brok')}
+                            </div>
                         </div>
 
-                        <div class="interior-services-box">
-                            <div class="service-action-row">
-                                <div class="srv-icon">${Icons.bed(22)}</div>
-                                <div class="srv-info">
-                                    <div class="srv-name">Снять теплую комнату</div>
-                                    <div class="srv-desc">Сон до утра. Полностью восстанавливает HP и MP.</div>
-                                </div>
-                                <button class="btn btn-primary srv-btn" id="btn-rest" ${this.player.gold < 10 ? 'disabled' : ''}>
-                                    Отдохнуть — ${Icons.coin(13)} 10
-                                </button>
-                            </div>
-
-                            <div class="service-action-row">
-                                <div class="srv-icon">${Icons.ale(22)}</div>
-                                <div class="srv-info">
-                                    <div class="srv-name">Кружка отборного эля</div>
-                                    <div class="srv-desc">Прилив сил: +5% к шансу крита на следующий спуск.</div>
-                                </div>
-                                <button class="btn btn-primary srv-btn" id="btn-ale" ${this.player.gold < 5 ? 'disabled' : ''}>
-                                    Выпить — ${Icons.coin(13)} 5
-                                </button>
-                            </div>
-
-                            <div class="service-action-row">
-                                <div class="srv-icon">${Icons.chat(22)}</div>
-                                <div class="srv-info">
-                                    <div class="srv-name">Послушать трактирные слухи</div>
-                                    <div class="srv-desc">Узнай полезные секреты и тайны глубин подземелья.</div>
-                                </div>
-                                <button class="btn btn-secondary srv-btn" id="btn-rumor">
-                                    Слушать (Бесплатно)
-                                </button>
-                            </div>
-
-                            ${getTraderStock('tavern', this.player.level || 1).map(food => {
-                                if (food.locked) {
-                                    return `
-                                        <div class="service-action-row item-locked" title="Откроется на ${food.reqLevel} уровне">
-                                            <div class="srv-icon item-icon-locked">${food.icon}</div>
-                                            <div class="srv-info">
-                                                <div class="srv-name item-title-locked">
-                                                    ${food.name}
-                                                    <span class="badge-item-locked">${Icons.lock(11)} Ур. ${food.reqLevel}</span>
-                                                </div>
-                                                <div class="srv-desc">${food.desc}</div>
-                                            </div>
-                                            <button class="btn btn-secondary srv-btn btn-locked-state" disabled>
-                                                ${Icons.lock(12)} С ${food.reqLevel} ур.
-                                            </button>
-                                        </div>
-                                    `;
-                                }
-                                return `
-                                    <div class="service-action-row">
-                                        <div class="srv-icon">${food.icon}</div>
-                                        <div class="srv-info">
-                                            <div class="srv-name">${food.name}</div>
-                                            <div class="srv-desc">${food.desc}</div>
-                                        </div>
-                                        <button class="btn btn-primary srv-btn btn-buy-food" data-id="${food.id}" ${this.player.gold < food.price ? 'disabled' : ''}>
-                                            В сумку — ${Icons.coin(13)} ${food.price}
-                                        </button>
-                                    </div>
-                                `;
-                            }).join('')}
+                        <div class="goods-tabs">
+                            <button class="goods-tab-btn ${this.activeTab === 'services' ? 'active' : ''}" id="tab-tavern-services">Услуги и угощения</button>
+                            <button class="goods-tab-btn ${this.activeTab === 'quests' ? 'active' : ''}" id="tab-tavern-quests">
+                                Поручения ${QuestSystem.hasAvailableQuestsForNpc(this.player, 'brok') ? `<span class="badge-tab-count">${QuestSystem.getAvailableQuestsForNpc(this.player, 'brok').length}</span>` : ''}
+                            </button>
                         </div>
+
+                        <div class="goods-content-view" id="tavern-tab-content"></div>
 
                         <div class="interior-status-footer" id="tavern-feedback">
-                            Твоё состояние: <strong>${this.player.currentHp}/${this.player.maxHp} HP</strong> | <strong>${this.player.currentMp}/${this.player.maxMp} MP</strong>
+                            ${this.renderTavernBuffStatus()}
                         </div>
                     </div>
                 </div>
@@ -358,48 +306,211 @@ export class TavernScreen {
         `;
 
         this.initEvents();
+        this.renderTabContent();
+        this.startBuffTicker();
     }
 
     initEvents() {
         this.container.querySelector('#btn-leave-tavern').addEventListener('click', () => {
+            this.cleanup();
             sound.playSfx('click');
             sound.switchMusic(townTheme, 1.2);
             this.callbacks.onBack();
         });
 
-        this.container.querySelector('#btn-rest').addEventListener('click', () => {
-            if (this.player.gold >= 10) {
-                this.player.gold -= 10;
-                this.player.currentHp = this.player.maxHp;
-                this.player.currentMp = this.player.maxMp;
-                sound.playSfx('coin');
-                this.container.querySelector('#loc-gold-val').textContent = this.player.gold;
-                this.container.querySelector('#brok-speech').textContent = '«Сладких снов! Можешь спать спокойно, мои дубовые двери выдержат осаду даже взбесившегося огра.»';
-                this.container.querySelector('#tavern-feedback').innerHTML = `Ты превосходно отдохнул! <strong>${this.player.currentHp}/${this.player.maxHp} HP</strong> | <strong>${this.player.currentMp}/${this.player.maxMp} MP</strong>`;
-                this.updateButtons();
-            }
-        });
+        const tabServices = this.container.querySelector('#tab-tavern-services');
+        if (tabServices) {
+            tabServices.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.activeTab = 'services';
+                this.updateTabs();
+                this.renderTabContent();
+            });
+        }
 
-        this.container.querySelector('#btn-ale').addEventListener('click', () => {
-            if (this.player.gold >= 5) {
-                this.player.gold -= 5;
-                this.player.critChance = Math.min(80, this.player.critChance + 5);
-                sound.playSfx('coin');
-                this.container.querySelector('#loc-gold-val').textContent = this.player.gold;
-                this.container.querySelector('#brok-speech').textContent = '«Ха! Вот это по-нашему! Хороший эль разгоняет кровь в жилах. Рука не дрогнет в бою!»';
-                this.container.querySelector('#tavern-feedback').innerHTML = `Боевой кураж! Твой шанс критического удара вырос до <strong>${this.player.critChance}%</strong>!`;
-                this.updateButtons();
-            }
-        });
+        const tabQuests = this.container.querySelector('#tab-tavern-quests');
+        if (tabQuests) {
+            tabQuests.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.activeTab = 'quests';
+                this.updateTabs();
+                this.renderTabContent();
+            });
+        }
 
-        this.container.querySelector('#btn-rumor').addEventListener('click', () => {
-            sound.playSfx('tab');
-            const random = this.rumors[Math.floor(Math.random() * this.rumors.length)];
-            this.container.querySelector('#brok-speech').textContent = random;
+        this.bindQuestPromptEvents();
+    }
+
+    bindQuestPromptEvents() {
+        const slot = this.container.querySelector('#npc-quest-prompt-slot');
+        if (!slot) return;
+        slot.querySelectorAll('.btn-quest-turnin').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const questId = btn.dataset.questId;
+                const res = QuestSystem.interactWithNpc(this.player, questId, 'brok');
+                if (res.success) {
+                    this.container.querySelector('#brok-speech').textContent = res.dialogText;
+                    slot.innerHTML = QuestRenderer.renderNpcQuestPrompts(this.player, 'brok');
+                    this.updateTabs();
+                    this.renderTabContent();
+                    this.bindQuestPromptEvents();
+                }
+            });
         });
+    }
+
+    updateTabs() {
+        const tabServices = this.container.querySelector('#tab-tavern-services');
+        const tabQuests = this.container.querySelector('#tab-tavern-quests');
+        if (tabServices) tabServices.classList.toggle('active', this.activeTab === 'services');
+        if (tabQuests) {
+            tabQuests.classList.toggle('active', this.activeTab === 'quests');
+            const availCount = QuestSystem.getAvailableQuestsForNpc(this.player, 'brok').length;
+            tabQuests.innerHTML = `Поручения ${availCount > 0 ? `<span class="badge-tab-count">${availCount}</span>` : ''}`;
+        }
+        this.container.querySelector('#loc-gold-val').textContent = this.player.gold;
+    }
+
+    renderTabContent() {
+        const view = this.container.querySelector('#tavern-tab-content');
+        if (!view) return;
+
+        if (this.activeTab === 'quests') {
+            view.innerHTML = QuestRenderer.renderNpcQuestsTab(this.player, 'brok');
+            view.querySelectorAll('.btn-accept-quest').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const questId = btn.dataset.questId;
+                    const res = QuestSystem.acceptQuest(this.player, questId);
+                    if (res.success) {
+                        this.container.querySelector('#brok-speech').textContent = res.quest.dialogPending;
+                        const slot = this.container.querySelector('#npc-quest-prompt-slot');
+                        if (slot) slot.innerHTML = QuestRenderer.renderNpcQuestPrompts(this.player, 'brok');
+                        this.updateTabs();
+                        this.renderTabContent();
+                        this.bindQuestPromptEvents();
+                    }
+                });
+            });
+            return;
+        }
+
+        view.innerHTML = `
+            <div class="interior-services-box">
+                <div class="service-action-row">
+                    <div class="srv-icon">${Icons.bed(22)}</div>
+                    <div class="srv-info">
+                        <div class="srv-name">Снять теплую комнату</div>
+                        <div class="srv-desc">Сон до утра. Полностью восстанавливает HP и MP.</div>
+                    </div>
+                    <button class="btn btn-primary srv-btn" id="btn-rest" ${this.player.gold < 10 ? 'disabled' : ''}>
+                        Отдохнуть — ${Icons.coin(13)} 10
+                    </button>
+                </div>
+
+                <div class="service-action-row">
+                    <div class="srv-icon">${Icons.ale(22)}</div>
+                    <div class="srv-info">
+                        <div class="srv-name">Кружка отборного эля</div>
+                        <div class="srv-desc">Прилив сил: +5% к шансу крита на 3 минуты (баффы не стакаются).</div>
+                    </div>
+                    <button class="btn btn-primary srv-btn" id="btn-ale" ${this.player.gold < 5 ? 'disabled' : ''}>
+                        Выпить — ${Icons.coin(13)} 5
+                    </button>
+                </div>
+
+                <div class="service-action-row">
+                    <div class="srv-icon">${Icons.chat(22)}</div>
+                    <div class="srv-info">
+                        <div class="srv-name">Послушать трактирные слухи</div>
+                        <div class="srv-desc">Узнай полезные секреты и тайны глубин подземелья.</div>
+                    </div>
+                    <button class="btn btn-secondary srv-btn" id="btn-rumor">
+                        Слушать (Бесплатно)
+                    </button>
+                </div>
+
+                ${getTraderStock('tavern', this.player.level || 1).map(food => {
+                    if (food.locked) {
+                        return `
+                            <div class="service-action-row item-locked" title="Откроется на ${food.reqLevel} уровне">
+                                <div class="srv-icon item-icon-locked">${food.icon}</div>
+                                <div class="srv-info">
+                                    <div class="srv-name item-title-locked">
+                                        ${food.name}
+                                        <span class="badge-item-locked">${Icons.lock(11)} Ур. ${food.reqLevel}</span>
+                                    </div>
+                                    <div class="srv-desc">${food.desc}</div>
+                                </div>
+                                <button class="btn btn-secondary srv-btn btn-locked-state" disabled>
+                                    ${Icons.lock(12)} С ${food.reqLevel} ур.
+                                </button>
+                            </div>
+                        `;
+                    }
+                    return `
+                        <div class="service-action-row">
+                            <div class="srv-icon">${food.icon}</div>
+                            <div class="srv-info">
+                                <div class="srv-name">${food.name}</div>
+                                <div class="srv-desc">${food.desc} (4 мин, не стакается)</div>
+                            </div>
+                            <button class="btn btn-primary srv-btn btn-buy-food" data-id="${food.id}" ${this.player.gold < food.price ? 'disabled' : ''}>
+                                В сумку — ${Icons.coin(13)} ${food.price}
+                            </button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        const btnRest = view.querySelector('#btn-rest');
+        if (btnRest) {
+            btnRest.addEventListener('click', () => {
+                if (this.player.gold >= 10) {
+                    this.player.gold -= 10;
+                    this.player.currentHp = this.player.maxHp;
+                    this.player.currentMp = this.player.maxMp;
+                    sound.playSfx('coin');
+                    this.container.querySelector('#loc-gold-val').textContent = this.player.gold;
+                    this.container.querySelector('#brok-speech').textContent = '«Сладких снов! Можешь спать спокойно, мои дубовые двери выдержат осаду даже взбесившегося огра.»';
+                    this.updateTavernStatus('Ты превосходно отдохнул и восстановил силы!');
+                    this.updateButtons();
+                }
+            });
+        }
+
+        const btnAle = view.querySelector('#btn-ale');
+        if (btnAle) {
+            btnAle.addEventListener('click', () => {
+                if (this.player.gold >= 5) {
+                    this.player.gold -= 5;
+                    this.player.setTavernBuff({
+                        id: 'ale',
+                        name: 'Отборный эль',
+                        desc: '+5% к шансу крита',
+                        critChance: 5,
+                        durationSeconds: 180
+                    });
+                    sound.playSfx('coin');
+                    this.container.querySelector('#loc-gold-val').textContent = this.player.gold;
+                    this.container.querySelector('#brok-speech').textContent = '«Ха! Вот это по-нашему! Хороший эль разгоняет кровь в жилах. Рука не дрогнет в бою! Действует 3 минуты.»';
+                    this.updateTavernStatus(`Боевой кураж на 3 минуты: <strong>+5% к шансу крита</strong> (эффекты не стакаются)!`);
+                    this.updateButtons();
+                }
+            });
+        }
+
+        const btnRumor = view.querySelector('#btn-rumor');
+        if (btnRumor) {
+            btnRumor.addEventListener('click', () => {
+                sound.playSfx('tab');
+                const random = this.rumors[Math.floor(Math.random() * this.rumors.length)];
+                this.container.querySelector('#brok-speech').textContent = random;
+            });
+        }
 
         const stock = getTraderStock('tavern', this.player.level || 1);
-        this.container.querySelectorAll('.btn-buy-food').forEach(btn => {
+        view.querySelectorAll('.btn-buy-food').forEach(btn => {
             btn.addEventListener('click', () => {
                 const food = stock.find(f => f.id === btn.dataset.id && !f.locked);
                 if (food && this.player.gold >= food.price) {
@@ -407,12 +518,25 @@ export class TavernScreen {
                     this.player.inventory.push({ ...food });
                     sound.playSfx('coin');
                     this.container.querySelector('#loc-gold-val').textContent = this.player.gold;
-                    this.container.querySelector('#brok-speech').textContent = `«Завернул свежее ${food.name} с собой в дорогу. Подкрепись в катакомбах через инвентарь!»`;
-                    this.container.querySelector('#tavern-feedback').innerHTML = `Приобретено: <strong>${food.name}</strong> (добавлено в инвентарь)`;
+                    this.container.querySelector('#brok-speech').textContent = `«Завернул свежее ${food.name} с собой в дорогу. Подкрепись в катакомбах через инвентарь (бафф действует 4 минуты)!»`;
+                    this.updateTavernStatus(`Приобретено: <strong>${food.name}</strong> (добавлено в инвентарь)`);
                     this.updateButtons();
                 }
             });
         });
+
+        this.updateButtons();
+    }
+
+    updateTavernStatus(customMessage = null) {
+        const footer = this.container?.querySelector('#tavern-feedback');
+        if (footer) {
+            if (customMessage) {
+                footer.innerHTML = `${customMessage} | ${this.renderTavernBuffStatus()}`;
+            } else {
+                footer.innerHTML = this.renderTavernBuffStatus();
+            }
+        }
     }
 
     updateButtons() {

@@ -5,6 +5,8 @@ import { CharacterRenderer } from '../../visuals/characterRenderer.js';
 import { NpcRenderer, NPC_CONFIGS } from '../../visuals/npcRenderer.js';
 import { Icons } from '../../visuals/icons.js';
 import { getTraderStock } from '../../data/itemsData.js';
+import { QuestSystem } from '../../services/questSystem.js';
+import { QuestRenderer } from '../../ui/questRenderer.js';
 
 export class TempleScreen {
     constructor(player, callbacks) {
@@ -27,7 +29,7 @@ export class TempleScreen {
             <div class="interior-screen">
                 <div class="interior-top-bar">
                     <div class="loc-character-badge">
-                        <div class="hud-avatar-frame">${CharacterRenderer.renderBust(this.player.visuals, this.player.classId)}</div>
+                        <div class="hud-avatar-frame">${CharacterRenderer.renderBust(this.player.visuals, this.player.classId, this.player.equipment)}</div>
                         <div class="loc-player-meta">
                             <span class="loc-player-name">${this.player.name}</span>
                             <span class="loc-gold">${Icons.coin(14)} <strong id="loc-gold-val">${this.player.gold}</strong></span>
@@ -217,11 +219,17 @@ export class TempleScreen {
                             <div class="npc-speech-bubble" id="elysia-speech">
                                 «Мир твоей душе, дитя моё. Тьма катакомб сильна, но чистый духом никогда не собьётся с пути. Прими благословение Небес перед спуском во тьму.»
                             </div>
+                            <div id="npc-quest-prompt-slot">
+                                ${QuestRenderer.renderNpcQuestPrompts(this.player, 'elysia')}
+                            </div>
                         </div>
 
                         <div class="goods-tabs">
                             <button class="goods-tab-btn ${this.activeTab === 'blessings' ? 'active' : ''}" id="tab-blessings">Святые благословения</button>
                             <button class="goods-tab-btn ${this.activeTab === 'relics' ? 'active' : ''}" id="tab-relics">Реликвии храма</button>
+                            <button class="goods-tab-btn ${this.activeTab === 'quests' ? 'active' : ''}" id="tab-temple-quests">
+                                Поручения ${QuestSystem.hasAvailableQuestsForNpc(this.player, 'elysia') ? `<span class="badge-tab-count">${QuestSystem.getAvailableQuestsForNpc(this.player, 'elysia').length}</span>` : ''}
+                            </button>
                         </div>
 
                         <div class="goods-content-view" id="temple-content"></div>
@@ -254,16 +262,71 @@ export class TempleScreen {
             this.updateTabs();
             this.renderTabContent();
         });
+
+        const tabQuests = this.container.querySelector('#tab-temple-quests');
+        if (tabQuests) {
+            tabQuests.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.activeTab = 'quests';
+                this.updateTabs();
+                this.renderTabContent();
+            });
+        }
+
+        this.bindQuestPromptEvents();
+    }
+
+    bindQuestPromptEvents() {
+        const slot = this.container.querySelector('#npc-quest-prompt-slot');
+        if (!slot) return;
+        slot.querySelectorAll('.btn-quest-turnin').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const questId = btn.dataset.questId;
+                const res = QuestSystem.interactWithNpc(this.player, questId, 'elysia');
+                if (res.success) {
+                    this.container.querySelector('#elysia-speech').textContent = res.dialogText;
+                    slot.innerHTML = QuestRenderer.renderNpcQuestPrompts(this.player, 'elysia');
+                    this.updateTabs();
+                    this.renderTabContent();
+                    this.bindQuestPromptEvents();
+                }
+            });
+        });
     }
 
     updateTabs() {
         this.container.querySelector('#tab-blessings').classList.toggle('active', this.activeTab === 'blessings');
         this.container.querySelector('#tab-relics').classList.toggle('active', this.activeTab === 'relics');
+        const tabQuests = this.container.querySelector('#tab-temple-quests');
+        if (tabQuests) {
+            tabQuests.classList.toggle('active', this.activeTab === 'quests');
+            const availCount = QuestSystem.getAvailableQuestsForNpc(this.player, 'elysia').length;
+            tabQuests.innerHTML = `Поручения ${availCount > 0 ? `<span class="badge-tab-count">${availCount}</span>` : ''}`;
+        }
         this.container.querySelector('#loc-gold-val').textContent = this.player.gold;
     }
 
     renderTabContent() {
         const view = this.container.querySelector('#temple-content');
+
+        if (this.activeTab === 'quests') {
+            view.innerHTML = QuestRenderer.renderNpcQuestsTab(this.player, 'elysia');
+            view.querySelectorAll('.btn-accept-quest').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const questId = btn.dataset.questId;
+                    const res = QuestSystem.acceptQuest(this.player, questId);
+                    if (res.success) {
+                        this.container.querySelector('#elysia-speech').textContent = res.quest.dialogPending;
+                        const slot = this.container.querySelector('#npc-quest-prompt-slot');
+                        if (slot) slot.innerHTML = QuestRenderer.renderNpcQuestPrompts(this.player, 'elysia');
+                        this.updateTabs();
+                        this.renderTabContent();
+                        this.bindQuestPromptEvents();
+                    }
+                });
+            });
+            return;
+        }
 
         if (this.activeTab === 'blessings') {
             view.innerHTML = `

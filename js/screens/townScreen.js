@@ -5,6 +5,8 @@ import { ShopScreen } from './townLocations/shopScreen.js';
 import { TavernScreen } from './townLocations/tavernScreen.js';
 import { BlacksmithScreen } from './townLocations/blacksmithScreen.js';
 import { TempleScreen } from './townLocations/templeScreen.js';
+import { SouthRoadScreen } from './townLocations/southRoadScreen.js';
+import { QuestSystem } from '../services/questSystem.js';
 
 export class TownScreen {
     constructor(player, callbacks) {
@@ -14,12 +16,34 @@ export class TownScreen {
 
     render(container) {
         this.container = container;
+        const activeQuestsCount = QuestSystem.getActiveQuestsList(this.player).length;
+
+        const getBuildingQuestMarker = (buildingId, x, y) => {
+            const status = QuestSystem.hasQuestsForBuilding(this.player, buildingId);
+            if (status.hasTurnIn) {
+                return `
+                    <g class="map-quest-badge anim-bounce-glow" transform="translate(${x}, ${y})" pointer-events="none">
+                        <circle cx="0" cy="0" r="14" fill="#f59e0b" stroke="#ffffff" stroke-width="2.5" filter="url(#buildingHoverGlow)"/>
+                        <text x="0" y="5.5" text-anchor="middle" fill="#0f172a" font-size="16" font-weight="900" font-family="system-ui, sans-serif">?</text>
+                    </g>
+                `;
+            } else if (status.hasAvailable) {
+                return `
+                    <g class="map-quest-badge anim-bounce-glow" transform="translate(${x}, ${y})" pointer-events="none">
+                        <circle cx="0" cy="0" r="14" fill="#38bdf8" stroke="#ffffff" stroke-width="2.5" filter="url(#buildingHoverGlow)"/>
+                        <text x="0" y="5.5" text-anchor="middle" fill="#0f172a" font-size="16" font-weight="900" font-family="system-ui, sans-serif">!</text>
+                    </g>
+                `;
+            }
+            return '';
+        };
+
         container.innerHTML = `
             <div class="town-container">
                 <div class="town-hud">
                     <div class="hud-character-info">
                         <div class="hud-avatar-frame" id="hud-avatar-frame">
-                            ${CharacterRenderer.renderBust(this.player.visuals, this.player.classId)}
+                            ${CharacterRenderer.renderBust(this.player.visuals, this.player.classId, this.player.equipment)}
                         </div>
                         <div class="hud-meta">
                             <div class="hud-name">${this.player.name} <span class="hud-class">(${this.player.className})</span></div>
@@ -39,10 +63,14 @@ export class TownScreen {
                     <div class="hud-stats-summary">
                         <span>${Icons.sword(14)} Урон: <strong>${this.player.physicalDamage}</strong></span>
                         <span>${Icons.shield(14)} Защита: <strong>${this.player.defense}</strong></span>
+                        <span id="hud-tavern-buff-badge">${this.renderTavernBuffHudBadge()}</span>
                     </div>
 
                     <div class="hud-resources">
                         <div class="hud-gold">${Icons.coin(16)} <span id="hud-gold-val">${this.player.gold}</span></div>
+                        <button class="btn-town-menu" id="btn-town-journal" title="Дневник поручений (J)">
+                            ${Icons.scroll(13)} Задания ${activeQuestsCount > 0 ? `<span class="badge-tab-count">${activeQuestsCount}</span>` : ''}
+                        </button>
                         <button class="btn-town-menu" id="btn-town-menu" title="Открыть инвентарь и меню (I / Esc)">
                             ${Icons.backpack(13)} Меню
                         </button>
@@ -156,11 +184,11 @@ export class TownScreen {
                         <!-- Дорога от площади к Южному тракту -->
                         <path d="M425,355 L415,538 L545,538 L535,355 Z" fill="url(#flagstoneRoad)" stroke="#1a1c24" stroke-width="2"/>
                         <!-- Дорога к Таверне (влево вверх) -->
-                        <path d="M250,235 L390,265 L375,315 L250,290 Z" fill="url(#flagstoneRoad)" stroke="#1a1c24" stroke-width="2"/>
+                        <path d="M250,180 L390,265 L375,315 L250,240 Z" fill="url(#flagstoneRoad)" stroke="#1a1c24" stroke-width="2"/>
                         <!-- Дорога к Лавке (влево вниз) -->
                         <path d="M245,410 L395,335 L410,385 L245,465 Z" fill="url(#flagstoneRoad)" stroke="#1a1c24" stroke-width="2"/>
                         <!-- Дорога к Кузнице (вправо вверх) -->
-                        <path d="M710,235 L570,265 L585,315 L710,290 Z" fill="url(#flagstoneRoad)" stroke="#1a1c24" stroke-width="2"/>
+                        <path d="M710,180 L570,265 L585,315 L710,240 Z" fill="url(#flagstoneRoad)" stroke="#1a1c24" stroke-width="2"/>
                         <!-- Дорога к Храму (вправо вниз) -->
                         <path d="M715,410 L565,335 L550,385 L715,465 Z" fill="url(#flagstoneRoad)" stroke="#1a1c24" stroke-width="2"/>
 
@@ -219,15 +247,20 @@ export class TownScreen {
                         <!-- Деревья и кустарники вокруг площади -->
                         <g id="town-trees">
                             <!-- Деревья слева -->
-                            <circle cx="95" cy="85" r="32" fill="#163819" stroke="#0e2410" stroke-width="2"/>
-                            <circle cx="90" cy="80" r="22" fill="#1e4d23"/>
-                            <circle cx="280" cy="115" r="26" fill="#163819" stroke="#0e2410" stroke-width="2"/>
-                            <circle cx="276" cy="110" r="18" fill="#1e4d23"/>
+                            <circle cx="50" cy="45" r="26" fill="#163819" stroke="#0e2410" stroke-width="2"/>
+                            <circle cx="46" cy="40" r="18" fill="#1e4d23"/>
+                            <circle cx="285" cy="65" r="24" fill="#163819" stroke="#0e2410" stroke-width="2"/>
+                            <circle cx="282" cy="60" r="16" fill="#1e4d23"/>
                             <!-- Деревья справа -->
-                            <circle cx="865" cy="85" r="32" fill="#163819" stroke="#0e2410" stroke-width="2"/>
-                            <circle cx="860" cy="80" r="22" fill="#1e4d23"/>
-                            <circle cx="680" cy="115" r="26" fill="#163819" stroke="#0e2410" stroke-width="2"/>
-                            <circle cx="676" cy="110" r="18" fill="#1e4d23"/>
+                            <circle cx="910" cy="45" r="26" fill="#163819" stroke="#0e2410" stroke-width="2"/>
+                            <circle cx="906" cy="40" r="18" fill="#1e4d23"/>
+                            <circle cx="675" cy="65" r="24" fill="#163819" stroke="#0e2410" stroke-width="2"/>
+                            <circle cx="672" cy="60" r="16" fill="#1e4d23"/>
+                            <!-- Деревья между верхними и нижними постройками -->
+                            <circle cx="150" cy="335" r="22" fill="#163819" stroke="#0e2410" stroke-width="1.8"/>
+                            <circle cx="147" cy="330" r="15" fill="#1e4d23"/>
+                            <circle cx="810" cy="335" r="22" fill="#163819" stroke="#0e2410" stroke-width="1.8"/>
+                            <circle cx="807" cy="330" r="15" fill="#1e4d23"/>
                             <!-- Деревья внизу -->
                             <circle cx="85" cy="515" r="28" fill="#163819" stroke="#0e2410" stroke-width="2"/>
                             <circle cx="875" cy="515" r="28" fill="#163819" stroke="#0e2410" stroke-width="2"/>
@@ -337,8 +370,9 @@ export class TownScreen {
 
                         <!-- ЗДАНИЕ 2: ТАВЕРНА «ПЬЯНЫЙ ДРАКОН» (СЕВЕРО-ЗАПАД) -->
                         <g class="town-building" id="building-tavern" style="cursor: pointer;">
-                            <!-- Тень здания -->
-                            <rect x="42" y="175" width="210" height="155" rx="8" fill="#05070a" opacity="0.6"/>
+                            <g transform="translate(0, -55)">
+                                <!-- Тень здания -->
+                                <rect x="42" y="175" width="210" height="155" rx="8" fill="#05070a" opacity="0.6"/>
 
                             <!-- Первый этаж: основа из тесаного речного камня -->
                             <rect x="52" y="225" width="190" height="95" rx="4" fill="#2d231b" stroke="#1c140e" stroke-width="2" class="building-roof"/>
@@ -438,6 +472,8 @@ export class TownScreen {
                             <!-- Табличка названия здания -->
                             <rect x="75" y="328" width="145" height="26" rx="5" fill="#14151c" stroke="#ca8a04" stroke-width="1.8" class="banner-box"/>
                             <text x="147" y="345" text-anchor="middle" class="map-label" fill="#fef08a" font-size="12" font-weight="bold">ТАВЕРНА</text>
+                            ${getBuildingQuestMarker('tavern', 147, 316)}
+                            </g>
                         </g>
 
                         <!-- ЗДАНИЕ 3: ЛАВКА ТОРГОВЦА «РЕДКИЕ ТОВАРЫ» (ЮГО-ЗАПАД) -->
@@ -529,82 +565,147 @@ export class TownScreen {
                             <!-- Табличка с названием здания -->
                             <rect x="80" y="518" width="160" height="26" rx="5" fill="#14151c" stroke="#e11d48" stroke-width="1.8" class="banner-box"/>
                             <text x="160" y="535" text-anchor="middle" class="map-label" fill="#fb7185" font-size="12" font-weight="bold">ЛАВКА ТОРГОВЦА</text>
+                            ${getBuildingQuestMarker('shop', 160, 506)}
                         </g>
 
                         <!-- ЗДАНИЕ 4: КУЗНИЦА «ПЛАМЯ ТИТАНА» (СЕВЕРО-ВОСТОК) -->
                         <g class="town-building" id="building-blacksmith" style="cursor: pointer;">
-                            <!-- Тень здания -->
-                            <rect x="708" y="175" width="210" height="155" rx="8" fill="#05070a" opacity="0.6"/>
+                            <g transform="translate(0, -55)">
+                                <!-- Тень здания -->
+                                <rect x="704" y="165" width="224" height="165" rx="8" fill="#05070a" opacity="0.6"/>
 
-                            <!-- Корпус кузницы из вулканического базальта -->
-                            <rect x="715" y="165" width="195" height="155" rx="6" fill="#1c1917" stroke="#0c0a09" stroke-width="2.5" class="building-roof"/>
-                            <!-- Каменные блоки и стальные стяжки с заклепками -->
-                            <path d="M715,195 H910 M715,230 H910 M715,265 H910 M715,300 H910" stroke="#292524" stroke-width="1.2" stroke-dasharray="14 18"/>
-                            <line x1="715" y1="180" x2="735" y2="180" stroke="#78350f" stroke-width="3"/>
-                            <circle cx="725" cy="180" r="1.5" fill="#d97706"/>
+                                <!-- 1. Главный корпус кузницы из огнеупорного базальта и гранита -->
+                                <rect x="712" y="155" width="208" height="165" rx="6" fill="#1c1917" stroke="#0c0a09" stroke-width="2.5" class="building-roof"/>
+                                <!-- Каменная кладка и рустовка базальтовых блоков -->
+                                <path d="M712,185 H920 M712,215 H920 M712,250 H920 M712,285 H920" stroke="#292524" stroke-width="1.2" stroke-dasharray="14 18"/>
+                                <line x1="755" y1="155" x2="755" y2="185" stroke="#292524" stroke-width="1.2"/>
+                                <line x1="820" y1="185" x2="820" y2="215" stroke="#292524" stroke-width="1.2"/>
+                                <line x1="770" y1="215" x2="770" y2="250" stroke="#292524" stroke-width="1.2"/>
 
-                            <!-- Массивная каменная крыша с вентиляционными продухами -->
-                            <polygon points="706,170 812,122 918,170" fill="#35312e" stroke="#1c1917" stroke-width="2.5"/>
-                            <path d="M720,165 L812,128 L904,165" stroke="#57534e" stroke-width="1.8" fill="none"/>
+                                <!-- 2. Двускатная сланцевая крыша с кованым коньком -->
+                                <polygon points="702,160 816,108 930,160" fill="#2d2926" stroke="#171412" stroke-width="2.5"/>
+                                <path d="M716,155 L816,114 L916,155" stroke="#44403c" stroke-width="1.8" fill="none"/>
+                                <!-- Кованый стальной флюгер в форме молота на коньке -->
+                                <line x1="816" y1="92" x2="816" y2="110" stroke="#ca8a04" stroke-width="2"/>
+                                <polygon points="816,92 826,88 826,96" fill="#facc15"/>
+                                <rect x="808" y="90" width="8" height="4" fill="#94a3b8" rx="0.5"/>
 
-                            <!-- Ступенчатый закопченный дымоход с пламенем и искрами -->
-                            <rect x="852" y="108" width="28" height="58" fill="#292524" stroke="#0c0a09" stroke-width="2"/>
-                            <rect x="848" y="102" width="36" height="8" fill="#44403c" stroke="#0c0a09" stroke-width="1.2"/>
-                            <!-- Клубы дыма -->
-                            <g class="chimney-smoke-stream" transform="translate(866, 98)">
-                                <circle cx="0" cy="0" r="5" fill="#475569" class="smoke-puff puff-1"/>
-                                <circle cx="3" cy="-9" r="7" fill="#334155" class="smoke-puff puff-2"/>
-                                <circle cx="-3" cy="-20" r="9" fill="#1e293b" class="smoke-puff puff-3"/>
+                                <!-- 3. Монументальный каменный дымоход с огненным жаром и искрами -->
+                                <rect x="860" y="82" width="34" height="78" fill="#262220" stroke="#0c0a09" stroke-width="2"/>
+                                <rect x="856" y="76" width="42" height="9" fill="#44403c" stroke="#0c0a09" stroke-width="1.5"/>
+                                <!-- Внутреннее зарево жерла дымохода -->
+                                <ellipse cx="877" cy="76" rx="16" ry="4" fill="#ea580c"/>
+                                <ellipse cx="877" cy="76" rx="10" ry="2" fill="#fef08a"/>
+                                <!-- Столб горячего дыма -->
+                                <g class="chimney-smoke-stream" transform="translate(877, 70)">
+                                    <circle cx="0" cy="0" r="6" fill="#334155" class="smoke-puff puff-1"/>
+                                    <circle cx="4" cy="-12" r="9" fill="#1e293b" class="smoke-puff puff-2"/>
+                                    <circle cx="-3" cy="-26" r="12" fill="#0f172a" class="smoke-puff puff-3"/>
+                                    <circle cx="5" cy="-42" r="15" fill="#334155" class="smoke-puff puff-4"/>
+                                </g>
+                                <!-- Вырывающиеся раскаленные искры -->
+                                <g class="forge-sparks-group" transform="translate(877, 68)">
+                                    <circle cx="0" cy="0" r="2.2" fill="#fef08a" class="forge-spark spark-1"/>
+                                    <circle cx="6" cy="-8" r="2.0" fill="#f97316" class="forge-spark spark-2"/>
+                                    <circle cx="-7" cy="-14" r="1.8" fill="#facc15" class="forge-spark spark-3"/>
+                                    <circle cx="4" cy="-22" r="2.2" fill="#ef4444" class="forge-spark spark-4"/>
+                                    <circle cx="-2" cy="-30" r="1.5" fill="#fef08a" class="forge-spark spark-5"/>
+                                </g>
+
+                                <!-- 4. Открытый рабочий навес кузницы (слева) с мощными дубовыми столбами -->
+                                <rect x="716" y="195" width="94" height="120" fill="#14110e" stroke="#292524" stroke-width="1.5"/>
+                                <!-- Опорные дубовые балки навеса -->
+                                <rect x="716" y="195" width="8" height="120" fill="#451a03" stroke="#1f0c02" stroke-width="1.2"/>
+                                <rect x="802" y="195" width="8" height="120" fill="#451a03" stroke="#1f0c02" stroke-width="1.2"/>
+                                <rect x="716" y="195" width="94" height="10" fill="#5c2405" stroke="#1f0c02" stroke-width="1.2"/>
+
+                                <!-- ПЫЛАЮЩИЙ ГОРН В СТЕНЕ НАВЕСА -->
+                                <path d="M728,275 L728,215 Q755,198 782,215 L782,275 Z" fill="#0c0a09" stroke="#78350f" stroke-width="2"/>
+                                <!-- Сияние жара горна -->
+                                <circle cx="755" cy="245" r="38" fill="url(#forgeGlow)" class="anim-forge-glow"/>
+                                <!-- Кокс и горящие угли в очаге -->
+                                <ellipse cx="755" cy="265" rx="24" ry="8" fill="#450a0a"/>
+                                <!-- Языки пламени в горне -->
+                                <path d="M738,268 Q755,212 772,268 Z" fill="#ea580c" class="anim-forge-flame flame-outer"/>
+                                <path d="M744,268 Q755,225 766,268 Z" fill="#f97316" class="anim-forge-flame flame-mid"/>
+                                <path d="M749,268 Q755,236 761,268 Z" fill="#fef08a" class="anim-forge-flame flame-core"/>
+                                <!-- Кузнечные мехи на стене горна -->
+                                <path d="M784,232 L798,240 L784,248 Z" fill="#78350f" stroke="#3b1d06" stroke-width="1.2"/>
+
+                                <!-- 5. ТЯЖЕЛАЯ НАКОВАЛЬНЯ НА КОЛОДЕ ПЕРЕД ГОРНОМ -->
+                                <g transform="translate(738, 260)">
+                                    <!-- Массивная дубовая колода со стальными обручами -->
+                                    <rect x="10" y="24" width="28" height="28" rx="3" fill="#451a03" stroke="#1f0c02" stroke-width="1.8"/>
+                                    <line x1="10" y1="32" x2="38" y2="32" stroke="#334155" stroke-width="1.5"/>
+                                    <line x1="10" y1="44" x2="38" y2="44" stroke="#334155" stroke-width="1.5"/>
+
+                                    <!-- Литая стальная наковальня -->
+                                    <path d="M2,10 L46,10 L38,24 L10,24 Z" fill="#64748b" stroke="#1e293b" stroke-width="2"/>
+                                    <!-- Заостренный конусный рог наковальни -->
+                                    <path d="M2,10 Q-8,14 -2,19 L10,19 Z" fill="#475569" stroke="#1e293b" stroke-width="1.2"/>
+                                    <!-- Хвост наковальни со ступенчатым срезом -->
+                                    <rect x="42" y="10" width="8" height="6" fill="#475569" stroke="#1e293b" stroke-width="1"/>
+
+                                    <!-- Раскаленная докрасна заготовка клинка на наковальне -->
+                                    <rect x="12" y="7" width="22" height="4" rx="1" fill="#fef08a" stroke="#ef4444" stroke-width="0.8" class="anim-forge-glow"/>
+                                    <!-- Кузнечный молот на наковальне -->
+                                    <line x1="32" y1="2" x2="44" y2="16" stroke="#92400e" stroke-width="2.5"/>
+                                    <rect x="28" y="-1" width="8" height="6" rx="1" fill="#334155" stroke="#0f172a" stroke-width="1"/>
+                                </g>
+
+                                <!-- 6. ЧАН С ВОДОЙ ДЛЯ ЗАКАЛКИ (СЛЕВА) -->
+                                <g transform="translate(712, 290)">
+                                    <ellipse cx="14" cy="18" rx="13" ry="8" fill="#1e293b" stroke="#0f172a" stroke-width="1.8"/>
+                                    <ellipse cx="14" cy="16" rx="10" ry="6" fill="#0284c7" opacity="0.85"/>
+                                    <!-- Струйки пара над чаном с водой -->
+                                    <path d="M10,12 Q14,4 18,12" stroke="#e0f2fe" stroke-width="1.2" fill="none" opacity="0.7"/>
+                                    <path d="M14,8 Q18,0 22,8" stroke="#ffffff" stroke-width="1" fill="none" opacity="0.5"/>
+                                </g>
+
+                                <!-- 7. ПРАВАЯ ЧАСТЬ КУЗНИЦЫ: ВХОД И ОРУЖЕЙНАЯ ВИТРИНА -->
+                                <!-- Дубовая обитая железом дверь мастера -->
+                                <path d="M830,315 L830,248 Q845,236 860,248 L860,315 Z" fill="#2e1405" stroke="#120601" stroke-width="2"/>
+                                <line x1="830" y1="262" x2="860" y2="262" stroke="#334155" stroke-width="2.5"/>
+                                <line x1="830" y1="292" x2="860" y2="292" stroke="#334155" stroke-width="2.5"/>
+                                <circle cx="854" cy="285" r="2.5" fill="#f59e0b"/>
+
+                                <!-- Подвесной кованый фонарь над входом -->
+                                <circle cx="845" cy="230" r="16" fill="url(#lampGlow)" class="anim-window-glow"/>
+                                <rect x="841" y="226" width="8" height="10" rx="1.5" fill="#fef08a" stroke="#ca8a04" stroke-width="1.2"/>
+
+                                <!-- Стойка с выкованным оружием у стены -->
+                                <g transform="translate(868, 230)">
+                                    <rect x="0" y="10" width="44" height="65" rx="3" fill="#3b1d0e" stroke="#1c0a03" stroke-width="1.8"/>
+                                    <!-- Меч правосудия с сияющим лезвием -->
+                                    <line x1="12" y1="0" x2="12" y2="65" stroke="#f8fafc" stroke-width="3"/>
+                                    <line x1="6" y1="14" x2="18" y2="14" stroke="#ca8a04" stroke-width="2"/>
+                                    <circle cx="12" cy="1" r="2" fill="#ca8a04"/>
+                                    <!-- Боевая двуручная секира -->
+                                    <line x1="26" y1="-4" x2="26" y2="65" stroke="#78350f" stroke-width="2.5"/>
+                                    <path d="M26,4 Q38,-2 36,16 Q26,10 26,10 Z" fill="#94a3b8" stroke="#334155" stroke-width="1.2"/>
+                                    <path d="M26,4 Q14,-2 16,16 Q26,10 26,10 Z" fill="#64748b" stroke="#334155" stroke-width="1.2"/>
+                                    <!-- Рыцарский гербовый щит на стойке -->
+                                    <path d="M18,35 L38,35 L36,52 Q28,62 28,62 Q28,62 20,52 Z" fill="#b91c1c" stroke="#facc15" stroke-width="1.5"/>
+                                    <circle cx="28" cy="46" r="3" fill="#facc15"/>
+                                </g>
+
+                                <!-- Вывеска кузницы на кованом кронштейне -->
+                                <g class="anim-swaying-sign" transform-origin="720 185">
+                                    <line x1="710" y1="185" x2="728" y2="185" stroke="#1c1917" stroke-width="3"/>
+                                    <line x1="715" y1="185" x2="715" y2="196" stroke="#44403c" stroke-width="1.5"/>
+                                    <line x1="724" y1="185" x2="724" y2="196" stroke="#44403c" stroke-width="1.5"/>
+                                    <!-- Вывеска: наковальня и скрещенные молоты -->
+                                    <rect x="708" y="196" width="24" height="22" rx="3" fill="#292524" stroke="#ea580c" stroke-width="1.5"/>
+                                    <path d="M713,208 L727,208 L724,213 L716,213 Z" fill="#facc15"/>
+                                    <line x1="712" y1="202" x2="724" y2="212" stroke="#ea580c" stroke-width="1.5"/>
+                                    <line x1="724" y1="202" x2="712" y2="212" stroke="#ea580c" stroke-width="1.5"/>
+                                </g>
+
+                                <!-- Табличка с названием здания -->
+                                <rect x="740" y="328" width="145" height="26" rx="5" fill="#14151c" stroke="#ea580c" stroke-width="1.8" class="banner-box"/>
+                                <text x="812" y="345" text-anchor="middle" class="map-label" fill="#fb923c" font-size="12" font-weight="bold">КУЗНИЦА</text>
+                                ${getBuildingQuestMarker('blacksmith', 812, 316)}
                             </g>
-                            <!-- Вылетающие горящие искры из дымохода -->
-                            <g class="forge-sparks-group" transform="translate(866, 95)">
-                                <circle cx="0" cy="0" r="2.2" fill="#fef08a" class="forge-spark spark-1"/>
-                                <circle cx="5" cy="-6" r="2.0" fill="#f97316" class="forge-spark spark-2"/>
-                                <circle cx="-6" cy="-10" r="1.7" fill="#facc15" class="forge-spark spark-3"/>
-                                <circle cx="3" cy="-16" r="2.2" fill="#ef4444" class="forge-spark spark-4"/>
-                            </g>
-
-                            <!-- Открытая рабочая зона с пылающим горном -->
-                            <rect x="834" y="210" width="68" height="72" rx="4" fill="#0c0a09" stroke="#78350f" stroke-width="2"/>
-                            <!-- Свечение раскаленного угля горна -->
-                            <circle cx="868" cy="246" r="34" fill="url(#forgeGlow)" class="anim-forge-glow"/>
-                            <!-- Языки пламени в горне -->
-                            <path d="M848,266 Q868,212 888,266 Z" fill="#ea580c" class="anim-forge-flame flame-outer"/>
-                            <path d="M856,266 Q868,226 880,266 Z" fill="#fef08a" class="anim-forge-flame flame-inner"/>
-                            <!-- Кузнечные мехи справа от горна -->
-                            <path d="M894,228 L908,235 L894,242 Z" fill="#78350f" stroke="#451a03" stroke-width="1.2"/>
-
-                            <!-- Массивная стальная наковальня на дубовой колоде -->
-                            <rect x="738" y="258" width="28" height="26" rx="3" fill="#542e13" stroke="#291406" stroke-width="1.8"/>
-                            <path d="M730,246 L776,246 L768,258 L738,258 Z" fill="#64748b" stroke="#334155" stroke-width="2"/>
-                            <!-- Заостренный рог наковальни и раскаленная заготовка меча -->
-                            <path d="M730,246 Q722,248 726,252 L738,252 Z" fill="#475569"/>
-                            <!-- Раскаленный клинок (красно-желтый) на наковальне -->
-                            <rect x="742" y="244" width="18" height="3" fill="#fef08a" stroke="#ea580c" stroke-width="0.8"/>
-                            <!-- Кузнечный молот рядом -->
-                            <line x1="762" y1="238" x2="774" y2="252" stroke="#a16207" stroke-width="2"/>
-                            <rect x="758" y="235" width="7" height="5" fill="#334155" stroke="#0f172a" stroke-width="1"/>
-
-                            <!-- Бочка с водой для закалки стали с паром -->
-                            <ellipse cx="734" cy="305" rx="14" ry="10" fill="#1e293b" stroke="#0f172a" stroke-width="1.8"/>
-                            <ellipse cx="734" cy="303" rx="11" ry="7" fill="#0284c7" opacity="0.8"/>
-                            <path d="M730,296 Q734,290 738,296" stroke="#e0f2fe" stroke-width="1.2" fill="none" opacity="0.6"/>
-
-                            <!-- Стойка с выкованным оружием и доспехами -->
-                            <rect x="780" y="232" width="46" height="56" rx="3" fill="#3b2210" stroke="#1c0f05" stroke-width="1.8"/>
-                            <!-- Выкованный стальной палаш -->
-                            <line x1="790" y1="222" x2="790" y2="282" stroke="#e2e8f0" stroke-width="3"/>
-                            <line x1="786" y1="234" x2="794" y2="234" stroke="#ca8a04" stroke-width="2"/>
-                            <!-- Боевой топор-секира -->
-                            <line x1="802" y1="220" x2="802" y2="282" stroke="#92400e" stroke-width="2.5"/>
-                            <path d="M802,225 Q816,220 812,235 Q802,232 802,232 Z" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/>
-                            <!-- Рыцарский каплевидный щит с гербом -->
-                            <path d="M814,250 L824,250 L824,264 Q819,274 814,264 Z" fill="#1e3a8a" stroke="#ca8a04" stroke-width="1.5"/>
-                            <circle cx="819" cy="257" r="2.5" fill="#facc15"/>
-
-                            <!-- Табличка с названием здания -->
-                            <rect x="740" y="328" width="145" height="26" rx="5" fill="#14151c" stroke="#ea580c" stroke-width="1.8" class="banner-box"/>
-                            <text x="812" y="345" text-anchor="middle" class="map-label" fill="#fb923c" font-size="12" font-weight="bold">КУЗНИЦА</text>
                         </g>
 
                         <!-- ЗДАНИЕ 5: ХРАМ СВЕТА (ЮГО-ВОСТОК) -->
@@ -678,13 +779,50 @@ export class TownScreen {
                             <!-- Табличка с названием здания -->
                             <rect x="730" y="518" width="145" height="26" rx="5" fill="#14151c" stroke="#38bdf8" stroke-width="1.8" class="banner-box"/>
                             <text x="802" y="535" text-anchor="middle" class="map-label" fill="#7dd3fc" font-size="12" font-weight="bold">ХРАМ СВЕТА</text>
+                            ${getBuildingQuestMarker('temple', 802, 506)}
                         </g>
 
-                        <!-- ВЫХОД: ЮЖНЫЙ ТРАКТ (ЮГ) -->
+                        <!-- ВЫХОД: ЮЖНЫЙ ТРАКТ (ЮГ) СО СТРАЖНИКАМИ -->
                         <g class="south-exit-group" id="town-south-exit" style="cursor: pointer;">
-                            <rect x="420" y="525" width="120" height="30" rx="5" fill="#14151c" stroke="#ca8a04" stroke-width="2"/>
-                            <path d="M472,537 L480,547 L488,537" stroke="#facc15" stroke-width="3" fill="none" stroke-linecap="round"/>
-                            <text x="480" y="520" text-anchor="middle" class="map-label" fill="#facc15" font-size="12" font-weight="bold" letter-spacing="1">ЮЖНЫЙ ТРАКТ</text>
+                            <!-- Каменные пилоны ворот -->
+                            <rect x="424" y="488" width="18" height="42" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1.5"/>
+                            <rect x="422" y="484" width="22" height="6" rx="1" fill="#475569" stroke="#1e293b" stroke-width="1"/>
+                            <rect x="518" y="488" width="18" height="42" rx="2" fill="#334155" stroke="#1e293b" stroke-width="1.5"/>
+                            <rect x="516" y="484" width="22" height="6" rx="1" fill="#475569" stroke="#1e293b" stroke-width="1"/>
+
+                            <!-- Арка ворот и кованая решетка -->
+                            <path d="M442,500 Q480,482 518,500 L518,534 L442,534 Z" fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+                            <line x1="456" y1="492" x2="456" y2="534" stroke="#64748b" stroke-width="1.2"/>
+                            <line x1="480" y1="486" x2="480" y2="534" stroke="#64748b" stroke-width="1.5"/>
+                            <line x1="504" y1="492" x2="504" y2="534" stroke="#64748b" stroke-width="1.2"/>
+                            <line x1="442" y1="510" x2="518" y2="510" stroke="#64748b" stroke-width="1.2"/>
+                            <line x1="442" y1="522" x2="518" y2="522" stroke="#64748b" stroke-width="1.2"/>
+
+                            <!-- Фигурка левого стражника (Капитан Варран с алебардой) -->
+                            <g transform="translate(412, 492)">
+                                <ellipse cx="8" cy="38" rx="8" ry="3" fill="#000000" opacity="0.4"/>
+                                <rect x="5" y="16" width="6" height="18" rx="1" fill="#475569" stroke="#1e293b" stroke-width="0.8"/>
+                                <path d="M3,16 L13,16 L14,32 L2,32 Z" fill="#1e3a8a"/>
+                                <circle cx="8" cy="11" r="5" fill="#cbd5e1" stroke="#1e293b" stroke-width="0.8"/>
+                                <line x1="16" y1="2" x2="16" y2="38" stroke="#78350f" stroke-width="1.5"/>
+                                <polygon points="16,2 14,-4 18,-4" fill="#cbd5e1"/>
+                                <path d="M16,4 Q21,0 20,8 Q17,6 16,6 Z" fill="#cbd5e1"/>
+                            </g>
+
+                            <!-- Фигурка правого стражника (Часовой Бран со щитом) -->
+                            <g transform="translate(534, 492)">
+                                <ellipse cx="8" cy="38" rx="8" ry="3" fill="#000000" opacity="0.4"/>
+                                <rect x="5" y="16" width="6" height="18" rx="1" fill="#475569" stroke="#1e293b" stroke-width="0.8"/>
+                                <circle cx="8" cy="11" r="5" fill="#cbd5e1" stroke="#1e293b" stroke-width="0.8"/>
+                                <path d="M-1,16 L7,16 L6,28 Q3,33 3,33 Q3,33 0,28 Z" fill="#1e3a8a" stroke="#facc15" stroke-width="1"/>
+                                <line x1="13" y1="18" x2="13" y2="34" stroke="#cbd5e1" stroke-width="1.2"/>
+                            </g>
+
+                            <!-- Табличка "Южный тракт" -->
+                            <rect x="415" y="530" width="130" height="26" rx="5" fill="#14151c" stroke="#ca8a04" stroke-width="2" class="banner-box"/>
+                            <path d="M472,546 L480,553 L488,546" stroke="#facc15" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <text x="480" y="542" text-anchor="middle" class="map-label" fill="#facc15" font-size="11.5" font-weight="bold" letter-spacing="1">ЮЖНЫЙ ТРАКТ</text>
+                            ${getBuildingQuestMarker('southRoad', 480, 516)}
                         </g>
 
                         <!-- АМБИЕНТ: ЛЕТАЮЩИЕ СВЕТЛЯЧКИ НАД ПЛОЩАДЬЮ -->
@@ -709,12 +847,23 @@ export class TownScreen {
     initEvents() {
         this.container.querySelector('#btn-town-menu').addEventListener('click', () => {
             sound.playSfx('click');
-            this.callbacks.onOpenMenu();
+            this.callbacks.onOpenMenu('inventory');
         });
+
+        const btnJournal = this.container.querySelector('#btn-town-journal');
+        if (btnJournal) {
+            btnJournal.addEventListener('click', () => {
+                sound.playSfx('click');
+                this.callbacks.onOpenMenu('journal');
+            });
+        }
 
         this.container.querySelector('#town-south-exit').addEventListener('click', () => {
             sound.playSfx('click');
-            alert('Южный тракт ведёт во внешний мир и соседние регионы (будет доступно в будущих обновлениях).');
+            const screen = new SouthRoadScreen(this.player, {
+                onBack: () => this.render(this.container)
+            });
+            screen.render(this.container);
         });
 
         this.container.querySelector('#building-tavern').addEventListener('click', () => {
@@ -755,5 +904,35 @@ export class TownScreen {
                 this.callbacks.onEnterDungeon();
             }
         });
+
+        this.startBuffTicker();
+    }
+
+    renderTavernBuffHudBadge() {
+        if (!this.player || !this.player.tavernBuff) return '';
+        const sec = this.player.getTavernBuffRemainingSeconds();
+        if (sec <= 0) return '';
+        return `
+            <span class="hud-buff-pill" title="${this.player.tavernBuff.name}: ${this.player.tavernBuff.desc || ''}" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(180, 83, 9, 0.25); border: 1px solid #f59e0b; padding: 2px 8px; border-radius: 12px; font-size: 0.76rem; color: #fde047; margin-left: 8px;">
+                ${Icons.ale(13)} ${this.player.tavernBuff.name} <strong>${this.player.getTavernBuffFormattedTime()}</strong>
+            </span>
+        `;
+    }
+
+    startBuffTicker() {
+        if (this.tickerInterval) clearInterval(this.tickerInterval);
+        this.tickerInterval = setInterval(() => {
+            const badge = this.container?.querySelector('#hud-tavern-buff-badge');
+            if (badge) {
+                badge.innerHTML = this.renderTavernBuffHudBadge();
+            }
+        }, 1000);
+    }
+
+    cleanup() {
+        if (this.tickerInterval) {
+            clearInterval(this.tickerInterval);
+            this.tickerInterval = null;
+        }
     }
 }

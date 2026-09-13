@@ -1,4 +1,5 @@
 import { Icons } from '../visuals/icons.js';
+import { EquipmentVisuals } from '../visuals/equipmentVisuals.js';
 
 /**
  * Единая база предметов игры, уровневых каталогов торговцев и генератор лута катакомб.
@@ -29,7 +30,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'warrior',
-        reqLevel: 2,
+        reqLevel: 6,
         physicalDamage: 11,
         critChance: 3,
         icon: Icons.broadsword(24)
@@ -42,7 +43,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'warrior',
-        reqLevel: 3,
+        reqLevel: 11,
         physicalDamage: 17,
         critChance: 5,
         maxHp: 15,
@@ -56,7 +57,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'warrior',
-        reqLevel: 4,
+        reqLevel: 15,
         physicalDamage: 24,
         critChance: 8,
         maxHp: 25,
@@ -70,7 +71,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'warrior',
-        reqLevel: 5,
+        reqLevel: 21,
         physicalDamage: 34,
         critChance: 14,
         maxHp: 45,
@@ -99,7 +100,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'rogue',
-        reqLevel: 2,
+        reqLevel: 6,
         physicalDamage: 9,
         critChance: 8,
         dodgeChance: 4,
@@ -113,7 +114,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'rogue',
-        reqLevel: 3,
+        reqLevel: 11,
         physicalDamage: 15,
         critChance: 12,
         dodgeChance: 6,
@@ -127,7 +128,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'rogue',
-        reqLevel: 4,
+        reqLevel: 15,
         physicalDamage: 21,
         critChance: 16,
         dodgeChance: 8,
@@ -141,7 +142,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'rogue',
-        reqLevel: 5,
+        reqLevel: 21,
         physicalDamage: 30,
         critChance: 22,
         dodgeChance: 12,
@@ -170,7 +171,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'mage',
-        reqLevel: 2,
+        reqLevel: 6,
         magicDamage: 13,
         maxMp: 25,
         icon: Icons.staff(24)
@@ -183,7 +184,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'mage',
-        reqLevel: 3,
+        reqLevel: 11,
         magicDamage: 20,
         maxMp: 40,
         critChance: 4,
@@ -197,7 +198,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'mage',
-        reqLevel: 4,
+        reqLevel: 15,
         magicDamage: 28,
         maxMp: 60,
         critChance: 6,
@@ -211,7 +212,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'mage',
-        reqLevel: 5,
+        reqLevel: 21,
         magicDamage: 40,
         maxMp: 90,
         critChance: 10,
@@ -240,7 +241,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'ranger',
-        reqLevel: 2,
+        reqLevel: 6,
         physicalDamage: 10,
         critChance: 6,
         dodgeChance: 3,
@@ -254,7 +255,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'ranger',
-        reqLevel: 3,
+        reqLevel: 11,
         physicalDamage: 16,
         critChance: 9,
         dodgeChance: 5,
@@ -268,7 +269,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'ranger',
-        reqLevel: 4,
+        reqLevel: 15,
         physicalDamage: 23,
         critChance: 13,
         dodgeChance: 7,
@@ -282,7 +283,7 @@ export const ITEMS_DATABASE = {
         slot: 'mainHand',
         type: 'weapon',
         classReq: 'ranger',
-        reqLevel: 5,
+        reqLevel: 21,
         physicalDamage: 32,
         critChance: 18,
         dodgeChance: 10,
@@ -310,7 +311,7 @@ export const ITEMS_DATABASE = {
         price: 115,
         slot: 'offHand',
         type: 'shield',
-        reqLevel: 2,
+        reqLevel: 6,
         defense: 7,
         maxHp: 15,
         icon: Icons.shield(24)
@@ -322,7 +323,7 @@ export const ITEMS_DATABASE = {
         price: 195,
         slot: 'offHand',
         type: 'shield',
-        reqLevel: 3,
+        reqLevel: 11,
         defense: 11,
         maxHp: 30,
         dodgeChance: 2,
@@ -335,7 +336,7 @@ export const ITEMS_DATABASE = {
         price: 310,
         slot: 'offHand',
         type: 'shield',
-        reqLevel: 4,
+        reqLevel: 15,
         defense: 16,
         maxHp: 50,
         dodgeChance: 4,
@@ -348,7 +349,7 @@ export const ITEMS_DATABASE = {
         price: 490,
         slot: 'offHand',
         type: 'shield',
-        reqLevel: 5,
+        reqLevel: 21,
         defense: 23,
         maxHp: 80,
         dodgeChance: 8,
@@ -376,7 +377,7 @@ export const ITEMS_DATABASE = {
         price: 170,
         slot: 'torso',
         type: 'armor',
-        reqLevel: 2,
+        reqLevel: 6,
         defense: 10,
         maxHp: 20,
         icon: Icons.chainmail(24)
@@ -388,7 +389,7 @@ export const ITEMS_DATABASE = {
         price: 285,
         slot: 'torso',
         type: 'armor',
-        reqLevel: 3,
+        reqLevel: 11,
         defense: 15,
         maxHp: 35,
         icon: Icons.chainmail(24)
@@ -400,7 +401,7 @@ export const ITEMS_DATABASE = {
         price: 430,
         slot: 'torso',
         type: 'armor',
-        reqLevel: 4,
+        reqLevel: 15,
         defense: 21,
         maxHp: 60,
         icon: Icons.chainmail(24)
@@ -412,10 +413,180 @@ export const ITEMS_DATABASE = {
         price: 660,
         slot: 'torso',
         type: 'armor',
-        reqLevel: 5,
+        reqLevel: 21,
         defense: 30,
         maxHp: 100,
         icon: Icons.chainmail(24)
+    },
+
+    // Броня Плута (Rogue Torso)
+    thief_leather_vest: {
+        id: 'thief_leather_vest',
+        name: 'Кожаный жилет вора',
+        desc: 'Легкий и бесшумный жилет из выделанной кожи (+4 к защите, +3% к уклонению, +3% к криту).',
+        price: 80,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 1,
+        defense: 4,
+        dodgeChance: 3,
+        critChance: 3
+    },
+    shadow_leather_armor: {
+        id: 'shadow_leather_armor',
+        name: 'Теневой доспех плута',
+        desc: 'Усиленный темный доспех с кармашками для отмычек (+7 к защите, +5% к уклонению, +5% к криту).',
+        price: 155,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 6,
+        defense: 7,
+        dodgeChance: 5,
+        critChance: 5
+    },
+    assassin_garb: {
+        id: 'assassin_garb',
+        name: 'Одеяние ассасина',
+        desc: 'Пропитано полуночным раствором, гасящим любой шелест (+11 к защите, +8% к уклонению, +8% к криту, +4 физ. ур.).',
+        price: 260,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 11,
+        defense: 11,
+        dodgeChance: 8,
+        critChance: 8,
+        physicalDamage: 4
+    },
+    nightstalker_tunic: {
+        id: 'nightstalker_tunic',
+        name: 'Куртка ночного призрака',
+        desc: 'Элитное облачение гильдии убийц (+16 к защите, +10% к уклонению, +12% к криту, +8 физ. ур.).',
+        price: 410,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 15,
+        defense: 16,
+        dodgeChance: 10,
+        critChance: 12,
+        physicalDamage: 8
+    },
+
+    // Одеяния Чародея (Mage Torso)
+    apprentice_robe: {
+        id: 'apprentice_robe',
+        name: 'Мантия ученика магии',
+        desc: 'Простая мантия из сукна с вышитыми рунами (+3 к защите, +4 к маг. урону, +20 MP).',
+        price: 80,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 1,
+        defense: 3,
+        magicDamage: 4,
+        maxMp: 20
+    },
+    elemental_robe: {
+        id: 'elemental_robe',
+        name: 'Одеяние стихий',
+        desc: 'Ткань защищает от магических ожогов (+6 к защите, +8 к маг. урону, +35 MP).',
+        price: 155,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 6,
+        defense: 6,
+        magicDamage: 8,
+        maxMp: 35
+    },
+    sorcerer_vestments: {
+        id: 'sorcerer_vestments',
+        name: 'Облачение чародея',
+        desc: 'Шелковая риза с серебряной филигранью (+10 к защите, +14 к маг. урону, +55 MP, +3% к криту).',
+        price: 265,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 11,
+        defense: 10,
+        magicDamage: 14,
+        maxMp: 55,
+        critChance: 3
+    },
+    archmage_robe: {
+        id: 'archmage_robe',
+        name: 'Мантия высшего архимага',
+        desc: 'Насыщена древней силой стихийного круга (+15 к защите, +20 к маг. урону, +80 MP, +5% к криту).',
+        price: 415,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 15,
+        defense: 15,
+        magicDamage: 20,
+        maxMp: 80,
+        critChance: 5
+    },
+
+    // Доспехи Следопыта (Ranger Torso)
+    hunter_tunic: {
+        id: 'hunter_tunic',
+        name: 'Охотничья куртка',
+        desc: 'Куртка из оленьей кожи с накладками на груди (+4 к защите, +2 к физ. урону, +2% к криту, +10 HP).',
+        price: 85,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 1,
+        defense: 4,
+        physicalDamage: 2,
+        critChance: 2,
+        maxHp: 10
+    },
+    scout_leather_jerkin: {
+        id: 'scout_leather_jerkin',
+        name: 'Колет следопыта',
+        desc: 'Прочная проклеенная кожа с ремнями для снаряжения (+8 к защите, +4 к физ. урону, +4% к криту, +15 HP).',
+        price: 160,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 6,
+        defense: 8,
+        physicalDamage: 4,
+        critChance: 4,
+        maxHp: 15
+    },
+    ranger_camouflage_armor: {
+        id: 'ranger_camouflage_armor',
+        name: 'Егерский камуфляжный доспех',
+        desc: 'Маскировочная окраска скрывает стрелка в листве и камнях (+12 к защите, +7 к физ. урону, +6% к криту, +25 HP).',
+        price: 270,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 11,
+        defense: 12,
+        physicalDamage: 7,
+        critChance: 6,
+        maxHp: 25
+    },
+    warden_coat: {
+        id: 'warden_coat',
+        name: 'Кафтан лесного стража',
+        desc: 'Усилен кольчужными вставками в уязвимых зонах (+17 к защите, +11 к физ. урону, +9% к криту, +40 HP).',
+        price: 420,
+        slot: 'torso',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 15,
+        defense: 17,
+        physicalDamage: 11,
+        critChance: 9,
+        maxHp: 40
     },
 
     // =========================================================================
@@ -439,7 +610,7 @@ export const ITEMS_DATABASE = {
         price: 95,
         slot: 'head',
         type: 'armor',
-        reqLevel: 2,
+        reqLevel: 6,
         defense: 5,
         maxHp: 10,
         icon: Icons.helmet(24)
@@ -451,7 +622,7 @@ export const ITEMS_DATABASE = {
         price: 165,
         slot: 'head',
         type: 'armor',
-        reqLevel: 3,
+        reqLevel: 11,
         defense: 8,
         maxHp: 20,
         icon: Icons.helmet(24)
@@ -463,7 +634,7 @@ export const ITEMS_DATABASE = {
         price: 275,
         slot: 'head',
         type: 'armor',
-        reqLevel: 4,
+        reqLevel: 15,
         defense: 12,
         maxHp: 35,
         maxMp: 15,
@@ -476,11 +647,171 @@ export const ITEMS_DATABASE = {
         price: 420,
         slot: 'head',
         type: 'armor',
-        reqLevel: 5,
+        reqLevel: 21,
         defense: 18,
         maxHp: 60,
         maxMp: 25,
         icon: Icons.helmet(24)
+    },
+
+    // Шлемы / головные уборы Плута (Rogue Helmets)
+    thief_bandana: {
+        id: 'thief_bandana',
+        name: 'Бандана вора',
+        desc: 'Скрывает лицо и защищает от пыли (+2 к защите, +2% к криту).',
+        price: 40,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 1,
+        defense: 2,
+        critChance: 2
+    },
+    rogue_cowl: {
+        id: 'rogue_cowl',
+        name: 'Капюшон лазутчика',
+        desc: 'Глубокий капюшон, бросающий тень на глаза (+4 к защите, +4% к криту, +3% к уклонению).',
+        price: 85,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 6,
+        defense: 4,
+        critChance: 4,
+        dodgeChance: 3
+    },
+    shadow_hood: {
+        id: 'shadow_hood',
+        name: 'Капюшон теней',
+        desc: 'Окутывает лицо едва заметной дымкой (+7 к защите, +6% к криту, +5% к уклонению).',
+        price: 150,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 11,
+        defense: 7,
+        critChance: 6,
+        dodgeChance: 5
+    },
+    assassin_mask: {
+        id: 'assassin_mask',
+        name: 'Маска безмолвной смерти',
+        desc: 'Устрашающая маска гильдии теней (+10 к защите, +9% к криту, +7% к уклонению).',
+        price: 250,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 15,
+        defense: 10,
+        critChance: 9,
+        dodgeChance: 7
+    },
+
+    // Головные уборы Чародея (Mage Helmets)
+    scholar_cap: {
+        id: 'scholar_cap',
+        name: 'Шапочка книжника',
+        desc: 'Обостряет концентрацию при чтении свитков (+2 к защите, +10 MP, +2 маг. ур.).',
+        price: 40,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 1,
+        defense: 2,
+        maxMp: 10,
+        magicDamage: 2
+    },
+    wizard_hat: {
+        id: 'wizard_hat',
+        name: 'Остроконечная шляпа мага',
+        desc: 'Классическая шляпа волшебника с серебряной пряжкой (+3 к защите, +20 MP, +5 маг. ур.).',
+        price: 85,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 6,
+        defense: 3,
+        maxMp: 20,
+        magicDamage: 5
+    },
+    sorcerer_circlet: {
+        id: 'sorcerer_circlet',
+        name: 'Диадема чародея',
+        desc: 'Обруч с мерцающим сапфиром (+6 к защите, +35 MP, +8 маг. ур.).',
+        price: 155,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 11,
+        defense: 6,
+        maxMp: 35,
+        magicDamage: 8
+    },
+    astral_crown: {
+        id: 'astral_crown',
+        name: 'Астральный венец тайных сил',
+        desc: 'Средоточие чистого магического эфира (+9 к защите, +50 MP, +13 маг. ур.).',
+        price: 255,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 15,
+        defense: 9,
+        maxMp: 50,
+        magicDamage: 13
+    },
+
+    // Головные уборы Следопыта (Ranger Helmets)
+    hunter_cap: {
+        id: 'hunter_cap',
+        name: 'Шапка зверолова с пером',
+        desc: 'Легкий фетровый головной убор с фазаньим пером (+2 к защите, +2% к криту).',
+        price: 40,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 1,
+        defense: 2,
+        critChance: 2
+    },
+    scout_coif: {
+        id: 'scout_coif',
+        name: 'Кожаный койф следопыта',
+        desc: 'Облегает голову и шею, защищая от непогоды и стрел (+4 к защите, +3% к криту, +3% к уклонению).',
+        price: 85,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 6,
+        defense: 4,
+        critChance: 3,
+        dodgeChance: 3
+    },
+    ranger_feathered_hat: {
+        id: 'ranger_feathered_hat',
+        name: 'Шляпа вольного стрелка',
+        desc: 'Широкие поля защищают глаза от солнца и бликов (+7 к защите, +5% к криту, +4% к уклонению).',
+        price: 150,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 11,
+        defense: 7,
+        critChance: 5,
+        dodgeChance: 4
+    },
+    sniper_hood: {
+        id: 'sniper_hood',
+        name: 'Капюшон снайпера чащи',
+        desc: 'Позволяет идеально сосредоточиться на прицеле (+10 к защите, +8% к криту, +6% к уклонению).',
+        price: 250,
+        slot: 'head',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 15,
+        defense: 10,
+        critChance: 8,
+        dodgeChance: 6
     },
 
     // =========================================================================
@@ -505,7 +836,7 @@ export const ITEMS_DATABASE = {
         price: 90,
         slot: 'legs',
         type: 'armor',
-        reqLevel: 2,
+        reqLevel: 6,
         defense: 4,
         maxHp: 10,
         icon: Icons.pants(24)
@@ -517,7 +848,7 @@ export const ITEMS_DATABASE = {
         price: 160,
         slot: 'legs',
         type: 'armor',
-        reqLevel: 3,
+        reqLevel: 11,
         defense: 7,
         maxHp: 20,
         icon: Icons.pants(24)
@@ -529,7 +860,7 @@ export const ITEMS_DATABASE = {
         price: 260,
         slot: 'legs',
         type: 'armor',
-        reqLevel: 4,
+        reqLevel: 15,
         defense: 11,
         maxHp: 35,
         dodgeChance: 4,
@@ -542,11 +873,171 @@ export const ITEMS_DATABASE = {
         price: 400,
         slot: 'legs',
         type: 'armor',
-        reqLevel: 5,
+        reqLevel: 21,
         defense: 16,
         maxHp: 55,
         dodgeChance: 6,
         icon: Icons.pants(24)
+    },
+
+    // Поножи Плута (Rogue Legs)
+    thief_breeches: {
+        id: 'thief_breeches',
+        name: 'Штаны вора',
+        desc: 'Свободные брюки из темной шерсти (+2 к защите, +3% к уклонению).',
+        price: 38,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 1,
+        defense: 2,
+        dodgeChance: 3
+    },
+    shadow_pants: {
+        id: 'shadow_pants',
+        name: 'Теневые штаны плута',
+        desc: 'Не стесняют быстрых акробатических кувырков (+4 к защите, +5% к уклонению).',
+        price: 80,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 6,
+        defense: 4,
+        dodgeChance: 5
+    },
+    assassin_trousers: {
+        id: 'assassin_trousers',
+        name: 'Штаны бесшумного шага',
+        desc: 'Усилены кожаными накладками на бедрах (+6 к защите, +7% к уклонению, +3% к криту).',
+        price: 145,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 11,
+        defense: 6,
+        dodgeChance: 7,
+        critChance: 3
+    },
+    nightstalker_pants: {
+        id: 'nightstalker_pants',
+        name: 'Поножи ночного фантома',
+        desc: 'Ткань поглощает свет и звуки шагов (+9 к защите, +10% к уклонению, +5% к криту).',
+        price: 240,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 15,
+        defense: 9,
+        dodgeChance: 10,
+        critChance: 5
+    },
+
+    // Поножи / Одежды ног Чародея (Mage Legs)
+    mystic_skirts: {
+        id: 'mystic_skirts',
+        name: 'Подол послушника',
+        desc: 'Тканевый подол ученика Академии (+1 к защите, +10 MP, +1 маг. ур.).',
+        price: 38,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 1,
+        defense: 1,
+        maxMp: 10,
+        magicDamage: 1
+    },
+    elemental_skirts: {
+        id: 'elemental_skirts',
+        name: 'Одежды стихийного круга',
+        desc: 'Свободные юбки с защитными чарами (+3 к защите, +20 MP, +3 маг. ур.).',
+        price: 80,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 6,
+        defense: 3,
+        maxMp: 20,
+        magicDamage: 3
+    },
+    sorcerer_sarong: {
+        id: 'sorcerer_sarong',
+        name: 'Шелковые поножи чар',
+        desc: 'Покрыты вышитыми обережными письменами (+5 к защите, +30 MP, +5 маг. ур.).',
+        price: 145,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 11,
+        defense: 5,
+        maxMp: 30,
+        magicDamage: 5
+    },
+    archmage_skirts: {
+        id: 'archmage_skirts',
+        name: 'Поножи архимага',
+        desc: 'Ткань из лунной нити, защищающая от магии (+8 к защите, +45 MP, +8 маг. ур.).',
+        price: 240,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 15,
+        defense: 8,
+        maxMp: 45,
+        magicDamage: 8
+    },
+
+    // Поножи Следопыта (Ranger Legs)
+    hunter_pants: {
+        id: 'hunter_pants',
+        name: 'Плотные охотничьи штаны',
+        desc: 'Защищают от колючих кустарников и терновника (+2 к защите, +2% к уклонению, +5 HP).',
+        price: 38,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 1,
+        defense: 2,
+        dodgeChance: 2,
+        maxHp: 5
+    },
+    scout_trousers: {
+        id: 'scout_trousers',
+        name: 'Штаны лесного следопыта',
+        desc: 'Усилены кожаными щитками на коленях (+4 к защите, +4% к уклонению, +10 HP).',
+        price: 85,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 6,
+        defense: 4,
+        dodgeChance: 4,
+        maxHp: 10
+    },
+    ranger_gaiters: {
+        id: 'ranger_gaiters',
+        name: 'Егерские гамаши',
+        desc: 'Прочные походные штаны с крагами (+6 к защите, +6% к уклонению, +15 HP).',
+        price: 150,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 11,
+        defense: 6,
+        dodgeChance: 6,
+        maxHp: 15
+    },
+    warden_leggings: {
+        id: 'warden_leggings',
+        name: 'Поножи лесного стража',
+        desc: 'Комбинация вываренной кожи и чешуек (+9 к защите, +8% к уклонению, +25 HP).',
+        price: 245,
+        slot: 'legs',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 15,
+        defense: 9,
+        dodgeChance: 8,
+        maxHp: 25
     },
 
     // =========================================================================
@@ -571,7 +1062,7 @@ export const ITEMS_DATABASE = {
         price: 85,
         slot: 'boots',
         type: 'armor',
-        reqLevel: 2,
+        reqLevel: 6,
         defense: 4,
         maxHp: 5,
         icon: Icons.boots(24)
@@ -583,7 +1074,7 @@ export const ITEMS_DATABASE = {
         price: 155,
         slot: 'boots',
         type: 'armor',
-        reqLevel: 3,
+        reqLevel: 11,
         defense: 6,
         dodgeChance: 6,
         icon: Icons.boots(24)
@@ -595,7 +1086,7 @@ export const ITEMS_DATABASE = {
         price: 250,
         slot: 'boots',
         type: 'armor',
-        reqLevel: 4,
+        reqLevel: 15,
         defense: 9,
         dodgeChance: 8,
         maxHp: 20,
@@ -608,11 +1099,170 @@ export const ITEMS_DATABASE = {
         price: 390,
         slot: 'boots',
         type: 'armor',
-        reqLevel: 5,
+        reqLevel: 21,
         defense: 14,
         dodgeChance: 12,
         maxHp: 40,
         icon: Icons.boots(24)
+    },
+
+    // Обувь Плута (Rogue Boots)
+    soft_leather_shoes: {
+        id: 'soft_leather_shoes',
+        name: 'Мягкие чувяки плута',
+        desc: 'Тонкая подошва помогает ступать беззвучно (+1 к защите, +3% к уклонению).',
+        price: 35,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 1,
+        defense: 1,
+        dodgeChance: 3
+    },
+    shadow_stalker_boots: {
+        id: 'shadow_stalker_boots',
+        name: 'Сапоги бесшумной поступи',
+        desc: 'Бесшумные кожаные ботинки карманника (+3 к защите, +5% к уклонению, +2% к криту).',
+        price: 75,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 6,
+        defense: 3,
+        dodgeChance: 5,
+        critChance: 2
+    },
+    assassin_boots: {
+        id: 'assassin_boots',
+        name: 'Сапоги ассасина',
+        desc: 'Удобные ботфорты со скрытым кинжалом в подошве (+5 к защите, +7% к уклонению, +4% к криту).',
+        price: 140,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 11,
+        defense: 5,
+        dodgeChance: 7,
+        critChance: 4
+    },
+    phantom_treads: {
+        id: 'phantom_treads',
+        name: 'Ботфорты фантома',
+        desc: 'Следы владельца растворяются в воздухе (+8 к защите, +10% к уклонению, +6% к криту).',
+        price: 235,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'rogue',
+        reqLevel: 15,
+        defense: 8,
+        dodgeChance: 10,
+        critChance: 6
+    },
+
+    // Обувь Чародея (Mage Boots)
+    cloth_slippers: {
+        id: 'cloth_slippers',
+        name: 'Тканевые туфли ученика',
+        desc: 'Удобные туфли для долгих часов в библиотеке (+1 к защите, +10 MP).',
+        price: 35,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 1,
+        defense: 1,
+        maxMp: 10
+    },
+    mystic_sandals: {
+        id: 'mystic_sandals',
+        name: 'Сандалии чароплёта',
+        desc: 'Зачарованные ремешки облегчают походку (+3 к защите, +20 MP, +2 маг. ур.).',
+        price: 75,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 6,
+        defense: 3,
+        maxMp: 20,
+        magicDamage: 2
+    },
+    enchanted_boots: {
+        id: 'enchanted_boots',
+        name: 'Зачарованные сапоги эфира',
+        desc: 'Позволяют мягко скользить по земле (+5 к защите, +30 MP, +4 маг. ур.).',
+        price: 140,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 11,
+        defense: 5,
+        maxMp: 30,
+        magicDamage: 4
+    },
+    astral_slippers: {
+        id: 'astral_slippers',
+        name: 'Астральная обувь левитации',
+        desc: 'Ноги едва касаются пола при ходьбе (+7 к защите, +45 MP, +7 маг. ур.).',
+        price: 235,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'mage',
+        reqLevel: 15,
+        defense: 7,
+        maxMp: 45,
+        magicDamage: 7
+    },
+
+    // Обувь Следопыта (Ranger Boots)
+    hunter_boots: {
+        id: 'hunter_boots',
+        name: 'Охотничьи сапоги',
+        desc: 'Высокие сапоги с надежным протектором (+2 к защите, +2% к уклонению).',
+        price: 38,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 1,
+        defense: 2,
+        dodgeChance: 2
+    },
+    scout_treads: {
+        id: 'scout_treads',
+        name: 'Ботфорты следопыта',
+        desc: 'Защищают голени при переходах по бурелому (+3 к защите, +4% к уклонению, +5 HP).',
+        price: 80,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 6,
+        defense: 3,
+        dodgeChance: 4,
+        maxHp: 5
+    },
+    ranger_swift_boots: {
+        id: 'ranger_swift_boots',
+        name: 'Быстроходные сапоги егеря',
+        desc: 'Даруют легкий упругий шаг по мху и камням (+5 к защите, +6% к уклонению, +10 HP).',
+        price: 145,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 11,
+        defense: 5,
+        dodgeChance: 6,
+        maxHp: 10
+    },
+    forest_striders: {
+        id: 'forest_striders',
+        name: 'Сапоги дубового дозора',
+        desc: 'Элитная обувь королевских лучников (+8 к защите, +8% к уклонению, +18 HP).',
+        price: 240,
+        slot: 'boots',
+        type: 'armor',
+        classReq: 'ranger',
+        reqLevel: 15,
+        defense: 8,
+        dodgeChance: 8,
+        maxHp: 18
     },
 
     // =========================================================================
@@ -637,7 +1287,7 @@ export const ITEMS_DATABASE = {
         price: 110,
         slot: 'accessory',
         type: 'relic',
-        reqLevel: 2,
+        reqLevel: 6,
         critChance: 5,
         dodgeChance: 4,
         icon: Icons.ring(24)
@@ -649,7 +1299,7 @@ export const ITEMS_DATABASE = {
         price: 180,
         slot: 'accessory',
         type: 'relic',
-        reqLevel: 3,
+        reqLevel: 11,
         dodgeChance: 8,
         physicalDamage: 5,
         icon: Icons.amulet(24)
@@ -661,7 +1311,7 @@ export const ITEMS_DATABASE = {
         price: 300,
         slot: 'accessory',
         type: 'relic',
-        reqLevel: 4,
+        reqLevel: 16,
         physicalDamage: 8,
         magicDamage: 8,
         maxHp: 30,
@@ -674,7 +1324,7 @@ export const ITEMS_DATABASE = {
         price: 490,
         slot: 'accessory',
         type: 'relic',
-        reqLevel: 5,
+        reqLevel: 21,
         physicalDamage: 15,
         magicDamage: 15,
         critChance: 10,
@@ -728,7 +1378,7 @@ export const ITEMS_DATABASE = {
         desc: 'Концентрированный экстракт жизни: восстанавливает 100 HP.',
         price: 45,
         type: 'potion',
-        reqLevel: 2,
+        reqLevel: 6,
         heal: 100,
         icon: Icons.potion(24, '#dc2626')
     },
@@ -738,7 +1388,7 @@ export const ITEMS_DATABASE = {
         desc: 'Эссенция звездной лазури: восстанавливает 80 MP.',
         price: 40,
         type: 'potion',
-        reqLevel: 2,
+        reqLevel: 6,
         mana: 80,
         icon: Icons.potion(24, '#2563eb')
     },
@@ -748,7 +1398,7 @@ export const ITEMS_DATABASE = {
         desc: 'Окаменяет плоть, временно даруя несокрушимую стойкость.',
         price: 55,
         type: 'scroll',
-        reqLevel: 2,
+        reqLevel: 6,
         icon: Icons.scroll(24)
     },
     full_recovery_potion: {
@@ -757,7 +1407,7 @@ export const ITEMS_DATABASE = {
         desc: 'Алхимический эликсир: исцеляет 140 HP и восстанавливает 110 MP.',
         price: 95,
         type: 'potion',
-        reqLevel: 3,
+        reqLevel: 11,
         heal: 140,
         mana: 110,
         icon: Icons.potion(24, '#a855f7')
@@ -768,7 +1418,7 @@ export const ITEMS_DATABASE = {
         desc: 'Распаляет ярость в крови, восстанавливая 70 HP и даруя боевой раж.',
         price: 80,
         type: 'potion',
-        reqLevel: 3,
+        reqLevel: 11,
         heal: 70,
         icon: Icons.potion(24, '#ea580c')
     },
@@ -778,7 +1428,7 @@ export const ITEMS_DATABASE = {
         desc: 'Переполняет чародея чистой арканой: восстанавливает 170 MP.',
         price: 120,
         type: 'potion',
-        reqLevel: 4,
+        reqLevel: 16,
         mana: 170,
         icon: Icons.potion(24, '#7c3aed')
     },
@@ -788,7 +1438,7 @@ export const ITEMS_DATABASE = {
         desc: 'Легендарное зелье алхимиков: восстанавливает 260 HP и 200 MP.',
         price: 210,
         type: 'potion',
-        reqLevel: 5,
+        reqLevel: 21,
         heal: 260,
         mana: 200,
         icon: Icons.potion(24, '#f59e0b')
@@ -836,7 +1486,7 @@ export const ITEMS_DATABASE = {
         desc: 'Светлое чудо: наносит 85 урона нежити и исцеляет 40 HP.',
         price: 80,
         type: 'relic',
-        reqLevel: 2,
+        reqLevel: 6,
         icon: Icons.urn(24)
     },
     paladin_crusader_cross: {
@@ -846,7 +1496,7 @@ export const ITEMS_DATABASE = {
         price: 120,
         slot: 'accessory',
         type: 'relic',
-        reqLevel: 2,
+        reqLevel: 6,
         defense: 5,
         maxHp: 20,
         icon: Icons.amulet(24)
@@ -857,7 +1507,7 @@ export const ITEMS_DATABASE = {
         desc: 'Священный дар небес: восстанавливает 100 HP и 100 MP.',
         price: 95,
         type: 'potion',
-        reqLevel: 2,
+        reqLevel: 6,
         heal: 100,
         mana: 100,
         icon: Icons.gem(24)
@@ -869,7 +1519,7 @@ export const ITEMS_DATABASE = {
         price: 195,
         slot: 'accessory',
         type: 'relic',
-        reqLevel: 3,
+        reqLevel: 11,
         defense: 8,
         magicDamage: 8,
         maxMp: 30,
@@ -882,7 +1532,7 @@ export const ITEMS_DATABASE = {
         price: 330,
         slot: 'accessory',
         type: 'relic',
-        reqLevel: 4,
+        reqLevel: 16,
         defense: 12,
         maxHp: 35,
         maxMp: 35,
@@ -895,7 +1545,7 @@ export const ITEMS_DATABASE = {
         price: 530,
         slot: 'accessory',
         type: 'relic',
-        reqLevel: 5,
+        reqLevel: 21,
         defense: 18,
         maxHp: 60,
         maxMp: 60,
@@ -922,7 +1572,7 @@ export const ITEMS_DATABASE = {
         desc: 'Крепкий подземный портер (+8% крита и +3 к физ. урону).',
         price: 25,
         type: 'food',
-        reqLevel: 2,
+        reqLevel: 6,
         buffCrit: 8,
         buffDmg: 3,
         icon: Icons.ale(22)
@@ -933,7 +1583,7 @@ export const ITEMS_DATABASE = {
         desc: 'Сочный кусок кабаньего окорока на вертеле (+50 к макс. HP).',
         price: 40,
         type: 'food',
-        reqLevel: 2,
+        reqLevel: 6,
         buffHp: 50,
         icon: Icons.meat(22)
     },
@@ -943,7 +1593,7 @@ export const ITEMS_DATABASE = {
         desc: 'Жгучий напиток с перцем и смолой (+14% крита, +6 к урону).',
         price: 55,
         type: 'food',
-        reqLevel: 3,
+        reqLevel: 11,
         buffCrit: 14,
         buffDmg: 6,
         icon: Icons.ale(22)
@@ -954,11 +1604,614 @@ export const ITEMS_DATABASE = {
         desc: 'Волшебный нектар древних дубрав (+65 HP, +45 MP).',
         price: 90,
         type: 'food',
-        reqLevel: 4,
+        reqLevel: 16,
         buffHp: 65,
         buffMp: 45,
         icon: Icons.ale(22)
+    },
+
+    // =========================================================================
+    // БАЗОВАЯ ЭКИПИРОВКА НОВОБРАНЦА (STARTER EQUIPMENT)
+    // =========================================================================
+    starter_weapon: {
+        id: 'starter_weapon',
+        name: 'Базовое оружие',
+        desc: 'Надежное начальное оружие новобранца (+2 к урону).',
+        price: 15,
+        slot: 'mainHand',
+        type: 'weapon',
+        reqLevel: 1,
+        rarity: 'common',
+        physicalDamage: 2
+    },
+    starter_tunic: {
+        id: 'starter_tunic',
+        name: 'Холщовая рубаха',
+        desc: 'Простая одежда искателя приключений (+1 к защите).',
+        price: 10,
+        slot: 'torso',
+        type: 'armor',
+        reqLevel: 1,
+        rarity: 'common',
+        defense: 1
+    },
+    starter_pants: {
+        id: 'starter_pants',
+        name: 'Походные штаны',
+        desc: 'Плотные штаны из грубой ткани (+1 к защите).',
+        price: 10,
+        slot: 'legs',
+        type: 'armor',
+        reqLevel: 1,
+        rarity: 'common',
+        defense: 1
+    },
+    starter_boots: {
+        id: 'starter_boots',
+        name: 'Кожаные сапоги',
+        desc: 'Удобная обувь для дальних переходов (+1 к защите).',
+        price: 10,
+        slot: 'boots',
+        type: 'armor',
+        reqLevel: 1,
+        rarity: 'common',
+        defense: 1
+    },
+    starter_shield: {
+        id: 'starter_shield',
+        name: 'Окованный баклер',
+        desc: 'Легкий деревянный щит, обитый железной полосой (+1 к защите).',
+        price: 25,
+        slot: 'offHand',
+        type: 'shield',
+        reqLevel: 1,
+        rarity: 'common',
+        defense: 1
+    },
+
+    // =========================================================================
+    // УНИКАЛЬНЫЕ РЕДКИЕ ТРОФЕИ МОНСТРОВ (RARE MOB RELICS & DROPS)
+    // =========================================================================
+    goblin_king_cutlass: {
+        id: 'goblin_king_cutlass',
+        name: 'Абордажный тесак Гоблина-Короля',
+        desc: 'Широкая зазубренная сабля с золоченым эфесом (+8 физ. урона, +7% крита). Редкий трофей гоблинов!',
+        price: 120,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'rogue',
+        reqLevel: 3,
+        rarity: 'uncommon',
+        physicalDamage: 8,
+        critChance: 7
+    },
+    gargoyle_stone_shield: {
+        id: 'gargoyle_stone_shield',
+        name: 'Каменный барельеф Гаргульи',
+        desc: 'Тяжелый щит из монолитного базальта (+11 защиты, +25 HP). Редкий трофей каменных стражей!',
+        price: 190,
+        slot: 'offHand',
+        type: 'shield',
+        reqLevel: 7,
+        rarity: 'rare',
+        defense: 11,
+        maxHp: 25
+    },
+    arachna_silk_mantle: {
+        id: 'arachna_silk_mantle',
+        name: 'Мантия из шелка Арахны',
+        desc: 'Невесомая паутинная накидка (+8 защиты, +25 MP, +7% уклонения). Редкий трофей паучихи!',
+        price: 210,
+        slot: 'torso',
+        type: 'armor',
+        reqLevel: 8,
+        rarity: 'rare',
+        defense: 8,
+        maxMp: 25,
+        dodgeChance: 7
+    },
+    minotaur_battle_axe: {
+        id: 'minotaur_battle_axe',
+        name: 'Секира Минотавра-палача',
+        desc: 'Огромная зазубренная двусторонняя секира (+16 физ. урона, +8% крита). Редкий трофей подземелья!',
+        price: 250,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'warrior',
+        reqLevel: 9,
+        rarity: 'rare',
+        physicalDamage: 16,
+        critChance: 8
+    },
+    bone_golem_ribcage: {
+        id: 'bone_golem_ribcage',
+        name: 'Костяной панцирь Голема',
+        desc: 'Сплетен из огромных позвонков и ребер (+16 защиты, +40 HP). Редкий трофей нежити!',
+        price: 330,
+        slot: 'torso',
+        type: 'armor',
+        reqLevel: 12,
+        rarity: 'rare',
+        defense: 16,
+        maxHp: 40
+    },
+    shadow_assassin_kris: {
+        id: 'shadow_assassin_kris',
+        name: 'Крис Теневого Убийцы',
+        desc: 'Волнообразное ритуальное лезвие (+15 физ. урона, +12% крита, +8% уклонения). Редкий трофей монстра!',
+        price: 270,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'rogue',
+        reqLevel: 13,
+        rarity: 'rare',
+        physicalDamage: 15,
+        critChance: 12,
+        dodgeChance: 8
+    },
+    hydra_scale_boots: {
+        id: 'hydra_scale_boots',
+        name: 'Сапоги из чешуи Гидры',
+        desc: 'Сшиты из кожи болотной гидры (+8 защиты, +10% уклонения, +25 HP). Редкий трофей чудовища!',
+        price: 250,
+        slot: 'boots',
+        type: 'armor',
+        reqLevel: 14,
+        rarity: 'rare',
+        defense: 8,
+        dodgeChance: 10,
+        maxHp: 25
+    },
+    death_knight_helm: {
+        id: 'death_knight_helm',
+        name: 'Шлем Рыцаря Смерти',
+        desc: 'Черненый рогатый шлем с багровым визором (+14 защиты, +6 физ. урона, +6% крита). Редкий трофей тьмы!',
+        price: 390,
+        slot: 'head',
+        type: 'armor',
+        reqLevel: 17,
+        rarity: 'epic',
+        defense: 14,
+        physicalDamage: 6,
+        critChance: 6
+    },
+    clockwork_titan_greaves: {
+        id: 'clockwork_titan_greaves',
+        name: 'Поножи Часового Титана',
+        desc: 'Латунные пластины с часовым сервоприводом (+15 защиты, +35 HP). Редкий трофей автоматонов!',
+        price: 350,
+        slot: 'legs',
+        type: 'armor',
+        reqLevel: 18,
+        rarity: 'epic',
+        defense: 15,
+        maxHp: 35
+    },
+    archlich_skull_staff: {
+        id: 'archlich_skull_staff',
+        name: 'Черепной посох Архилича',
+        desc: 'Венчан пылающим некромантическим черепом (+25 маг. урона, +45 MP, +8% крита). Редкий трофей лича!',
+        price: 470,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'mage',
+        reqLevel: 19,
+        rarity: 'epic',
+        magicDamage: 25,
+        maxMp: 45,
+        critChance: 8
+    },
+    magma_colossus_core: {
+        id: 'magma_colossus_core',
+        name: 'Ядро Магматического Колосса',
+        desc: 'Пылающее вулканическое сердце (+9 физ. урона, +9 маг. урона, +50 HP). Редкий трофей огня!',
+        price: 510,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 20,
+        rarity: 'epic',
+        physicalDamage: 9,
+        magicDamage: 9,
+        maxHp: 50
+    },
+    void_avatar_crown: {
+        id: 'void_avatar_crown',
+        name: 'Венец Аватара Бездны',
+        desc: 'Парящие осколки чистого пустотного аметиста (+20 защиты, +16 маг. урона, +60 MP). Реликвия глубин!',
+        price: 700,
+        slot: 'head',
+        type: 'armor',
+        reqLevel: 24,
+        rarity: 'legendary',
+        defense: 20,
+        magicDamage: 16,
+        maxMp: 60
+    },
+    // =========================================================================
+    // ЭКСКЛЮЗИВНОЕ ВЫСОКОУРОВНЕВОЕ СНАРЯЖЕНИЕ ПОДЗЕМЕЛЬЯ (DUNGEON EXCLUSIVES)
+    // =========================================================================
+
+    // ОРУЖИЕ
+    obsidian_flame_edge: {
+        id: 'obsidian_flame_edge',
+        name: 'Обсидиановый пламенный тесак',
+        desc: 'Высечен из вулканического стекла разломов (+28 физ. урона, +10% крита, +25 HP). Эксклюзив катакомб!',
+        price: 380,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'warrior',
+        reqLevel: 14,
+        rarity: 'rare',
+        physicalDamage: 28,
+        critChance: 10,
+        maxHp: 25
+    },
+    crystallized_venom_rapier: {
+        id: 'crystallized_venom_rapier',
+        name: 'Хрустальная рапира яда',
+        desc: 'Тончайший клинок из кристаллизованного яда (+30 физ. урона, +15% крита, +8% уклонения). Эксклюзив глубин!',
+        price: 430,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'rogue',
+        reqLevel: 16,
+        rarity: 'rare',
+        physicalDamage: 30,
+        critChance: 15,
+        dodgeChance: 8
+    },
+    starlight_silver_bow: {
+        id: 'starlight_silver_bow',
+        name: 'Звездный лук лунного света',
+        desc: 'Натянут тетивой из чистого астрального света (+34 физ. урона, +12% крита, +6% уклонения). Эксклюзив подземелья!',
+        price: 490,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'ranger',
+        reqLevel: 18,
+        rarity: 'epic',
+        physicalDamage: 34,
+        critChance: 12,
+        dodgeChance: 6
+    },
+    abyssal_reaper_scythe: {
+        id: 'abyssal_reaper_scythe',
+        name: 'Коса Жнеца Бездны',
+        desc: 'Искривляет пространство и вытягивает жизнь врагов (+38 физ. урона, +20 маг. урона, +40 HP). Эксклюзив недр!',
+        price: 580,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'warrior',
+        reqLevel: 20,
+        rarity: 'epic',
+        physicalDamage: 38,
+        magicDamage: 20,
+        maxHp: 40
+    },
+    celestial_judgment_hammer: {
+        id: 'celestial_judgment_hammer',
+        name: 'Молот Небесного Суда',
+        desc: 'Освященный боевой молот паладинов солнца (+44 физ. урона, +14% крита, +60 HP). Эксклюзив глубин!',
+        price: 660,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'warrior',
+        reqLevel: 22,
+        rarity: 'epic',
+        physicalDamage: 44,
+        critChance: 14,
+        maxHp: 60
+    },
+    void_singularity_orb: {
+        id: 'void_singularity_orb',
+        name: 'Сфера сингулярности Пустоты',
+        desc: 'Сжимает гравитацию и аннигилирует врагов (+46 маг. урона, +90 MP, +10% крита). Эксклюзив Бездны!',
+        price: 740,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'mage',
+        reqLevel: 24,
+        rarity: 'epic',
+        magicDamage: 46,
+        maxMp: 90,
+        critChance: 10
+    },
+    phoenix_feather_longbow: {
+        id: 'phoenix_feather_longbow',
+        name: 'Лук из пера Феникса',
+        desc: 'Пылающие крылья бессмертной птицы (+48 физ. урона, +18% крита, +10% уклонения). Легендарный эксклюзив!',
+        price: 820,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'ranger',
+        reqLevel: 26,
+        rarity: 'legendary',
+        physicalDamage: 48,
+        critChance: 18,
+        dodgeChance: 10
+    },
+    dragon_god_fang: {
+        id: 'dragon_god_fang',
+        name: 'Клык Драконьего Владыки',
+        desc: 'Вырванный клык прародителя ящеров (+54 физ. урона, +20% крита, +100 HP). Легендарный эксклюзив!',
+        price: 930,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'warrior',
+        reqLevel: 27,
+        rarity: 'legendary',
+        physicalDamage: 54,
+        critChance: 20,
+        maxHp: 100
+    },
+    demigod_genesis_blade: {
+        id: 'demigod_genesis_blade',
+        name: 'Клинок Сотворения Миров',
+        desc: 'Абсолютное оружие Забытого Полубога (+62 физ. урона, +35 маг. урона, +25% крита, +120 HP, +80 MP). Реликвия 30 этажа!',
+        price: 1200,
+        slot: 'mainHand',
+        type: 'weapon',
+        classReq: 'warrior',
+        reqLevel: 29,
+        rarity: 'legendary',
+        physicalDamage: 62,
+        magicDamage: 35,
+        critChance: 25,
+        maxHp: 120,
+        maxMp: 80
+    },
+
+    // ЩИТЫ
+    aegis_of_the_immortal_sun: {
+        id: 'aegis_of_the_immortal_sun',
+        name: 'Эгида Бессмертного Солнца',
+        desc: 'Ослепляет врагов и возвращает ярость в ответ (+22 защиты, +60 HP, +8% крита). Эксклюзив подземелья!',
+        price: 520,
+        slot: 'offHand',
+        type: 'shield',
+        reqLevel: 18,
+        rarity: 'epic',
+        defense: 22,
+        maxHp: 60,
+        critChance: 8
+    },
+    mirror_of_oblivion: {
+        id: 'mirror_of_oblivion',
+        name: 'Зеркальный щит Забвения',
+        desc: 'Поглощает и рассеивает заклинания чудовищ (+28 защиты, +80 MP, +10% уклонения). Эксклюзив Бездны!',
+        price: 760,
+        slot: 'offHand',
+        type: 'shield',
+        reqLevel: 24,
+        rarity: 'epic',
+        defense: 28,
+        maxMp: 80,
+        dodgeChance: 10
+    },
+    titan_colossus_wall: {
+        id: 'titan_colossus_wall',
+        name: 'Стена Колосса-Титана',
+        desc: 'Нерушимый монолитный бастион древних строителей (+36 защиты, +140 HP). Легендарный эксклюзив глубин!',
+        price: 980,
+        slot: 'offHand',
+        type: 'shield',
+        reqLevel: 28,
+        rarity: 'legendary',
+        defense: 36,
+        maxHp: 140
+    },
+
+    // ШЛЕМЫ
+    crown_of_the_ancient_lich: {
+        id: 'crown_of_the_ancient_lich',
+        name: 'Корона Древнего Лича',
+        desc: 'Шепчет древние проклятия и восстанавливает чары (+18 защиты, +15 маг. урона, +70 MP). Эксклюзив подземелья!',
+        price: 510,
+        slot: 'head',
+        type: 'armor',
+        reqLevel: 18,
+        rarity: 'epic',
+        defense: 18,
+        magicDamage: 15,
+        maxMp: 70
+    },
+    dragon_scale_visage: {
+        id: 'dragon_scale_visage',
+        name: 'Личина Драконьей Ярости',
+        desc: 'Кованый шлем с драконьими рогами (+24 защиты, +8 физ. урона, +10% крита, +80 HP). Эксклюзив глубин!',
+        price: 710,
+        slot: 'head',
+        type: 'armor',
+        reqLevel: 23,
+        rarity: 'epic',
+        defense: 24,
+        physicalDamage: 8,
+        critChance: 10,
+        maxHp: 80
+    },
+    halo_of_the_fallen_seraph: {
+        id: 'halo_of_the_fallen_seraph',
+        name: 'Оскверненный Нимб Серафима',
+        desc: 'Венец падшего небожителя (+30 защиты, +22 маг. урона, +110 MP). Легендарная реликвия Бездны!',
+        price: 940,
+        slot: 'head',
+        type: 'armor',
+        reqLevel: 28,
+        rarity: 'legendary',
+        defense: 30,
+        magicDamage: 22,
+        maxMp: 110
+    },
+
+    // ДОСПЕХИ (ТОРС)
+    astral_weave_robe: {
+        id: 'astral_weave_robe',
+        name: 'Мантия Астрального Сплетения',
+        desc: 'Ткань из мерцающих нитей звезд (+18 защиты, +18 маг. урона, +90 MP, +10% уклонения). Эксклюзив подземелья!',
+        price: 530,
+        slot: 'torso',
+        type: 'armor',
+        reqLevel: 18,
+        rarity: 'epic',
+        defense: 18,
+        magicDamage: 18,
+        maxMp: 90,
+        dodgeChance: 10
+    },
+    demonic_carapace: {
+        id: 'demonic_carapace',
+        name: 'Панцирь Архидемона Баалхора',
+        desc: 'Кованый панцирь инфернального повелителя (+28 защиты, +12 физ. урона, +100 HP). Эксклюзив глубин!',
+        price: 690,
+        slot: 'torso',
+        type: 'armor',
+        reqLevel: 22,
+        rarity: 'epic',
+        defense: 28,
+        physicalDamage: 12,
+        maxHp: 100
+    },
+    cuirass_of_the_unbroken: {
+        id: 'cuirass_of_the_unbroken',
+        name: 'Кираса Несломленного Героя',
+        desc: 'Платиновые несокрушимые латы с золотым львом (+38 защиты, +160 HP). Легендарный эксклюзив глубин!',
+        price: 920,
+        slot: 'torso',
+        type: 'armor',
+        reqLevel: 26,
+        rarity: 'legendary',
+        defense: 38,
+        maxHp: 160
+    },
+    regalia_of_genesis: {
+        id: 'regalia_of_genesis',
+        name: 'Одеяние Первородного Творца',
+        desc: 'Священный доспех сотворения (+44 защиты, +15 физ. урона, +25 маг. урона, +180 HP, +120 MP). Реликвия 30 этажа!',
+        price: 1350,
+        slot: 'torso',
+        type: 'armor',
+        reqLevel: 29,
+        rarity: 'legendary',
+        defense: 44,
+        physicalDamage: 15,
+        magicDamage: 25,
+        maxHp: 180,
+        maxMp: 120
+    },
+
+    // ПОНОЖИ
+    shadow_walker_leggings: {
+        id: 'shadow_walker_leggings',
+        name: 'Поножи Тенехода',
+        desc: 'Позволяют скользить среди теней незамеченным (+16 защиты, +12% уклонения, +6% крита). Эксклюзив подземелья!',
+        price: 460,
+        slot: 'legs',
+        type: 'armor',
+        reqLevel: 17,
+        rarity: 'rare',
+        defense: 16,
+        dodgeChance: 12,
+        critChance: 6
+    },
+    abyssal_greaves_of_terror: {
+        id: 'abyssal_greaves_of_terror',
+        name: 'Наголенники Ужаса Бездны',
+        desc: 'Шипастые пластины темной бездны (+26 защиты, +70 HP, +8 физ. урона). Эксклюзив глубин!',
+        price: 720,
+        slot: 'legs',
+        type: 'armor',
+        reqLevel: 24,
+        rarity: 'epic',
+        defense: 26,
+        maxHp: 70,
+        physicalDamage: 8
+    },
+    greaves_of_the_demigod: {
+        id: 'greaves_of_the_demigod',
+        name: 'Поножи Забытого Полубога',
+        desc: 'Золотые латы с лазурными искрами творения (+32 защиты, +100 HP, +10% уклонения). Легендарный эксклюзив!',
+        price: 960,
+        slot: 'legs',
+        type: 'armor',
+        reqLevel: 28,
+        rarity: 'legendary',
+        defense: 32,
+        maxHp: 100,
+        dodgeChance: 10
+    },
+
+    // САПОГИ
+    boots_of_the_infernal_stride: {
+        id: 'boots_of_the_infernal_stride',
+        name: 'Сапоги Инфернального Шага',
+        desc: 'Оставляют пылающий след расплавленной лавы (+16 защиты, +6 физ. урона, +8% уклонения). Эксклюзив глубин!',
+        price: 520,
+        slot: 'boots',
+        type: 'armor',
+        reqLevel: 19,
+        rarity: 'epic',
+        defense: 16,
+        physicalDamage: 6,
+        dodgeChance: 8
+    },
+    boots_of_omnipresence: {
+        id: 'boots_of_omnipresence',
+        name: 'Сапоги Вездесущности',
+        desc: 'Стирают грань расстояний (+22 защиты, +18% уклонения, +8% крита). Легендарный эксклюзив!',
+        price: 840,
+        slot: 'boots',
+        type: 'armor',
+        reqLevel: 25,
+        rarity: 'legendary',
+        defense: 22,
+        dodgeChance: 18,
+        critChance: 8
+    },
+    striders_of_creation: {
+        id: 'striders_of_creation',
+        name: 'Поступь Творца',
+        desc: 'Божественные сапоги небожителя (+28 защиты, +90 HP, +60 MP, +15% уклонения). Реликвия 30 этажа!',
+        price: 1100,
+        slot: 'boots',
+        type: 'armor',
+        reqLevel: 29,
+        rarity: 'legendary',
+        defense: 28,
+        maxHp: 90,
+        maxMp: 60,
+        dodgeChance: 15
+    },
+
+    // РЕЛИКВИИ / АКСЕССУАРЫ
+    heart_of_the_abyss: {
+        id: 'heart_of_the_abyss',
+        name: 'Сердце Первозданной Бездны',
+        desc: 'Пульсирующее средоточие пустоты (+16 физ. урона, +16 маг. урона, +100 HP, +100 MP). Легендарный эксклюзив!',
+        price: 890,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 26,
+        rarity: 'legendary',
+        physicalDamage: 16,
+        magicDamage: 16,
+        maxHp: 100,
+        maxMp: 100
+    },
+    genesis_spark_amulet: {
+        id: 'genesis_spark_amulet',
+        name: 'Искра Сотворения',
+        desc: 'Первородная частица вселенной (+20 физ. урона, +25 маг. урона, +15% крита, +150 HP). Реликвия 30 этажа!',
+        price: 1250,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 29,
+        rarity: 'legendary',
+        physicalDamage: 20,
+        magicDamage: 25,
+        critChance: 15,
+        maxHp: 150
     }
+
 };
 
 /**
@@ -969,23 +2222,51 @@ export function getTraderStock(traderId, playerLevel = 1) {
     let itemIds = [];
 
     switch (traderId) {
-        case 'blacksmith':
+                case 'blacksmith':
             itemIds = [
-                // 1 уровень
-                'iron_broadsword', 'hunting_dagger', 'apprentice_staff', 'ash_shortbow',
-                'reinforced_shield', 'chainmail_vest', 'iron_helmet', 'leather_reinforced_pants', 'sturdy_leather_boots',
-                // 2 уровень
-                'steel_claymore', 'assassin_stiletto', 'elemental_wand', 'yew_longbow',
-                'knight_kite_shield', 'scale_mail_cuirass', 'steel_visored_helm', 'steel_greaves', 'iron_plated_boots',
-                // 3 уровень
-                'runic_bastard_sword', 'viper_fang_blade', 'storm_caller_staff', 'composite_scout_bow',
-                'iron_bastion_aegis', 'knight_plate_armor', 'crusader_great_helm', 'plate_knight_greaves', 'boots_of_the_wind',
-                // 4 уровень
-                'mithril_abyss_blade', 'shadow_kris', 'void_archmage_sceptre', 'phantom_hunting_crossbow',
-                'mithril_tower_shield', 'mithril_cuirass_of_titans', 'runic_crown_of_justice', 'mithril_leg_guards', 'mithril_treads',
-                // 5 уровень
-                'dragon_slayer_greatsword', 'nightfall_claws', 'primordial_magic_tome', 'celestial_wind_recurve',
-                'mirror_shield_of_aegis', 'immortal_dragon_armor', 'titan_horned_helm', 'titan_striding_greaves', 'celestial_striders'
+                // 1 уровень (Новобранец: Воин, Плут, Чародей, Следопыт)
+                'iron_broadsword', 'hunting_dagger', 'apprentice_staff', 'ash_shortbow', 'reinforced_shield',
+                // Комплект Воина ур. 1
+                'chainmail_vest', 'iron_helmet', 'leather_reinforced_pants', 'sturdy_leather_boots',
+                // Комплект Плута ур. 1
+                'thief_leather_vest', 'thief_bandana', 'thief_breeches', 'soft_leather_shoes',
+                // Комплект Чародея ур. 1
+                'apprentice_robe', 'scholar_cap', 'mystic_skirts', 'cloth_slippers',
+                // Комплект Следопыта ур. 1
+                'hunter_tunic', 'hunter_cap', 'hunter_pants', 'hunter_boots',
+
+                // 6 уровень (Опытный боец)
+                'steel_claymore', 'assassin_stiletto', 'elemental_wand', 'yew_longbow', 'knight_kite_shield',
+                // Комплект Воина ур. 6
+                'scale_mail_cuirass', 'steel_visored_helm', 'steel_greaves', 'iron_plated_boots',
+                // Комплект Плута ур. 6
+                'shadow_leather_armor', 'rogue_cowl', 'shadow_pants', 'shadow_stalker_boots',
+                // Комплект Чародея ур. 6
+                'elemental_robe', 'wizard_hat', 'elemental_skirts', 'mystic_sandals',
+                // Комплект Следопыта ур. 6
+                'scout_leather_jerkin', 'scout_coif', 'scout_trousers', 'scout_treads',
+
+                // 11 уровень (Ветеран)
+                'runic_bastard_sword', 'viper_fang_blade', 'storm_caller_staff', 'composite_scout_bow', 'iron_bastion_aegis',
+                // Комплект Воина ур. 11
+                'knight_plate_armor', 'crusader_great_helm', 'plate_knight_greaves', 'boots_of_the_wind',
+                // Комплект Плута ур. 11
+                'assassin_garb', 'shadow_hood', 'assassin_trousers', 'assassin_boots',
+                // Комплект Чародея ур. 11
+                'sorcerer_vestments', 'sorcerer_circlet', 'sorcerer_sarong', 'enchanted_boots',
+                // Комплект Следопыта ур. 11
+                'ranger_camouflage_armor', 'ranger_feathered_hat', 'ranger_gaiters', 'ranger_swift_boots',
+
+                // 15 уровень (Мастер)
+                'mithril_abyss_blade', 'shadow_kris', 'void_archmage_sceptre', 'phantom_hunting_crossbow', 'mithril_tower_shield',
+                // Комплект Воина ур. 15
+                'mithril_cuirass_of_titans', 'runic_crown_of_justice', 'mithril_leg_guards', 'mithril_treads',
+                // Комплект Плута ур. 15
+                'nightstalker_tunic', 'assassin_mask', 'nightstalker_pants', 'phantom_treads',
+                // Комплект Чародея ур. 15
+                'archmage_robe', 'astral_crown', 'archmage_skirts', 'astral_slippers',
+                // Комплект Следопыта ур. 15
+                'warden_coat', 'sniper_hood', 'warden_leggings', 'forest_striders'
             ];
             break;
 
@@ -1051,25 +2332,26 @@ export function getRandomBattleLoot(dungeonFloor = 1, monsterTier = 'regular') {
     const isBoss = (monsterTier === 'boss' || monsterTier === 'final_boss');
     const isHardened = (monsterTier === 'hardened');
 
-    // Определяем максимальный целевой уровень дропа
+    // Целевой уровень дропа динамически растет по 30 этажам катакомб
     let targetLevel = 1;
     if (isBoss) {
-        targetLevel = Math.min(5, Math.max(2, dungeonFloor + 1));
+        targetLevel = Math.min(30, Math.max(2, Math.round(dungeonFloor * 1.05)));
     } else if (isHardened) {
-        targetLevel = Math.min(4, Math.max(1, dungeonFloor));
+        targetLevel = Math.min(28, Math.max(1, Math.round(dungeonFloor * 0.95)));
     } else {
-        targetLevel = Math.min(3, Math.max(1, dungeonFloor - 1 || 1));
+        targetLevel = Math.min(26, Math.max(1, Math.round(dungeonFloor * 0.85)));
     }
+
+    const minLevel = Math.max(1, targetLevel - 6);
 
     // Собираем кандидатов из базы предметов
     const pool = Object.values(ITEMS_DATABASE).filter(item => {
-        if (item.type === 'food') return false; // еду продают в таверне
+        if (item.type === 'food') return false;
         if (isBoss) {
-            // Боссы дропают преимущественно экипировку и реликвии подходящего тира
             return (item.type === 'weapon' || item.type === 'armor' || item.type === 'shield' || item.type === 'relic')
-                && item.reqLevel <= targetLevel && item.reqLevel >= Math.max(1, targetLevel - 1);
+                && item.reqLevel <= targetLevel && item.reqLevel >= minLevel;
         }
-        return item.reqLevel <= targetLevel;
+        return item.reqLevel <= targetLevel && item.reqLevel >= minLevel;
     });
 
     if (pool.length === 0) {
@@ -1080,3 +2362,170 @@ export function getRandomBattleLoot(dungeonFloor = 1, monsterTier = 'regular') {
     return { ...picked };
 }
 
+/**
+ * Вычисляет, выпадет ли из поверженного монстра уникальная редкая экипировка.
+ * Шанс: босс ~25%, элитный ~12%, обычный ~5%.
+ */
+export function getMobRareDrop(monster, floorNum = 1) {
+    if (!monster) return null;
+
+    const isBoss = (monster.tier === 'boss' || monster.tier === 'final_boss');
+    const isHardened = (monster.tier === 'hardened');
+    const roll = Math.random();
+    const threshold = isBoss ? 0.25 : (isHardened ? 0.12 : 0.05);
+
+    if (roll >= threshold) return null;
+
+    const name = (monster.fullName || monster.name || '').toLowerCase();
+    const id = (monster.id || '').toLowerCase();
+
+    let candidateId = null;
+
+    if (name.includes('минотавр') || id.includes('minotaur')) {
+        candidateId = 'minotaur_battle_axe';
+    } else if (name.includes('паук') || name.includes('арахн') || id.includes('spider')) {
+        candidateId = 'arachna_silk_mantle';
+    } else if (name.includes('гаргулья') || id.includes('gargoyle')) {
+        candidateId = 'gargoyle_stone_shield';
+    } else if (name.includes('голем') || name.includes('скелет') || id.includes('skeleton') || id.includes('golem')) {
+        candidateId = 'bone_golem_ribcage';
+    } else if (name.includes('рыцарь') || id.includes('knight')) {
+        candidateId = 'death_knight_helm';
+    } else if (name.includes('лич') || name.includes('некромант') || id.includes('lich')) {
+        candidateId = 'archlich_skull_staff';
+    } else if (name.includes('ассасин') || name.includes('культист') || name.includes('тень') || id.includes('shadow')) {
+        candidateId = 'shadow_assassin_kris';
+    } else if (name.includes('гидра') || id.includes('hydra')) {
+        candidateId = 'hydra_scale_boots';
+    } else if (name.includes('гоблин') || id.includes('goblin')) {
+        candidateId = 'goblin_king_cutlass';
+    } else if (name.includes('колосс') || name.includes('магм') || id.includes('colossus')) {
+        candidateId = 'magma_colossus_core';
+    } else if (name.includes('титан') || id.includes('titan')) {
+        candidateId = 'clockwork_titan_greaves';
+    } else if (name.includes('бездна') || name.includes('владыка') || id.includes('void')) {
+        candidateId = 'void_avatar_crown';
+    } else {
+        // Если монстр не имеет точной привязки, выбираем из пула редких предметов по этажу
+        const rarePool = [
+            'goblin_king_cutlass', 'minotaur_battle_axe', 'arachna_silk_mantle', 'gargoyle_stone_shield',
+            'bone_golem_ribcage', 'shadow_assassin_kris', 'hydra_scale_boots',
+            'death_knight_helm', 'archlich_skull_staff', 'magma_colossus_core', 'clockwork_titan_greaves', 'void_avatar_crown'
+        ];
+        const maxLevel = Math.max(1, Math.min(5, Math.ceil(floorNum / 6)));
+        const available = rarePool.filter(itemId => {
+            const it = ITEMS_DATABASE[itemId];
+            return it && it.reqLevel <= maxLevel;
+        });
+        if (available.length > 0) {
+            candidateId = available[Math.floor(Math.random() * available.length)];
+        }
+    }
+
+    if (!candidateId || !ITEMS_DATABASE[candidateId]) return null;
+
+    return {
+        ...ITEMS_DATABASE[candidateId],
+        isRareTrophy: true
+    };
+}
+
+/**
+ * Открытие сундука с сокровищами в катакомбах.
+ * Генерирует награду: золото и ценные предметы в зависимости от типа сундука.
+ */
+export function openDungeonChest(chestType = 'wooden', floorNum = 1) {
+    let gold = 0;
+    let minItems = 1;
+    let maxItems = 2;
+    let targetRarities = ['common', 'uncommon'];
+
+    // Максимальный и минимальный уровень снаряжения для сундука с учетом глубины этажа
+    let maxLvl = Math.min(30, Math.max(4, Math.round(floorNum * 1.05)));
+    let minLvl = Math.max(1, Math.round(floorNum * 0.45) - 3);
+
+    switch (chestType) {
+        case 'ancient':
+            gold = 250 + Math.floor(Math.random() * 200) + floorNum * 8;
+            minItems = 2;
+            maxItems = 3;
+            targetRarities = ['epic', 'legendary', 'rare'];
+            minLvl = Math.max(14, floorNum - 5);
+            break;
+        case 'gilded':
+            gold = 120 + Math.floor(Math.random() * 100) + floorNum * 5;
+            minItems = 1;
+            maxItems = 2;
+            targetRarities = ['rare', 'epic'];
+            minLvl = Math.max(8, floorNum - 6);
+            break;
+        case 'iron':
+            gold = 50 + Math.floor(Math.random() * 60) + floorNum * 3;
+            minItems = 1;
+            maxItems = 2;
+            targetRarities = ['uncommon', 'rare'];
+            minLvl = Math.max(3, floorNum - 7);
+            break;
+        case 'wooden':
+        default:
+            gold = 20 + Math.floor(Math.random() * 30) + floorNum * 2;
+            minItems = 1;
+            maxItems = 2;
+            targetRarities = ['common', 'uncommon'];
+            minLvl = 1;
+            maxLvl = Math.min(10, maxLvl);
+            break;
+    }
+
+    // Собираем кандидатов для дропа
+    let candidateItems = Object.values(ITEMS_DATABASE).filter(item => {
+        if (item.type === 'food') return false;
+        if (!targetRarities.includes(item.rarity)) return false;
+        return item.reqLevel <= maxLvl && item.reqLevel >= minLvl;
+    });
+
+    if (candidateItems.length === 0) {
+        candidateItems = Object.values(ITEMS_DATABASE).filter(item => {
+            if (item.type === 'food') return false;
+            return targetRarities.includes(item.rarity);
+        });
+    }
+
+    const itemsCount = minItems + Math.floor(Math.random() * (maxItems - minItems + 1));
+    const droppedItems = [];
+
+    for (let i = 0; i < itemsCount; i++) {
+        if (candidateItems.length > 0) {
+            const picked = candidateItems[Math.floor(Math.random() * candidateItems.length)];
+            droppedItems.push({ ...picked });
+        }
+    }
+
+    if (droppedItems.length === 0) {
+        droppedItems.push({ ...(ITEMS_DATABASE.greater_hp_potion || ITEMS_DATABASE.hp_potion) });
+    }
+
+    return {
+        gold,
+        items: droppedItems,
+        chestType
+    };
+}
+
+// Автоматическая инициализация редкости и индивидуальных 1:1 иконок экипировки
+Object.values(ITEMS_DATABASE).forEach(item => {
+    if (!item.rarity) {
+        if (item.reqLevel >= 25) item.rarity = 'legendary';
+        else if (item.reqLevel >= 18) item.rarity = 'epic';
+        else if (item.reqLevel >= 11) item.rarity = 'rare';
+        else if (item.reqLevel >= 5) item.rarity = 'uncommon';
+        else item.rarity = 'common';
+    }
+    // Если предмет является экипировкой, генерируем точную 1:1 иконку из EquipmentVisuals
+    if (['weapon', 'armor', 'shield', 'accessory', 'relic'].includes(item.type) || item.slot) {
+        const customIcon = EquipmentVisuals.getItemIcon(item, 24);
+        if (customIcon) {
+            item.icon = customIcon;
+        }
+    }
+});

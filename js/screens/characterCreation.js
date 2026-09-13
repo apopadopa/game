@@ -1,5 +1,6 @@
 import { Player } from '../entities/player.js';
 import { CharacterRenderer } from '../visuals/characterRenderer.js';
+import { EquipmentVisuals } from '../visuals/equipmentVisuals.js';
 import { Icons } from '../visuals/icons.js';
 import { sound } from '../audio/audioEngine.js';
 
@@ -49,22 +50,22 @@ export class CharacterCreation {
             warrior: {
                 name: 'Воин',
                 desc: 'Мастер рукопашного боя. Стойкий и сильный защитник.',
-                baseStats: { strength: 8, agility: 4, intelligence: 2, vitality: 7 }
+                baseStats: { strength: 6, agility: 3, intelligence: 1, vitality: 5 }
             },
             rogue: {
                 name: 'Плут',
                 desc: 'Быстрый и скрытный боец. Высокий шанс критического удара.',
-                baseStats: { strength: 4, agility: 9, intelligence: 3, vitality: 5 }
+                baseStats: { strength: 3, agility: 6, intelligence: 2, vitality: 4 }
             },
             mage: {
                 name: 'Чародей',
                 desc: 'Ученик тайных искусств. Способен творить разрушительные чары.',
-                baseStats: { strength: 2, agility: 4, intelligence: 10, vitality: 4 }
+                baseStats: { strength: 1, agility: 3, intelligence: 7, vitality: 3 }
             },
             ranger: {
                 name: 'Следопыт',
                 desc: 'Охотник чащи. Меткий стрелок из лука и знаток выживания.',
-                baseStats: { strength: 5, agility: 7, intelligence: 4, vitality: 5 }
+                baseStats: { strength: 4, agility: 5, intelligence: 2, vitality: 4 }
             }
         };
         this.selectedClassId = 'warrior';
@@ -78,7 +79,7 @@ export class CharacterCreation {
         this.selectedOrigin = this.origins[0];
 
         this.traits = [
-            { id: 'thick_skin', name: 'Толстокожий', desc: '+4 к постоянной защите' },
+            { id: 'thick_skin', name: 'Толстокожий', desc: '+2 к постоянной защите' },
             { id: 'eagle_eye', name: 'Орлиный глаз', desc: '+8% к шансу крита' },
             { id: 'berserk', name: 'Берсерк', desc: '+25% к урону, когда HP ниже 30%' },
             { id: 'greedy', name: 'Жадина', desc: '+20% добычи золота' }
@@ -103,7 +104,9 @@ export class CharacterCreation {
                     </div>
 
                     <div class="avatar-preview-box">
-                        <div id="avatar-svg-container"></div>
+                        <div class="pedestal-ambient-ring"></div>
+                        <div class="pedestal-light-cone"></div>
+                        <div id="avatar-svg-container" class="hero-idle-breathe"></div>
                     </div>
 
                     <div class="name-input-group">
@@ -168,6 +171,10 @@ export class CharacterCreation {
                             <label>Особый аксессуар / украшение</label>
                             <div class="btn-group" id="accessory-group"></div>
                         </div>
+                        <div class="setting-group" style="margin-top: 15px;">
+                            <label>Стартовая экипировка героя:</label>
+                            <div class="starter-gear-preview" id="starter-gear-list"></div>
+                        </div>
                     </div>
 
                     <div class="tab-content" id="tab-class">
@@ -206,6 +213,7 @@ export class CharacterCreation {
         this.renderOriginCards();
         this.renderTraitCards();
         this.renderStatAllocators();
+        this.renderStarterGearList();
         this.updateAvatarSvg();
         this.updateDerivedStats();
         this.bindEvents();
@@ -303,9 +311,48 @@ export class CharacterCreation {
         });
     }
 
+    getStarterEquipment(classId = this.selectedClassId) {
+        let weaponName = 'Базовое оружие';
+        if (classId === 'warrior') weaponName = 'Закаленный короткий меч новобранца';
+        else if (classId === 'rogue') weaponName = 'Охотничий кинжал новобранца';
+        else if (classId === 'mage') weaponName = 'Дубовый посох ученика';
+        else if (classId === 'ranger') weaponName = 'Короткий лук следопыта';
+
+        return {
+            head: null,
+            torso: { id: 'starter_tunic', name: 'Холщовая рубаха', slot: 'torso', type: 'armor', defense: 1, desc: '+1 к защите', rarity: 'common' },
+            legs: { id: 'starter_pants', name: 'Походные штаны', slot: 'legs', type: 'armor', defense: 1, desc: '+1 к защите', rarity: 'common' },
+            boots: { id: 'starter_boots', name: 'Кожаные сапоги', slot: 'boots', type: 'armor', defense: 1, desc: '+1 к защите', rarity: 'common' },
+            mainHand: { id: 'starter_weapon', name: weaponName, slot: 'mainHand', type: 'weapon', physicalDamage: 2, classReq: classId, desc: '+2 к урону', rarity: 'common' },
+            offHand: classId === 'warrior' ? { id: 'starter_shield', name: 'Окованный баклер', slot: 'offHand', type: 'shield', defense: 1, desc: '+1 к защите', rarity: 'common' } : null,
+            accessory: null
+        };
+    }
+
+    renderStarterGearList() {
+        const container = this.container.querySelector('#starter-gear-list');
+        if (!container) return;
+        const equip = this.getStarterEquipment(this.selectedClassId);
+        const items = [equip.mainHand, equip.offHand, equip.torso, equip.legs, equip.boots].filter(Boolean);
+        container.innerHTML = items.map(it => `
+            <div class="starter-gear-card">
+                <span class="starter-gear-icon">${EquipmentVisuals.getItemIcon(it, 28)}</span>
+                <div class="starter-gear-info">
+                    <div class="starter-gear-name">${it.name}</div>
+                    <div class="starter-gear-desc">${it.desc}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
     updateAvatarSvg() {
         const container = this.container.querySelector('#avatar-svg-container');
-        container.innerHTML = CharacterRenderer.render(this.visuals, this.selectedClassId);
+        if (!container) return;
+        const starterEquip = this.getStarterEquipment(this.selectedClassId);
+        container.innerHTML = CharacterRenderer.render(this.visuals, this.selectedClassId, starterEquip);
+        container.classList.remove('hero-update-pulse');
+        void container.offsetWidth;
+        container.classList.add('hero-update-pulse');
     }
 
     initVisualsSelectors() {
@@ -369,6 +416,7 @@ export class CharacterCreation {
                 this.selectedClassId = id;
                 this.renderClassCards();
                 this.renderStatAllocators();
+                this.renderStarterGearList();
                 this.updateDerivedStats();
                 this.updateAvatarSvg();
             });
@@ -428,7 +476,15 @@ export class CharacterCreation {
 
     renderStatAllocators() {
         const container = this.container.querySelector('#stats-allocator-container');
-        this.container.querySelector('#points-counter').textContent = this.availablePoints;
+        const pointsCounter = this.container.querySelector('#points-counter');
+        if (pointsCounter) {
+            pointsCounter.textContent = this.availablePoints;
+            if (this.availablePoints > 0) {
+                pointsCounter.classList.add('has-points');
+            } else {
+                pointsCounter.classList.remove('has-points');
+            }
+        }
 
         const statNames = {
             strength: 'Сила (Урон и вес)',
@@ -481,15 +537,15 @@ export class CharacterCreation {
         const stats = this.getEffectiveStats();
         const hp = stats.vitality * 15 + stats.strength * 5;
         const mp = stats.intelligence * 12;
-        const dmg = Math.round(stats.strength * 1.8 + stats.agility * 0.6);
-        const mdmg = Math.round(stats.intelligence * 2.0);
+        const dmg = Math.round(stats.strength * 1.0 + stats.agility * 0.3);
+        const mdmg = Math.round(stats.intelligence * 1.2);
 
         let crit = Math.min(60, Math.round(stats.agility * 1.5));
         let dodge = Math.min(40, Math.round(stats.agility * 1.2));
-        let def = Math.round(stats.vitality * 0.6 + stats.strength * 0.3);
+        let def = Math.round(stats.vitality * 0.25 + stats.strength * 0.15);
 
         if (this.selectedTrait.id === 'eagle_eye') crit += 8;
-        if (this.selectedTrait.id === 'thick_skin') def += 4;
+        if (this.selectedTrait.id === 'thick_skin') def += 2;
 
         this.container.querySelector('#stat-hp').textContent = hp;
         this.container.querySelector('#stat-mp').textContent = mp;
@@ -509,8 +565,12 @@ export class CharacterCreation {
             });
         });
 
-        this.container.querySelector('#btn-random-name').addEventListener('click', () => {
+        const btnRandom = this.container.querySelector('#btn-random-name');
+        btnRandom.addEventListener('click', () => {
             sound.playSfx('dice');
+            btnRandom.classList.remove('dice-roll-anim');
+            void btnRandom.offsetWidth;
+            btnRandom.classList.add('dice-roll-anim');
             this.randomizeName();
         });
 
@@ -530,7 +590,8 @@ export class CharacterCreation {
                 origin: this.selectedOrigin,
                 trait: this.selectedTrait,
                 visuals: this.visuals,
-                attributes: this.getEffectiveStats()
+                attributes: this.getEffectiveStats(),
+                equipment: this.getStarterEquipment(this.selectedClassId)
             });
 
             this.callbacks.onComplete(player);

@@ -5,6 +5,8 @@ import { CharacterRenderer } from '../../visuals/characterRenderer.js';
 import { NpcRenderer, NPC_CONFIGS } from '../../visuals/npcRenderer.js';
 import { Icons } from '../../visuals/icons.js';
 import { getTraderStock } from '../../data/itemsData.js';
+import { QuestSystem } from '../../services/questSystem.js';
+import { QuestRenderer } from '../../ui/questRenderer.js';
 
 export class BlacksmithScreen {
     constructor(player, callbacks) {
@@ -27,7 +29,7 @@ export class BlacksmithScreen {
             <div class="interior-screen">
                 <div class="interior-top-bar">
                     <div class="loc-character-badge">
-                        <div class="hud-avatar-frame">${CharacterRenderer.renderBust(this.player.visuals, this.player.classId)}</div>
+                        <div class="hud-avatar-frame">${CharacterRenderer.renderBust(this.player.visuals, this.player.classId, this.player.equipment)}</div>
                         <div class="loc-player-meta">
                             <span class="loc-player-name">${this.player.name}</span>
                             <span class="loc-gold">${Icons.coin(14)} <strong id="loc-gold-val">${this.player.gold}</strong></span>
@@ -202,11 +204,17 @@ export class BlacksmithScreen {
                             <div class="npc-speech-bubble" id="torvald-speech">
                                 «Холодная сталь и горячее сердце — вот что решает судьбу во тьме катакомб. Подточу твой клинок так, что кости скелетов треснут от одного взмаха!»
                             </div>
+                            <div id="npc-quest-prompt-slot">
+                                ${QuestRenderer.renderNpcQuestPrompts(this.player, 'torvald')}
+                            </div>
                         </div>
 
                         <div class="goods-tabs">
                             <button class="goods-tab-btn ${this.activeTab === 'upgrade' ? 'active' : ''}" id="tab-upgrade">Улучшение снаряжения</button>
                             <button class="goods-tab-btn ${this.activeTab === 'armory' ? 'active' : ''}" id="tab-armory">Оружейная лавка</button>
+                            <button class="goods-tab-btn ${this.activeTab === 'quests' ? 'active' : ''}" id="tab-quests">
+                                Поручения ${QuestSystem.hasAvailableQuestsForNpc(this.player, 'torvald') ? `<span class="badge-tab-count">${QuestSystem.getAvailableQuestsForNpc(this.player, 'torvald').length}</span>` : ''}
+                            </button>
                         </div>
 
                         <div class="goods-content-view" id="blacksmith-content"></div>
@@ -239,16 +247,71 @@ export class BlacksmithScreen {
             this.updateTabs();
             this.renderTabContent();
         });
+
+        const tabQuests = this.container.querySelector('#tab-quests');
+        if (tabQuests) {
+            tabQuests.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.activeTab = 'quests';
+                this.updateTabs();
+                this.renderTabContent();
+            });
+        }
+
+        this.bindQuestPromptEvents();
+    }
+
+    bindQuestPromptEvents() {
+        const slot = this.container.querySelector('#npc-quest-prompt-slot');
+        if (!slot) return;
+        slot.querySelectorAll('.btn-quest-turnin').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const questId = btn.dataset.questId;
+                const res = QuestSystem.interactWithNpc(this.player, questId, 'torvald');
+                if (res.success) {
+                    this.container.querySelector('#torvald-speech').textContent = res.dialogText;
+                    slot.innerHTML = QuestRenderer.renderNpcQuestPrompts(this.player, 'torvald');
+                    this.updateTabs();
+                    this.renderTabContent();
+                    this.bindQuestPromptEvents();
+                }
+            });
+        });
     }
 
     updateTabs() {
         this.container.querySelector('#tab-upgrade').classList.toggle('active', this.activeTab === 'upgrade');
         this.container.querySelector('#tab-armory').classList.toggle('active', this.activeTab === 'armory');
+        const tabQuests = this.container.querySelector('#tab-quests');
+        if (tabQuests) {
+            tabQuests.classList.toggle('active', this.activeTab === 'quests');
+            const availCount = QuestSystem.getAvailableQuestsForNpc(this.player, 'torvald').length;
+            tabQuests.innerHTML = `Поручения ${availCount > 0 ? `<span class="badge-tab-count">${availCount}</span>` : ''}`;
+        }
         this.container.querySelector('#loc-gold-val').textContent = this.player.gold;
     }
 
     renderTabContent() {
         const view = this.container.querySelector('#blacksmith-content');
+
+        if (this.activeTab === 'quests') {
+            view.innerHTML = QuestRenderer.renderNpcQuestsTab(this.player, 'torvald');
+            view.querySelectorAll('.btn-accept-quest').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const questId = btn.dataset.questId;
+                    const res = QuestSystem.acceptQuest(this.player, questId);
+                    if (res.success) {
+                        this.container.querySelector('#torvald-speech').textContent = res.quest.dialogPending;
+                        const slot = this.container.querySelector('#npc-quest-prompt-slot');
+                        if (slot) slot.innerHTML = QuestRenderer.renderNpcQuestPrompts(this.player, 'torvald');
+                        this.updateTabs();
+                        this.renderTabContent();
+                        this.bindQuestPromptEvents();
+                    }
+                });
+            });
+            return;
+        }
 
         if (this.activeTab === 'upgrade') {
             view.innerHTML = `

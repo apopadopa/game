@@ -17,6 +17,7 @@ export class SaveSystem {
                     attributes: player.attributes,
                     level: player.level || 1,
                     exp: player.exp || 0,
+                    statPoints: player.statPoints || 0,
                     gold: player.gold,
                     currentHp: player.currentHp,
                     currentMp: player.currentMp,

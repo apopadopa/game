@@ -356,4 +356,114 @@ export class Sfx {
             osc.stop(time + 0.35);
         });
     }
+
+    static questComplete(ctx, dest) {
+        // Сияющий перезвон завершения квеста или открытия сундука (C5, E5, G5, C6)
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+            const time = ctx.currentTime + i * 0.08;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, time);
+
+            gain.gain.setValueAtTime(0.2, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.45);
+
+            osc.connect(gain);
+            gain.connect(dest);
+
+            osc.start(time);
+            osc.stop(time + 0.45);
+        });
+    }
+
+    static chestOpen(ctx, dest) {
+        // Звук открывающегося тяжелого замка и скрипа дерева
+        const creakOsc = ctx.createOscillator();
+        const creakGain = ctx.createGain();
+        creakOsc.type = 'sawtooth';
+        creakOsc.frequency.setValueAtTime(120, ctx.currentTime);
+        creakOsc.frequency.linearRampToValueAtTime(240, ctx.currentTime + 0.12);
+
+        creakGain.gain.setValueAtTime(0.15, ctx.currentTime);
+        creakGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
+
+        creakOsc.connect(creakGain);
+        creakGain.connect(dest);
+
+        creakOsc.start();
+        creakOsc.stop(ctx.currentTime + 0.14);
+
+        // Золотой перезвон монет внутри
+        const jingleNotes = [880.00, 1174.66, 1396.91, 1760.00];
+        jingleNotes.forEach((freq, i) => {
+            const time = ctx.currentTime + 0.1 + i * 0.05;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, time);
+
+            gain.gain.setValueAtTime(0.18, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.35);
+
+            osc.connect(gain);
+            gain.connect(dest);
+
+            osc.start(time);
+            osc.stop(time + 0.35);
+        });
+    }
+
+    static rareDrop(ctx, dest) {
+        // Мистическая фанфара редкого трофея монстра
+        const melody = [
+            { f: 440.00, t: 0, d: 0.12 },
+            { f: 554.37, t: 0.1, d: 0.12 },
+            { f: 659.25, t: 0.2, d: 0.15 },
+            { f: 880.00, t: 0.32, d: 0.18 },
+            { f: 1108.73, t: 0.46, d: 0.55 }
+        ];
+
+        melody.forEach(item => {
+            const time = ctx.currentTime + item.t;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(item.f, time);
+
+            gain.gain.setValueAtTime(0.22, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + item.d);
+
+            osc.connect(gain);
+            gain.connect(dest);
+
+            osc.start(time);
+            osc.stop(time + item.d);
+        });
+    }
+
+    static typewriter(ctx, dest) {
+        // Мягкий винтажный щелчок пера / печатного символа
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        const pitch = 360 + (Math.random() * 80 - 40);
+        osc.frequency.setValueAtTime(pitch, now);
+        osc.frequency.exponentialRampToValueAtTime(120, now + 0.028);
+
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
+
+        osc.connect(gain);
+        gain.connect(dest);
+
+        osc.start(now);
+        osc.stop(now + 0.028);
+    }
 }
