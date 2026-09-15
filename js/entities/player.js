@@ -1,3 +1,14 @@
+import { 
+    SKILLS_DATABASE, 
+    DEFAULT_ABILITY_DECKS, 
+    getSkill, 
+    getTotalSkillPointsEarned, 
+    getAvailableSkillPoints, 
+    isSkillUnlocked, 
+    canUnlockSkill,
+    getDeckSlotForCategory 
+} from '../data/skillsData.js';
+
 export class Player {
     constructor(config) {
         this.name = config.name || 'Безымянный';
@@ -6,7 +17,16 @@ export class Player {
         this.className = config.className || 'Воин';
         this.origin = config.origin || { id: 'noble', name: 'Опальный дворянин', bonusGold: 40 };
         this.trait = config.trait || { id: 'thick_skin', name: 'Толстокожий' };
-        this.visuals = config.visuals;
+        this.visuals = config.visuals || {
+            gender: this.gender,
+            skinColor: '#d69f7e',
+            hairStyle: 'short',
+            hairColor: '#2b1d16',
+            eyeColor: '#4b9cd3',
+            beard: 'none',
+            accessory: 'none',
+            outfitColor: '#5a4634'
+        };
 
         this.attributes = {
             strength: config.attributes?.strength || 5,
@@ -28,6 +48,8 @@ export class Player {
 
         this.tavernBuff = config.tavernBuff || null;
         this.hasDefeatedFinalBoss = !!config.hasDefeatedFinalBoss;
+        this.hasViewedAbyssEnding = !!config.hasViewedAbyssEnding;
+        this.hasOpenedSouthGates = !!config.hasOpenedSouthGates;
         this.quests = config.quests || { active: {}, completed: [] };
 
         this.equipment = config.equipment || {
@@ -50,6 +72,36 @@ export class Player {
             defaultInventory.unshift({ id: 'starter_shield', name: 'Окованный баклер', desc: 'Легкий щит (+1 к защите)', price: 25, slot: 'offHand', type: 'shield', defense: 1 });
         }
         this.inventory = config.inventory || defaultInventory;
+
+        // Инициализация древа навыков и колоды способностей (3 слота: удар, сильнее удар, финальный)
+        const defaultDeck = DEFAULT_ABILITY_DECKS[this.classId] || DEFAULT_ABILITY_DECKS.warrior;
+        const initialDeck = config.abilityDeck ? { ...config.abilityDeck } : { ...defaultDeck };
+        const defaultUnlocked = Object.values(defaultDeck);
+        const unlockedSkills = Array.isArray(config.skills?.unlocked)
+            ? [...new Set([...config.skills.unlocked, ...defaultUnlocked])]
+            : [...defaultUnlocked];
+
+        this.skills = {
+            unlocked: unlockedSkills,
+            spentPoints: config.skills?.spentPoints || 0
+        };
+
+        if (config.skillPoints !== undefined) {
+            this.skillPoints = Math.max(0, config.skillPoints);
+        } else {
+            const totalEarned = getTotalSkillPointsEarned(this.level || 1);
+            const spent = this.skills.spentPoints || 0;
+            this.skillPoints = Math.max(0, totalEarned - spent);
+            if (this.level <= 1 && spent === 0 && this.skillPoints === 0) {
+                this.skillPoints = 1;
+            }
+        }
+
+        this.abilityDeck = {
+            slot1: initialDeck.slot1 || defaultDeck.slot1,
+            slot2: initialDeck.slot2 || defaultDeck.slot2,
+            slot3: initialDeck.slot3 || defaultDeck.slot3
+        };
 
         this.normalizeAllSlots();
         this.recalculateStats();
@@ -146,7 +198,7 @@ export class Player {
         if (id.includes('boots') || id.includes('shoes') || name.includes('сапоги') || name.includes('ботинки') || name.includes('обувь')) {
             return 'boots';
         }
-        if (id.includes('ring') || id.includes('amulet') || id.includes('relic') || type === 'relic' || name.includes('амулет') || name.includes('кольцо') || name.includes('реликвия') || (name.includes('сосуд') && type === 'relic')) {
+        if (id.includes('ring') || id.includes('amulet') || id.includes('relic') || id.includes('artifact') || type === 'relic' || type === 'artifact' || name.includes('амулет') || name.includes('кольцо') || name.includes('перстень') || name.includes('реликвия') || name.includes('артефакт') || name.includes('печать') || name.includes('сфера') || name.includes('опал') || (name.includes('сосуд') && type === 'relic')) {
             return 'accessory';
         }
         return null;
@@ -206,6 +258,22 @@ export class Player {
                     if (item.dodgeChance) this.dodgeChance += item.dodgeChance;
                     if (item.maxHp) this.maxHp += item.maxHp;
                     if (item.maxMp) this.maxMp += item.maxMp;
+                }
+            }
+        }
+
+        // Пассивные навыки из древа умений персонажа
+        if (this.skills && Array.isArray(this.skills.unlocked)) {
+            for (const skillId of this.skills.unlocked) {
+                const sk = SKILLS_DATABASE[skillId];
+                if (sk && sk.category === 'passive' && sk.bonuses) {
+                    if (sk.bonuses.physicalDamage) this.physicalDamage += sk.bonuses.physicalDamage;
+                    if (sk.bonuses.magicDamage) this.magicDamage += sk.bonuses.magicDamage;
+                    if (sk.bonuses.defense) this.defense += sk.bonuses.defense;
+                    if (sk.bonuses.critChance) this.critChance += sk.bonuses.critChance;
+                    if (sk.bonuses.dodgeChance) this.dodgeChance += sk.bonuses.dodgeChance;
+                    if (sk.bonuses.maxHp) this.maxHp += sk.bonuses.maxHp;
+                    if (sk.bonuses.maxMp) this.maxMp += sk.bonuses.maxMp;
                 }
             }
         }
@@ -401,6 +469,7 @@ export class Player {
             this.exp -= this.getExpRequiredForNextLevel(this.level);
             this.level += 1;
             this.statPoints = (this.statPoints || 0) + 3;
+            this.skillPoints = (this.skillPoints || 0) + 1;
             pointsGained += 3;
         }
 
@@ -438,6 +507,81 @@ export class Player {
             newValue: this.attributes[statName],
             remainingPoints: this.statPoints
         };
+    }
+
+    // =========================================================================
+    // СИСТЕМА НАВЫКОВ И КОЛОДЫ СПОСОБНОСТЕЙ
+    // =========================================================================
+
+    getSkillPoints() {
+        const total = getTotalSkillPointsEarned(this.level);
+        const spent = this.skills?.spentPoints || 0;
+        const available = typeof this.skillPoints === 'number' ? this.skillPoints : Math.max(0, total - spent);
+        return { total, spent, available };
+    }
+
+    unlockSkill(skillId) {
+        const check = canUnlockSkill(this, skillId);
+        if (!check.can) {
+            return { success: false, reason: check.reason };
+        }
+
+        const skill = getSkill(skillId);
+        if (!skill) return { success: false, reason: 'Навык не найден' };
+
+        const cost = check.cost || 1;
+        if (!this.skills) this.skills = { unlocked: [], spentPoints: 0 };
+        if (!this.skills.unlocked.includes(skillId)) {
+            this.skills.unlocked.push(skillId);
+        }
+        this.skills.spentPoints = (this.skills.spentPoints || 0) + cost;
+        this.skillPoints = Math.max(0, (this.skillPoints !== undefined ? this.skillPoints : cost) - cost);
+
+        this.recalculateStats();
+        return { success: true, skill, remainingPoints: this.skillPoints };
+    }
+
+    equipAbilityToDeck(slotKey, skillId) {
+        const validSlots = ['slot1', 'slot2', 'slot3'];
+        if (!validSlots.includes(slotKey)) {
+            return { success: false, reason: 'Можно изменять только 3 ячейки способностей (Удар, Сильнее удар, Финальный)!' };
+        }
+
+        const skill = getSkill(skillId);
+        if (!skill) return { success: false, reason: 'Способность не найдена' };
+        if (skill.classId !== this.classId) {
+            return { success: false, reason: 'Нельзя экипировать навык другого класса!' };
+        }
+        if (!isSkillUnlocked(this, skillId)) {
+            return { success: false, reason: 'Сначала необходимо изучить этот навык в древе!' };
+        }
+
+        const reqCategory = slotKey === 'slot1' ? 'strike' : (slotKey === 'slot2' ? 'heavy' : 'finisher');
+        if (skill.category !== reqCategory) {
+            const catNames = { strike: 'Базовый удар', heavy: 'Сильнее удар', finisher: 'Финальный' };
+            return { success: false, reason: `Этот навык подходит только для ячейки: «${catNames[reqCategory]}»!` };
+        }
+
+        if (!this.abilityDeck) {
+            this.abilityDeck = { ...DEFAULT_ABILITY_DECKS[this.classId] };
+        }
+
+        this.abilityDeck[slotKey] = skillId;
+        return { success: true, slotKey, skill };
+    }
+
+    resetSkills() {
+        const defaultDeck = DEFAULT_ABILITY_DECKS[this.classId] || DEFAULT_ABILITY_DECKS.warrior;
+        const defaultUnlocked = Object.values(defaultDeck);
+        const refund = this.skills?.spentPoints || 0;
+        this.skills = {
+            unlocked: [...defaultUnlocked],
+            spentPoints: 0
+        };
+        this.abilityDeck = { ...defaultDeck };
+        this.skillPoints = (this.skillPoints || 0) + refund;
+        this.recalculateStats();
+        return { success: true, availablePoints: this.skillPoints };
     }
 
     static fromSave(savedData) {

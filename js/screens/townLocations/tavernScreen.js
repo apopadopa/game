@@ -213,25 +213,25 @@ export class TavernScreen {
                                 </g>
                             </g>
 
-                            <!-- СПРАЙТ ТРАКТИРЩИКА БРОКА С АНИМАЦИЕЙ ЖИВОГО ДЫХАНИЯ -->
-                            <g id="tavern-brok-sprite" transform="translate(175, 48) scale(0.95)" class="npc-interior-breathe">
+                            <!-- СПРАЙТ ТРАКТИРЩИКА БРОКА С АНИМАЦИЕЙ ЖИВОГО ДЫХАНИЯ (ПО ЦЕНТРУ ЭКРАНА) -->
+                            <g id="tavern-brok-sprite" transform="translate(116, 48) scale(0.95)" class="npc-interior-breathe">
                                 ${NpcRenderer.render(this.npc)}
                             </g>
 
-                            <!-- ПЕРЕДНИЙ ПЛАН: БАРНАЯ СТОЙКА С ПЕННЫМ ЭЛЕМ И СВЕЧОЙ -->
+                            <!-- ПЕРЕДНИЙ ПЛАН: БАРНАЯ СТОЙКА С ПЕННЫМ ЭЛЕМ И СВЕЧОЙ (ПО ЦЕНТРУ ЭКРАНА) -->
                             <g id="bar-counter-foreground">
                                 <!-- Массивная столешница из мореного дуба -->
-                                <rect x="90" y="222" width="335" height="28" rx="4" fill="#451a03" stroke="#260f02" stroke-width="2.5"/>
-                                <rect x="92" y="224" width="331" height="5" fill="#78350f" opacity="0.6"/>
+                                <rect x="65" y="222" width="330" height="28" rx="4" fill="#451a03" stroke="#260f02" stroke-width="2.5"/>
+                                <rect x="67" y="224" width="326" height="5" fill="#78350f" opacity="0.6"/>
                                 <!-- Фасад барной стойки с деревянными панелями -->
-                                <rect x="98" y="250" width="318" height="130" fill="#2e1405" stroke="#1a0a02" stroke-width="2"/>
+                                <rect x="72" y="250" width="316" height="130" fill="#2e1405" stroke="#1a0a02" stroke-width="2"/>
                                 <!-- Декоративные филенки стойки -->
-                                <rect x="110" y="262" width="85" height="100" rx="3" fill="#1c0b02" stroke="#451a03" stroke-width="1.5"/>
-                                <rect x="210" y="262" width="95" height="100" rx="3" fill="#1c0b02" stroke="#451a03" stroke-width="1.5"/>
-                                <rect x="320" y="262" width="85" height="100" rx="3" fill="#1c0b02" stroke="#451a03" stroke-width="1.5"/>
+                                <rect x="85" y="262" width="85" height="100" rx="3" fill="#1c0b02" stroke="#451a03" stroke-width="1.5"/>
+                                <rect x="188" y="262" width="85" height="100" rx="3" fill="#1c0b02" stroke="#451a03" stroke-width="1.5"/>
+                                <rect x="290" y="262" width="85" height="100" rx="3" fill="#1c0b02" stroke="#451a03" stroke-width="1.5"/>
 
                                 <!-- КРУЖКА ОТБОРНОГО ЭЛЯ С ПЫШНОЙ ПЕНОЙ И КЛУБЯЩИМСЯ ПАРОМ -->
-                                <g id="counter-ale-mug" transform="translate(130, 192)">
+                                <g id="counter-ale-mug" transform="translate(105, 192)">
                                     <rect x="0" y="5" width="22" height="26" rx="3" fill="#92400e" stroke="#451a03" stroke-width="1.5"/>
                                     <!-- Ручка кружки -->
                                     <path d="M22,9 Q32,18 22,27" stroke="#451a03" stroke-width="2.5" fill="none"/>
@@ -245,7 +245,7 @@ export class TavernScreen {
                                 </g>
 
                                 <!-- КОВАНЫЙ ПОДСВЕЧНИК С ГОРЯЩЕЙ СВЕЧОЙ -->
-                                <g id="counter-candle" transform="translate(370, 195)">
+                                <g id="counter-candle" transform="translate(345, 195)">
                                     <circle cx="0" cy="0" r="38" fill="url(#candleLight)" class="anim-candle-flame"/>
                                     <rect x="-8" y="22" width="16" height="5" rx="2" fill="#ca8a04" stroke="#78350f" stroke-width="1"/>
                                     <rect x="-3" y="10" width="6" height="14" fill="#f8fafc" rx="1"/>
@@ -255,9 +255,9 @@ export class TavernScreen {
                                 </g>
 
                                 <!-- Монеты на стойке -->
-                                <circle cx="215" cy="235" r="5" fill="#ca8a04" stroke="#78350f" stroke-width="0.8"/>
-                                <circle cx="224" cy="236" r="4.5" fill="#eab308" stroke="#78350f" stroke-width="0.8"/>
-                                <circle cx="220" cy="233" r="4.8" fill="#facc15" stroke="#78350f" stroke-width="0.8"/>
+                                <circle cx="230" cy="235" r="5" fill="#ca8a04" stroke="#78350f" stroke-width="0.8"/>
+                                <circle cx="239" cy="236" r="4.5" fill="#eab308" stroke="#78350f" stroke-width="0.8"/>
+                                <circle cx="235" cy="233" r="4.8" fill="#facc15" stroke="#78350f" stroke-width="0.8"/>
                             </g>
 
                             <!-- АТМОСФЕРНЫЙ СВЕТ: ПАРЯЩИЕ ЗОЛОТИСТЫЕ ПЫЛИНКИ В ЛУЧАХ ОЧАГА -->
@@ -539,9 +539,44 @@ export class TavernScreen {
         }
     }
 
+    renderTavernBuffStatus() {
+        if (!this.player || !this.player.tavernBuff) {
+            return `<span class="tavern-buff-idle" style="color: #94a3b8; font-size: 0.85rem;">Трактирные эффекты не действуют. Отведайте медового эля или снимите комнату для отдыха!</span>`;
+        }
+        const sec = this.player.getTavernBuffRemainingSeconds();
+        if (sec <= 0) {
+            return `<span class="tavern-buff-idle" style="color: #94a3b8; font-size: 0.85rem;">Действие трактирного бонуса завершилось.</span>`;
+        }
+        return `
+            <span class="tavern-buff-active" style="display: inline-flex; align-items: center; gap: 6px; color: #fde047; font-size: 0.88rem;">
+                ${Icons.ale ? Icons.ale(15) : ''}
+                Активный эффект: <strong>${this.player.tavernBuff.name}</strong> (${this.player.tavernBuff.desc || ''}) — осталось <strong>${this.player.getTavernBuffFormattedTime()}</strong>
+            </span>
+        `;
+    }
+
+    startBuffTicker() {
+        if (this.tickerInterval) clearInterval(this.tickerInterval);
+        this.tickerInterval = setInterval(() => {
+            const footer = this.container?.querySelector('#tavern-feedback');
+            if (footer && this.player?.tavernBuff) {
+                footer.innerHTML = this.renderTavernBuffStatus();
+            }
+        }, 1000);
+    }
+
+    cleanup() {
+        if (this.tickerInterval) {
+            clearInterval(this.tickerInterval);
+            this.tickerInterval = null;
+        }
+    }
+
     updateButtons() {
-        this.container.querySelector('#btn-rest').disabled = this.player.gold < 10;
-        this.container.querySelector('#btn-ale').disabled = this.player.gold < 5;
+        const btnRest = this.container.querySelector('#btn-rest');
+        if (btnRest) btnRest.disabled = this.player.gold < 10;
+        const btnAle = this.container.querySelector('#btn-ale');
+        if (btnAle) btnAle.disabled = this.player.gold < 5;
         const stock = getTraderStock('tavern', this.player.level || 1);
         this.container.querySelectorAll('.btn-buy-food').forEach(btn => {
             const food = stock.find(f => f.id === btn.dataset.id);

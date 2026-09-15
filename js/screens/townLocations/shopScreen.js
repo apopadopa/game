@@ -166,24 +166,24 @@ export class ShopScreen {
                                 <path d="M0,-6 Q-6,-24 2,-40 Q10,-52 0,-66" stroke="#e2e8f0" stroke-width="1.6" fill="none" opacity="0.5" class="anim-incense-smoke wisp-3"/>
                             </g>
 
-                            <!-- СПРАЙТ КУПЦА РАШИДА С АНИМАЦИЕЙ ДЫХАНИЯ -->
-                            <g id="shop-rashid-sprite" transform="translate(175, 48) scale(0.95)" class="npc-interior-breathe">
+                            <!-- СПРАЙТ КУПЦА РАШИДА С АНИМАЦИЕЙ ДЫХАНИЯ (ПО ЦЕНТРУ ЭКРАНА) -->
+                            <g id="shop-rashid-sprite" transform="translate(116, 48) scale(0.95)" class="npc-interior-breathe">
                                 ${NpcRenderer.render(this.npc)}
                             </g>
 
-                            <!-- ПЕРЕДНИЙ ПЛАН: ПРИЛАВОК С ВЕСАМИ, ЗОЛОТОМ И СВЕТИЛЬНИКОМ -->
+                            <!-- ПЕРЕДНИЙ ПЛАН: ПРИЛАВОК С ВЕСАМИ, ЗОЛОТОМ И СВЕТИЛЬНИКОМ (ПО ЦЕНТРУ ЭКРАНА) -->
                             <g id="shop-counter-foreground">
                                 <!-- Массивный прилавок из резного кедра с позолотой -->
-                                <rect x="80" y="222" width="345" height="28" rx="4" fill="#4c0519" stroke="#881337" stroke-width="2.5"/>
-                                <line x1="85" y1="225" x2="420" y2="225" stroke="#facc15" stroke-width="2"/>
+                                <rect x="65" y="222" width="330" height="28" rx="4" fill="#4c0519" stroke="#881337" stroke-width="2.5"/>
+                                <line x1="70" y1="225" x2="390" y2="225" stroke="#facc15" stroke-width="2"/>
                                 <!-- Фасад прилавка с восточным резным орнаментом -->
-                                <rect x="88" y="250" width="330" height="130" fill="#2d030f" stroke="#170107" stroke-width="2"/>
-                                <rect x="100" y="260" width="95" height="105" rx="4" fill="#3f0514" stroke="#ca8a04" stroke-width="1.5"/>
-                                <rect x="210" y="260" width="105" height="105" rx="4" fill="#3f0514" stroke="#ca8a04" stroke-width="1.5"/>
-                                <rect x="330" y="260" width="75" height="105" rx="4" fill="#3f0514" stroke="#ca8a04" stroke-width="1.5"/>
+                                <rect x="72" y="250" width="316" height="130" fill="#2d030f" stroke="#170107" stroke-width="2"/>
+                                <rect x="85" y="260" width="85" height="105" rx="4" fill="#3f0514" stroke="#ca8a04" stroke-width="1.5"/>
+                                <rect x="188" y="260" width="85" height="105" rx="4" fill="#3f0514" stroke="#ca8a04" stroke-width="1.5"/>
+                                <rect x="290" y="260" width="85" height="105" rx="4" fill="#3f0514" stroke="#ca8a04" stroke-width="1.5"/>
 
                                 <!-- ЗОЛОТЫЕ АПТЕКАРСКИЕ ВЕСЫ С КОЛЕБАНИЕМ ЧАШ -->
-                                <g id="counter-scales" transform="translate(125, 185)" class="anim-scales-tilt">
+                                <g id="counter-scales" transform="translate(105, 185)" class="anim-scales-tilt">
                                     <!-- Стойка весов -->
                                     <line x1="25" y1="8" x2="25" y2="42" stroke="#ca8a04" stroke-width="3"/>
                                     <polygon points="20,42 30,42 33,46 17,46" fill="#ca8a04"/>
@@ -203,7 +203,7 @@ export class ShopScreen {
                                 </g>
 
                                 <!-- ВОСТОЧНАЯ МАСЛЯНАЯ ЛАМПА С МЯГКИМ ТЕПЛЫМ МЕРЦАНИЕМ -->
-                                <g id="counter-lamp" transform="translate(370, 185)">
+                                <g id="counter-lamp" transform="translate(345, 185)">
                                     <circle cx="0" cy="0" r="42" fill="url(#lampGlowShop)" class="anim-lamp-glow"/>
                                     <!-- Корпус медной лампы Аладдина -->
                                     <path d="M-12,24 Q0,16 14,22 L18,14 Q8,18 0,16 Q-6,14 -12,24 Z" fill="#ca8a04" stroke="#78350f" stroke-width="1.5"/>
@@ -214,7 +214,7 @@ export class ShopScreen {
                                 </g>
 
                                 <!-- Стопки золотых монет на прилавке -->
-                                <g transform="translate(225, 230)">
+                                <g transform="translate(230, 230)">
                                     <ellipse cx="0" cy="6" rx="9" ry="3.5" fill="#ca8a04" stroke="#78350f" stroke-width="0.8"/>
                                     <ellipse cx="0" cy="3" rx="9" ry="3.5" fill="#eab308" stroke="#78350f" stroke-width="0.8"/>
                                     <ellipse cx="0" cy="0" rx="9" ry="3.5" fill="#facc15" stroke="#78350f" stroke-width="0.8"/>

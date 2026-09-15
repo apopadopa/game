@@ -6,6 +6,204 @@ import { Icons } from '../visuals/icons.js';
 import { CharacterRenderer } from '../visuals/characterRenderer.js';
 import { MobRenderer } from '../visuals/mobRenderer.js';
 import { openDungeonChest } from '../data/itemsData.js';
+import { CheatSystem } from '../services/cheatSystem.js';
+import { GameDialog } from '../ui/gameDialog.js';
+
+// ==========================================
+// СИСТЕМА АТМОСФЕРНЫХ ПАРТИКЛОВ ТУМАНА И ПЫЛИ В МИРЕ ПОДЗЕМЕЛЬЯ (60 FPS, Canvas 2D)
+// Частицы привязаны к координатам мира подземелья, а не к экрану камеры!
+// ==========================================
+class DungeonFogParticles {
+    constructor(canvas, dungeonScreen) {
+        this.canvas = canvas;
+        this.dungeonScreen = dungeonScreen;
+        this.ctx = canvas.getContext('2d');
+        this.particles = [];
+        this.running = false;
+        this.animId = null;
+        this.onResize = () => this.resize();
+        window.addEventListener('resize', this.onResize);
+        this.resize();
+        this.init();
+    }
+
+    resize() {
+        const parent = this.canvas.parentElement;
+        this.width = parent ? (parent.clientWidth || 1280) : window.innerWidth;
+        this.height = parent ? (parent.clientHeight || 800) : window.innerHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+    }
+
+    init() {
+        this.particles = [];
+        const ds = this.dungeonScreen;
+        const totalFloors = (ds && ds.dungeon && ds.dungeon.totalFloors) ? ds.dungeon.totalFloors : 30;
+        const worldW = (ds && ds.WORLD_W) || 1820;
+        const padX = (ds && ds.PAD_X) || 90;
+        const padY = (ds && ds.PAD_Y) || 90;
+        const roomH = (ds && ds.ROOM_H) || 130;
+        const gapY = (ds && ds.GAP_Y) || 80;
+        const floorPitch = roomH + gapY; // 210px
+
+        for (let f = 1; f <= totalFloors; f++) {
+            const floorTop = padY + (f - 1) * floorPitch;
+            const minX = padX - 40;
+            const maxX = worldW - padX + 40;
+            const minY = floorTop - 35;
+            const maxY = floorTop + floorPitch + 15;
+
+            // 2 мягких клуба полумглы / тумана на этаж (размытые шлейфы)
+            for (let i = 0; i < 2; i++) {
+                this.particles.push({
+                    type: 'mist',
+                    wx: minX + Math.random() * (maxX - minX),
+                    wy: minY + Math.random() * (maxY - minY),
+                    minX, maxX, minY, maxY,
+                    radius: 75 + Math.random() * 75,
+                    vx: (Math.random() - 0.5) * 0.2,
+                    vy: (Math.random() - 0.5) * 0.12,
+                    alpha: 0.12 + Math.random() * 0.12,
+                    maxAlpha: 0.16 + Math.random() * 0.12,
+                    pulseSpeed: 0.005 + Math.random() * 0.006,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+
+            // 7 парящих в воздухе пещеры светящихся спор и пылинок
+            for (let i = 0; i < 7; i++) {
+                const isGlow = Math.random() > 0.35;
+                const color = isGlow
+                    ? (Math.random() > 0.5 ? 'rgba(56, 189, 248,' : 'rgba(251, 191, 36,')
+                    : 'rgba(148, 163, 184,';
+
+                this.particles.push({
+                    type: 'mote',
+                    wx: minX + Math.random() * (maxX - minX),
+                    wy: minY + Math.random() * (maxY - minY),
+                    minX, maxX, minY, maxY,
+                    radius: 1.3 + Math.random() * 2.0,
+                    vx: (Math.random() - 0.48) * 0.35,
+                    vy: (Math.random() - 0.55) * 0.28,
+                    alpha: 0.25 + Math.random() * 0.4,
+                    maxAlpha: isGlow ? (0.55 + Math.random() * 0.35) : (0.3 + Math.random() * 0.25),
+                    color,
+                    pulseSpeed: 0.015 + Math.random() * 0.022,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        // 20 атмосферных частиц, парящих по вертикальным шахтам между этажами
+        const totalWorldH = (ds && ds.WORLD_H) || (padY * 2 + totalFloors * roomH + (totalFloors - 1) * gapY);
+        for (let i = 0; i < 20; i++) {
+            this.particles.push({
+                type: 'mote',
+                wx: padX + Math.random() * (worldW - padX * 2),
+                wy: padY + Math.random() * (totalWorldH - padY * 2),
+                minX: padX - 40,
+                maxX: worldW - padX + 40,
+                minY: padY - 60,
+                maxY: totalWorldH - padY + 40,
+                radius: 1.2 + Math.random() * 1.8,
+                vx: (Math.random() - 0.5) * 0.18,
+                vy: (Math.random() - 0.6) * 0.4,
+                alpha: 0.3,
+                maxAlpha: 0.6,
+                color: 'rgba(56, 189, 248,',
+                pulseSpeed: 0.02,
+                phase: Math.random() * Math.PI * 2
+            });
+        }
+    }
+
+    start() {
+        if (this.running) return;
+        this.running = true;
+        const tick = () => {
+            if (!this.running) return;
+            this.update();
+            this.draw();
+            this.animId = requestAnimationFrame(tick);
+        };
+        this.animId = requestAnimationFrame(tick);
+    }
+
+    stop() {
+        this.running = false;
+        if (this.animId) {
+            cancelAnimationFrame(this.animId);
+            this.animId = null;
+        }
+        window.removeEventListener('resize', this.onResize);
+    }
+
+    update() {
+        for (let i = 0; i < this.particles.length; i++) {
+            const p = this.particles[i];
+            p.wx += p.vx;
+            p.wy += p.vy;
+            p.phase += p.pulseSpeed;
+
+            if (p.wx < p.minX) p.wx = p.maxX;
+            else if (p.wx > p.maxX) p.wx = p.minX;
+
+            if (p.wy < p.minY) p.wy = p.maxY;
+            else if (p.wy > p.maxY) p.wy = p.minY;
+        }
+    }
+
+    draw() {
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.width, this.height);
+
+        const panX = this.dungeonScreen ? (this.dungeonScreen.panX || 0) : 0;
+        const panY = this.dungeonScreen ? (this.dungeonScreen.panY || 0) : 0;
+        const zoom = this.dungeonScreen ? (this.dungeonScreen.zoom || 1.0) : 1.0;
+
+        // Расчёт видимой области мира с запасом (Frustum Culling) для максимальной производительности
+        const margin = 160 / zoom;
+        const viewLeft = -panX / zoom - margin;
+        const viewRight = (this.width - panX) / zoom + margin;
+        const viewTop = -panY / zoom - margin;
+        const viewBottom = (this.height - panY) / zoom + margin;
+
+        ctx.save();
+        ctx.translate(panX, panY);
+        ctx.scale(zoom, zoom);
+
+        for (let i = 0; i < this.particles.length; i++) {
+            const p = this.particles[i];
+            // Отсечение невидимых частиц за границами экрана
+            if (p.wx < viewLeft || p.wx > viewRight || p.wy < viewTop || p.wy > viewBottom) {
+                continue;
+            }
+
+            const curAlpha = p.maxAlpha * (0.65 + 0.35 * Math.sin(p.phase));
+
+            if (p.type === 'mist') {
+                const r = p.radius;
+                const grad = ctx.createRadialGradient(p.wx, p.wy, 0, p.wx, p.wy, r);
+                grad.addColorStop(0, `rgba(15, 23, 42, ${curAlpha})`);
+                grad.addColorStop(0.5, `rgba(8, 14, 26, ${curAlpha * 0.5})`);
+                grad.addColorStop(1, 'rgba(2, 3, 6, 0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(p.wx, p.wy, r, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // Чтобы при уменьшении масштаба пылинки не исчезали полностью, ограничиваем видимый экранный радиус
+                const r = Math.max(1.3 / zoom, p.radius);
+                ctx.fillStyle = `${p.color}${curAlpha})`;
+                ctx.beginPath();
+                ctx.arc(p.wx, p.wy, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        ctx.restore();
+    }
+}
 
 export class DungeonScreen {
     constructor(player, callbacks = {}, savedState = null) {
@@ -124,6 +322,9 @@ export class DungeonScreen {
 
                 <!-- ОСНОВНОЙ ВЬЮПОРТ СВОБОДНОГО ЗУМА И ПАНОРАМИРОВАНИЯ -->
                 <div class="dungeon-viewport" id="dungeon-viewport">
+                    <canvas class="dungeon-particles-canvas" id="dungeon-particles-canvas"></canvas>
+                    <div class="dungeon-cave-vignette"></div>
+
                     <div class="dungeon-zoom-toolbar">
                         <button class="btn-zoom-tool" id="btn-focus-hero" title="Сфокусироваться на герое">${Icons.target(14)} На герое</button>
                         <button class="btn-zoom-tool" id="btn-focus-floor" title="Показать весь текущий этаж">${Icons.pin(14)} Этаж</button>
@@ -157,15 +358,10 @@ export class DungeonScreen {
                                 <stop offset="50%" stop-color="#1e2230"/>
                                 <stop offset="100%" stop-color="#0f1117"/>
                             </linearGradient>
-                            <pattern id="fogPattern" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <rect width="40" height="40" fill="#05070c"/>
-                                <circle cx="20" cy="20" r="14" fill="#0d111a" opacity="0.7"/>
-                                <path d="M-5,20 Q10,10 25,20 T55,20" stroke="#161d2e" stroke-width="2.5" fill="none" opacity="0.6"/>
-                                <path d="M-5,32 Q15,22 35,32 T75,32" stroke="#0f1522" stroke-width="3" fill="none" opacity="0.6"/>
-                            </pattern>
-                            <radialGradient id="fogRadial" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stop-color="#0b0f19" stop-opacity="0.9"/>
-                                <stop offset="100%" stop-color="#030408" stop-opacity="0.98"/>
+                            <radialGradient id="shadingGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#020306" stop-opacity="0.95"/>
+                                <stop offset="70%" stop-color="#050811" stop-opacity="0.9"/>
+                                <stop offset="100%" stop-color="#0a101c" stop-opacity="0.4"/>
                             </radialGradient>
                         </defs>
 
@@ -245,7 +441,9 @@ export class DungeonScreen {
 
         let badge = `<span class="badge-normal">Сектор ${this.currentRoomIndex + 1}</span>`;
         if (room.isFinalVault || room.templateId === 'final_mystery') {
-            badge = `<span class="badge-mystery">${Icons.question(12)} ТАЙНА</span>`;
+            badge = this.player.hasViewedAbyssEnding
+                ? `<span class="badge-mystery" style="background: rgba(14, 165, 233, 0.2); border-color: #0284c7; color: #7dd3fc;">${Icons.spark(12)} СВЯТИЛИЩЕ</span>`
+                : `<span class="badge-mystery">${Icons.question(12)} ТАЙНА</span>`;
         } else if (room.isBossRoom) {
             badge = `<span class="badge-boss">${Icons.crown(12)} АРЕНА БОССА</span>`;
         } else if (room.hasStairsDown) {
@@ -354,7 +552,14 @@ export class DungeonScreen {
         // 4. ПЕРСОНАЖ В ПОЛНЫЙ РОСТ В ТЕКУЩЕЙ КОМНАТЕ
         svg += this.renderHeroActorSvg();
 
+        // 5. ПЕЛЕНА ЧЁРНОГО ТУМАНА НА НЕИССЛЕДОВАННЫХ ГЛУБОКИХ ЭТАЖАХ
+        svg += `<g id="abyssal-fog-group" pointer-events="none">${this.renderAbyssalFloorFog()}</g>`;
+
         return svg;
+    }
+
+    renderAbyssalFloorFog() {
+        return '';
     }
 
     isRoomAdjacent(floorNum, roomIndex) {
@@ -389,20 +594,28 @@ export class DungeonScreen {
                 const corridorX = c1.x + this.ROOM_W;
                 const corridorY = c1.y + this.ROOM_H / 2 - 20;
 
-                const isVis = this.visitedRooms.has(`${f}_${r}`) || 
-                              this.visitedRooms.has(`${f}_${r + 1}`) || 
-                              this.isRoomAdjacent(f, r) || 
-                              this.isRoomAdjacent(f, r + 1);
-                const corrOpacity = isVis ? '1' : '0.12';
+                const isVis1 = this.visitedRooms.has(`${f}_${r}`);
+                const isVis2 = this.visitedRooms.has(`${f}_${r + 1}`);
+                const isAdj1 = this.isRoomAdjacent(f, r);
+                const isAdj2 = this.isRoomAdjacent(f, r + 1);
 
-                svg += `
-                    <g class="corridor-segment" opacity="${corrOpacity}">
-                        <rect x="${corridorX}" y="${corridorY}" width="${this.GAP_X}" height="40" fill="#181a24" stroke="#334155" stroke-width="2"/>
-                        <line x1="${corridorX}" y1="${corridorY}" x2="${corridorX + this.GAP_X}" y2="${corridorY}" stroke="#475569" stroke-width="2"/>
-                        <line x1="${corridorX}" y1="${corridorY + 40}" x2="${corridorX + this.GAP_X}" y2="${corridorY + 40}" stroke="#475569" stroke-width="2"/>
-                        <line x1="${corridorX + this.GAP_X / 2}" y1="${corridorY}" x2="${corridorX + this.GAP_X / 2}" y2="${corridorY + 40}" stroke="#272b3b" stroke-width="1.5"/>
-                    </g>
-                `;
+                const isKnown = isVis1 || isVis2 || isAdj1 || isAdj2;
+
+                if (isKnown) {
+                    const corrOpacity = (isVis1 && isVis2) ? '1' : '0.75';
+                    svg += `
+                        <g class="corridor-segment" opacity="${corrOpacity}">
+                            <rect x="${corridorX}" y="${corridorY}" width="${this.GAP_X}" height="40" fill="#151722" stroke="#334155" stroke-width="2"/>
+                            <line x1="${corridorX}" y1="${corridorY}" x2="${corridorX + this.GAP_X}" y2="${corridorY}" stroke="#475569" stroke-width="2"/>
+                            <line x1="${corridorX}" y1="${corridorY + 40}" x2="${corridorX + this.GAP_X}" y2="${corridorY + 40}" stroke="#475569" stroke-width="2"/>
+                            <line x1="${corridorX + this.GAP_X / 2}" y1="${corridorY}" x2="${corridorX + this.GAP_X / 2}" y2="${corridorY + 40}" stroke="#252a3b" stroke-width="1.5"/>
+                        </g>
+                    `;
+                } else {
+                    svg += `
+                        <rect x="${corridorX}" y="${corridorY}" width="${this.GAP_X}" height="40" rx="3" fill="#020306" stroke="#0e1422" stroke-width="1"/>
+                    `;
+                }
             }
 
             // Вертикальная шахта лестницы вниз на следующий этаж
@@ -413,7 +626,6 @@ export class DungeonScreen {
                                    this.visitedRooms.has(`${f + 1}_${nextFloorStartIdx}`) ||
                                    this.isRoomAdjacent(f, ladderRoomIdx) ||
                                    this.isRoomAdjacent(f + 1, nextFloorStartIdx);
-                const shaftOpacity = isShaftVis ? '1' : '0.12';
 
                 const cRoom = this.getRoomCoords(f, ladderRoomIdx);
                 const shaftX = cRoom.x + this.ROOM_W / 2 - 22;
@@ -421,25 +633,31 @@ export class DungeonScreen {
                 const shaftW = 44;
                 const shaftH = this.GAP_Y;
 
-                svg += `
-                    <g class="shaft-segment" opacity="${shaftOpacity}">
-                        <rect x="${shaftX}" y="${shaftY}" width="${shaftW}" height="${shaftH}" fill="url(#shaftWallGrad)" stroke="#334155" stroke-width="2"/>
-                        <line x1="${shaftX + 10}" y1="${shaftY}" x2="${shaftX + 10}" y2="${shaftY + shaftH}" stroke="#78350f" stroke-width="3.5"/>
-                        <line x1="${shaftX + shaftW - 10}" y1="${shaftY}" x2="${shaftX + shaftW - 10}" y2="${shaftY + shaftH}" stroke="#78350f" stroke-width="3.5"/>
-                `;
-
-                const rungs = 5;
-                for (let i = 1; i <= rungs; i++) {
-                    const rungY = shaftY + (shaftH / (rungs + 1)) * i;
+                if (isShaftVis) {
                     svg += `
-                        <line x1="${shaftX + 10}" y1="${rungY}" x2="${shaftX + shaftW - 10}" y2="${rungY}" stroke="url(#ladderRungGrad)" stroke-width="3.5"/>
+                        <g class="shaft-segment" opacity="1">
+                            <rect x="${shaftX}" y="${shaftY}" width="${shaftW}" height="${shaftH}" fill="url(#shaftWallGrad)" stroke="#334155" stroke-width="2"/>
+                            <line x1="${shaftX + 10}" y1="${shaftY}" x2="${shaftX + 10}" y2="${shaftY + shaftH}" stroke="#78350f" stroke-width="3.5"/>
+                            <line x1="${shaftX + shaftW - 10}" y1="${shaftY}" x2="${shaftX + shaftW - 10}" y2="${shaftY + shaftH}" stroke="#78350f" stroke-width="3.5"/>
+                    `;
+
+                    const rungs = 5;
+                    for (let i = 1; i <= rungs; i++) {
+                        const rungY = shaftY + (shaftH / (rungs + 1)) * i;
+                        svg += `
+                            <line x1="${shaftX + 10}" y1="${rungY}" x2="${shaftX + shaftW - 10}" y2="${rungY}" stroke="url(#ladderRungGrad)" stroke-width="3.5"/>
+                        `;
+                    }
+
+                    svg += `
+                            <polygon points="${shaftX + shaftW / 2},${shaftY + shaftH - 6} ${shaftX + shaftW / 2 - 5},${shaftY + shaftH - 14} ${shaftX + shaftW / 2 + 5},${shaftY + shaftH - 14}" fill="#f59e0b" opacity="0.8"/>
+                        </g>
+                    `;
+                } else {
+                    svg += `
+                        <rect x="${shaftX}" y="${shaftY}" width="${shaftW}" height="${shaftH}" rx="4" fill="#020306" stroke="#0e1422" stroke-width="1"/>
                     `;
                 }
-
-                svg += `
-                        <polygon points="${shaftX + shaftW / 2},${shaftY + shaftH - 6} ${shaftX + shaftW / 2 - 5},${shaftY + shaftH - 14} ${shaftX + shaftW / 2 + 5},${shaftY + shaftH - 14}" fill="#f59e0b" opacity="0.8"/>
-                    </g>
-                `;
             }
         });
 
@@ -460,9 +678,9 @@ export class DungeonScreen {
     renderRoomSvg(room) {
         const { x, y } = this.getRoomCoords(room.floorNum, room.roomIndex);
         const isCurrent = (room.floorNum === this.currentFloor && room.roomIndex === this.currentRoomIndex);
-        const isVisited = this.visitedRooms.has(`${room.floorNum}_${room.roomIndex}`);
+        const isVisited = this.visitedRooms.has(`${room.floorNum}_${room.roomIndex}`) || !!CheatSystem.flags.revealMap;
         const isAdjacent = !isVisited && this.isRoomAdjacent(room.floorNum, room.roomIndex);
-        const isFogged = !isVisited && !isAdjacent;
+        const isFogged = !isVisited && !isAdjacent && !CheatSystem.flags.revealMap;
         const isBoss = room.isBossRoom;
 
         let strokeColor = isBoss ? '#ef4444' : '#334155';
@@ -479,30 +697,43 @@ export class DungeonScreen {
             strokeWidth = '2';
         }
 
-        // КОМНАТА В ГЛУБОКОМ ТУМАНЕ ВОЙНЫ: НЕИЗВЕДАННАЯ ТЬМА
+        // КОМНАТА В НЕПРОНИЦАЕМОМ ЧЁРНОМ ТУМАНЕ ВОЙНЫ (ЗАТЕМНЕНИЕ)
         if (isFogged) {
             return `
                 <g class="dungeon-room-node room-fogged ${isBoss ? 'fog-boss-glow' : ''}" 
                    id="room-node-${room.floorNum}-${room.roomIndex}"
                    data-floor="${room.floorNum}" 
                    data-room="${room.roomIndex}" 
-                   transform="translate(${x}, ${y})"
-                   opacity="0.92"
-                   style="cursor: pointer;">
-                    <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="#05070c" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
-                    <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="url(#fogPattern)" opacity="0.65"/>
-                    <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="url(#fogRadial)" opacity="0.82"/>
+                   transform="translate(${x}, ${y})">
                     
-                    <!-- Символ неизвестности в тумане -->
-                    <g transform="translate(${this.ROOM_W / 2}, ${this.ROOM_H / 2})">
-                        <circle cx="0" cy="0" r="20" fill="#090d16" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="3 3"/>
-                        <text x="0" y="7" text-anchor="middle" fill="#475569" font-size="18" font-weight="bold" font-family="'Segoe UI', sans-serif">?</text>
-                    </g>
+                    <!-- Непроницаемое затемнение ячейки -->
+                    <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="#020306"/>
+                    <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="url(#shadingGrad)"/>
+                    
+                    <!-- Аккуратный контур ячейки во тьме -->
+                    <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" 
+                          fill="none" 
+                          stroke="${isBoss ? '#7f1d1d' : '#1e293b'}" 
+                          stroke-width="1.5" 
+                          stroke-dasharray="6 5"
+                          opacity="${isBoss ? '0.75' : '0.4'}" 
+                          class="room-fog-border"/>
 
-                    <rect x="0" y="0" width="${this.ROOM_W}" height="24" rx="6" fill="#04060a" opacity="0.85"/>
-                    <text x="10" y="16" fill="#64748b" font-size="10.5" font-weight="600" font-family="'Segoe UI', sans-serif">
-                        ${isBoss ? '☠ Сокрыто туманом (Босс?)' : '??? (Неизведанная тьма)'}
-                    </text>
+                    <!-- Центровой маяк неизвестности -->
+                    <g transform="translate(${this.ROOM_W / 2}, ${this.ROOM_H / 2})" pointer-events="none">
+                        ${isBoss ? `
+                            <circle cx="0" cy="0" r="22" fill="#170303" stroke="#7f1d1d" stroke-width="1.8"/>
+                            <path d="M-8,-4 C-8,-12 8,-12 8,-4 C8,3 4,5 4,10 L-4,10 C-4,5 -8,3 -8,-4 Z" fill="#ef4444" opacity="0.95"/>
+                            <circle cx="-3.5" cy="-4" r="1.4" fill="#170303"/>
+                            <circle cx="3.5" cy="-4" r="1.4" fill="#170303"/>
+                            <line x1="-1.8" y1="5" x2="-1.8" y2="9" stroke="#7f1d1d" stroke-width="1.2"/>
+                            <line x1="1.8" y1="5" x2="1.8" y2="9" stroke="#7f1d1d" stroke-width="1.2"/>
+                            <text x="0" y="23" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="bold" font-family="'Segoe UI', sans-serif" letter-spacing="1">БОСС</text>
+                        ` : `
+                            <circle cx="0" cy="0" r="17" fill="#050811" stroke="#1e293b" stroke-width="1.4"/>
+                            <text x="0" y="6.5" text-anchor="middle" fill="#64748b" font-size="18" font-weight="bold" font-family="'Segoe UI', sans-serif" class="fog-beacon-pulse">?</text>
+                        `}
+                    </g>
                 </g>
             `;
         }
@@ -643,10 +874,6 @@ export class DungeonScreen {
             }
         }
 
-        const mistOverlay = isAdjacent ? `
-            <rect width="${this.ROOM_W}" height="${this.ROOM_H}" rx="8" fill="#090d16" opacity="0.25" pointer-events="none"/>
-        ` : '';
-
         return `
             <g class="dungeon-room-node ${isCurrent ? 'current-room' : ''} ${isAdjacent ? 'room-adjacent' : ''}" 
                id="room-node-${room.floorNum}-${room.roomIndex}"
@@ -660,8 +887,6 @@ export class DungeonScreen {
                 <g class="room-interior">
                     ${innerSvg}
                 </g>
-
-                ${mistOverlay}
 
                 <rect x="0" y="0" width="${this.ROOM_W}" height="24" rx="6" fill="#090a0f" opacity="0.65"/>
                 <text x="10" y="16" fill="#cbd5e1" font-size="11" font-weight="600" font-family="'Segoe UI', sans-serif">
@@ -1072,7 +1297,7 @@ export class DungeonScreen {
     moveLeft() {
         if (this.isMoving) return;
         const currentRoom = this.dungeon.getRoom(this.currentFloor, this.currentRoomIndex);
-        const hasUndefeatedMonster = currentRoom && currentRoom.hasMonster && currentRoom.monster && !currentRoom.isMonsterDefeated;
+        const hasUndefeatedMonster = !CheatSystem.flags.ignoreMonsters && currentRoom && currentRoom.hasMonster && currentRoom.monster && !currentRoom.isMonsterDefeated;
         const isEvenFloor = (this.currentFloor % 2 === 0);
 
         // На чётном этаже движение влево — это продвижение вперёд ("дальше")
@@ -1098,7 +1323,7 @@ export class DungeonScreen {
     moveRight() {
         if (this.isMoving) return;
         const currentRoom = this.dungeon.getRoom(this.currentFloor, this.currentRoomIndex);
-        const hasUndefeatedMonster = currentRoom && currentRoom.hasMonster && currentRoom.monster && !currentRoom.isMonsterDefeated;
+        const hasUndefeatedMonster = !CheatSystem.flags.ignoreMonsters && currentRoom && currentRoom.hasMonster && currentRoom.monster && !currentRoom.isMonsterDefeated;
         const isOddFloor = (this.currentFloor % 2 === 1);
 
         // На нечётном этаже движение вправо — это продвижение вперёд ("дальше")
@@ -1188,6 +1413,20 @@ export class DungeonScreen {
 
         // Если в комнате есть враг, поворачиваем героя лицом к противнику и открываем карточку
         const room = this.dungeon.getRoom(this.currentFloor, this.currentRoomIndex);
+
+        // Проверка входа в финальную клетку 30-го этажа после победы над финальным боссом
+        if (this.currentFloor === 30 && (room.isFinalVault || room.templateId === 'final_mystery') && this.player.hasDefeatedFinalBoss && !this.player.hasViewedAbyssEnding) {
+            if (this.callbacks.onPlayCutscene) {
+                this.cleanup();
+                this.callbacks.onPlayCutscene('abyss_ending', this.getState());
+                return;
+            }
+        }
+
+        if (this.currentFloor === 30 && (room.isFinalVault || room.templateId === 'final_mystery') && this.player.hasViewedAbyssEnding) {
+            this.inspectRoom(this.currentFloor, this.currentRoomIndex);
+        }
+
         if (room && room.hasMonster && room.monster && !room.isMonsterDefeated) {
             this.facing = 1;
             const facingNode = this.container.querySelector('#hero-facing-node');
@@ -1231,11 +1470,17 @@ export class DungeonScreen {
         if (corridorsGroup) {
             corridorsGroup.innerHTML = this.renderCorridorsAndShafts();
         }
+
+        // Обновляем пелену черного тумана на этажах
+        const abyssalGroup = this.container.querySelector('#abyssal-fog-group');
+        if (abyssalGroup) {
+            abyssalGroup.innerHTML = this.renderAbyssalFloorFog();
+        }
     }
 
     updateButtonsState() {
         const currentRoom = this.dungeon ? this.dungeon.getRoom(this.currentFloor, this.currentRoomIndex) : null;
-        const hasUndefeatedMonster = currentRoom && currentRoom.hasMonster && currentRoom.monster && !currentRoom.isMonsterDefeated;
+        const hasUndefeatedMonster = !CheatSystem.flags.ignoreMonsters && currentRoom && currentRoom.hasMonster && currentRoom.monster && !currentRoom.isMonsterDefeated;
         const isOddFloor = (this.currentFloor % 2 === 1);
 
         const btnLeft = this.container.querySelector('#btn-move-left');
@@ -1323,9 +1568,9 @@ export class DungeonScreen {
         const isAdjacent = !isVisited && this.isRoomAdjacent(floorNum, roomIndex);
 
         if (!isVisited && !isAdjacent) {
-            title.textContent = '??? (Неизведанная тьма)';
-            desc.textContent = 'Этот сектор скрыт непроглядным туманом войны. Пройдите глубже в подземелье, чтобы исследовать неизведанные залы.';
-            badge.textContent = 'Туман войны';
+            title.textContent = room.isBossRoom ? '☠ Скрыто чёрным туманом (Босс?)' : '☁ Скрыто чёрным туманом';
+            desc.textContent = 'Этот сектор окутан густым чёрным туманом войны. Подойдите ближе, чтобы развеять мрак и исследовать залы.';
+            badge.textContent = 'Чёрный туман войны';
             badge.className = 'room-card-badge';
             enemyBox.innerHTML = `
                 <div class="card-peaceful-box">
@@ -1369,7 +1614,16 @@ export class DungeonScreen {
 
         // Отрисовка монстра или тайны в карточке осмотра
         if (room.isFinalVault || room.templateId === 'final_mystery') {
-            enemyBox.innerHTML = `
+            const isPurified = !!this.player.hasViewedAbyssEnding;
+            enemyBox.innerHTML = isPurified ? `
+                <div class="card-mystery-box purified" style="border-color: #0284c7; background: rgba(14, 165, 233, 0.08);">
+                    <div class="mystery-q-glyph" style="color: #38bdf8; border-color: #0284c7;">✦</div>
+                    <div class="mystery-q-content">
+                        <h5 class="mystery-q-title" style="color: #7dd3fc;">Очищенное Сердце Арканума</h5>
+                        <p class="mystery-q-desc">Разлом Бездны запечатан! Древний Источник Титанов излучает спокойный лазурный свет. Катакомбы спасены! Теперь поднимитесь на поверхность и ступайте к Заставе Южного Тракта.</p>
+                    </div>
+                </div>
+            ` : `
                 <div class="card-mystery-box">
                     <div class="mystery-q-glyph">?</div>
                     <div class="mystery-q-content">
@@ -1791,12 +2045,19 @@ export class DungeonScreen {
             }
         });
 
-        this.container.querySelector('#btn-dungeon-exit').addEventListener('click', () => {
+        this.container.querySelector('#btn-dungeon-exit').addEventListener('click', async () => {
             const isAtEntrance = (this.currentFloor === 1 && this.currentRoomIndex === 0);
             if (isAtEntrance) {
                 this.ascendStairs();
             } else {
-                const conf = confirm('Вернуться на поверхность в город? Весь открытый прогресс подземелья сохранится!');
+                const conf = await GameDialog.confirm({
+                    title: 'Выход на поверхность',
+                    message: 'Вернуться в город? Весь открытый прогресс подземелья сохранится!',
+                    icon: 'door',
+                    confirmText: 'Выйти в город',
+                    cancelText: 'Остаться в катакомбах',
+                    confirmVariant: 'primary'
+                });
                 if (conf && this.callbacks.onExitToTown) {
                     sound.playSfx('selectHero');
                     this.cleanup();
@@ -1808,6 +2069,25 @@ export class DungeonScreen {
         this.initRoomNodeClicks();
         this.setupKeyboard();
         this.startBuffTicker();
+        this.initParticles();
+
+        if (this.player.hasViewedAbyssEnding && !this.hasShownAbyssReturnToast && this.currentFloor === 30) {
+            this.hasShownAbyssReturnToast = true;
+            setTimeout(() => {
+                this.showToast(`${Icons.spark(14)} Катакомбы очищены от Тьмы! Поднимитесь на поверхность и ступайте к Заставе Южного Тракта.`);
+            }, 600);
+        }
+    }
+
+    initParticles() {
+        const canvas = this.container ? this.container.querySelector('#dungeon-particles-canvas') : null;
+        if (canvas) {
+            if (this.fogParticles) {
+                this.fogParticles.stop();
+            }
+            this.fogParticles = new DungeonFogParticles(canvas, this);
+            this.fogParticles.start();
+        }
     }
 
     renderTavernBuffHudBadge() {
@@ -1887,6 +2167,10 @@ export class DungeonScreen {
     }
 
     cleanup() {
+        if (this.fogParticles) {
+            this.fogParticles.stop();
+            this.fogParticles = null;
+        }
         if (this.buffTickerInterval) {
             clearInterval(this.buffTickerInterval);
             this.buffTickerInterval = null;

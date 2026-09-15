@@ -1,23 +1,24 @@
 export class NpcRenderer {
-    static render(config) {
+    static render(config, width = '100%', height = '100%') {
         const role = config.role || 'civilian';
         const isFemale = config.gender === 'female';
+        const uid = config.id || 'default';
 
         return `
-            <svg viewBox="0 0 240 320" width="100%" height="100%">
+            <svg viewBox="0 0 240 320" width="${width}" height="${height}" class="npc-rendered-figure" data-npc-id="${uid}">
                 <defs>
-                    <radialGradient id="npcPedestal" cx="50%" cy="50%" r="50%">
+                    <radialGradient id="npcPedestal_${uid}" cx="50%" cy="50%" r="50%">
                         <stop offset="0%" stop-color="#3d2817" stop-opacity="0.8"/>
                         <stop offset="100%" stop-color="#120e0a" stop-opacity="0"/>
                     </radialGradient>
 
-                    <radialGradient id="holyAuraGlow" cx="50%" cy="50%" r="50%">
+                    <radialGradient id="holyAuraGlow_${uid}" cx="50%" cy="50%" r="50%">
                         <stop offset="0%" stop-color="#fde047" stop-opacity="0.8"/>
                         <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.2"/>
                         <stop offset="100%" stop-color="#000" stop-opacity="0"/>
                     </radialGradient>
 
-                    <filter id="npc-outline" x="-15%" y="-15%" width="130%" height="130%">
+                    <filter id="npc-outline_${uid}" x="-15%" y="-15%" width="130%" height="130%">
                         <feMorphology in="SourceAlpha" result="dilated" operator="dilate" radius="1.3"/>
                         <feFlood flood-color="#0e0c0a" result="outlineColor"/>
                         <feComposite in="outlineColor" in2="dilated" operator="in" result="outline"/>
@@ -28,12 +29,12 @@ export class NpcRenderer {
                     </filter>
                 </defs>
 
-                ${config.headwear === 'halo' ? '<circle cx="120" cy="40" r="34" fill="url(#holyAuraGlow)"/>' : ''}
+                ${config.headwear === 'halo' ? `<circle cx="120" cy="40" r="34" fill="url(#holyAuraGlow_${uid})"/>` : ''}
 
-                <ellipse cx="120" cy="274" rx="50" ry="9" fill="url(#npcPedestal)"/>
+                <ellipse cx="120" cy="274" rx="50" ry="9" fill="url(#npcPedestal_${uid})"/>
                 <ellipse cx="120" cy="274" rx="34" ry="5" fill="#090807" opacity="0.9"/>
 
-                <g filter="url(#npc-outline)">
+                <g filter="url(#npc-outline_${uid})">
                     ${this.renderHairBack(config, isFemale)}
                     ${this.renderPantsAndBoots(config, isFemale)}
                     ${this.renderNeck(config, isFemale)}
@@ -165,6 +166,29 @@ export class NpcRenderer {
                     <circle cx="120" cy="156" r="4" fill="#fef08a"/>
                 </g>
             `;
+        } else if (role === 'captain') {
+            return `
+                <g id="npc-captain-armor">
+                    <path d="M${sL},94 L${sR},94 L${wR},162 L${wL},162 Z" fill="#1e3a8a" stroke="#0f172a" stroke-width="1.5"/>
+                    <rect x="100" y="96" width="40" height="66" rx="4" fill="#64748b" stroke="#1e293b" stroke-width="1.5"/>
+                    <path d="M106,98 L134,98 L128,140 L120,150 L112,140 Z" fill="#facc15" opacity="0.85"/>
+                    <circle cx="92" cy="100" r="14" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                    <circle cx="148" cy="100" r="14" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                    <rect x="94" y="158" width="52" height="8" rx="2" fill="#0f172a" stroke="#ca8a04" stroke-width="1"/>
+                    <rect x="116" y="157" width="8" height="10" fill="#facc15"/>
+                </g>
+            `;
+        } else if (role === 'guard') {
+            return `
+                <g id="npc-guard-armor">
+                    <path d="M${sL},94 L${sR},94 L${wR},162 L${wL},162 Z" fill="#334155" stroke="#1e293b" stroke-width="1.5"/>
+                    <rect x="102" y="98" width="36" height="64" rx="3" fill="#475569" stroke="#1e293b" stroke-width="1.2"/>
+                    <rect x="94" y="158" width="52" height="8" rx="2" fill="#1e293b" stroke="#ca8a04" stroke-width="1"/>
+                    <rect x="116" y="157" width="8" height="10" fill="#cbd5e1"/>
+                    <line x1="98" y1="98" x2="138" y2="158" stroke="#78350f" stroke-width="2.5"/>
+                    <line x1="138" y1="98" x2="98" y2="158" stroke="#78350f" stroke-width="2.5"/>
+                </g>
+            `;
         }
 
         return `
@@ -241,6 +265,20 @@ export class NpcRenderer {
                     <path d="M166,130 L174,155 L166,157 L158,132 Z" fill="${config.skinColor}" stroke="#1c140d" stroke-width="0.8"/>
                     <circle cx="172" cy="155" r="5" fill="${config.skinColor}"/>
                     <circle cx="173" cy="155" r="2" fill="#facc15"/>
+                </g>
+            `;
+        } else if (role === 'captain' || role === 'guard') {
+            return `
+                <g id="npc-guard-arms">
+                    <path d="M88,96 L76,125 L84,127 L94,98 Z" fill="#475569" stroke="#1e293b" stroke-width="1.2"/>
+                    <rect x="74" y="122" width="10" height="5" fill="#334155" rx="1"/>
+                    <path d="M78,126 L72,152 L80,154 L86,128 Z" fill="#64748b" stroke="#1e293b" stroke-width="1"/>
+                    <circle cx="76" cy="154" r="6" fill="#334155"/>
+
+                    <path d="M152,96 L164,125 L156,127 L146,98 Z" fill="#475569" stroke="#1e293b" stroke-width="1.2"/>
+                    <rect x="156" y="122" width="10" height="5" fill="#334155" rx="1"/>
+                    <path d="M162,126 L168,152 L160,154 L154,128 Z" fill="#64748b" stroke="#1e293b" stroke-width="1"/>
+                    <circle cx="164" cy="154" r="6" fill="#334155"/>
                 </g>
             `;
         }
@@ -385,6 +423,30 @@ export class NpcRenderer {
             `;
         }
 
+        if (config.headwear === 'captain_helm') {
+            return `
+                <g id="npc-captain-helm">
+                    <circle cx="120" cy="38" r="22" fill="#64748b" stroke="#1e293b" stroke-width="2"/>
+                    <path d="M102,36 Q120,24 138,36 L134,50 Q120,44 106,50 Z" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                    <path d="M100,38 Q120,32 140,38" stroke="#facc15" stroke-width="3" fill="none"/>
+                    <path d="M120,18 Q128,-14 120,-24 Q112,-14 120,18" fill="#dc2626" stroke="#991b1b" stroke-width="1.5"/>
+                    <path d="M122,18 Q134,-8 130,-18 Q122,-8 122,18" fill="#ef4444" opacity="0.8"/>
+                    <path d="M118,18 Q106,-8 110,-18 Q118,-8 118,18" fill="#b91c1c" opacity="0.8"/>
+                </g>
+            `;
+        }
+
+        if (config.headwear === 'guard_helm') {
+            return `
+                <g id="npc-guard-helm">
+                    <circle cx="120" cy="38" r="21" fill="#475569" stroke="#1e293b" stroke-width="2"/>
+                    <path d="M100,40 L140,40 L136,50 L104,50 Z" fill="#334155" stroke="#1e293b" stroke-width="1.5"/>
+                    <line x1="120" y1="36" x2="120" y2="52" stroke="#64748b" stroke-width="3"/>
+                    <circle cx="120" cy="18" r="3" fill="#ca8a04"/>
+                </g>
+            `;
+        }
+
         if (config.hairStyle === 'balding') {
             return `
                 <path d="M99,48 C98,62 102,68 104,70 C103,60 102,52 106,46 Z" fill="${config.hairColor}"/>
@@ -402,6 +464,34 @@ export class NpcRenderer {
 }
 
 export const NPC_CONFIGS = {
+    varran: {
+        id: 'varran',
+        name: 'Капитан Варран',
+        role: 'captain',
+        gender: 'male',
+        skinColor: '#d69f7e',
+        hairStyle: 'short',
+        hairColor: '#334155',
+        beard: 'stubble',
+        eyeColor: '#1e293b',
+        headwear: 'captain_helm',
+        accessory: 'scar',
+        outfitColor: '#1e3a8a'
+    },
+    bran: {
+        id: 'bran',
+        name: 'Стражник Бран',
+        role: 'guard',
+        gender: 'male',
+        skinColor: '#e0a984',
+        hairStyle: 'short',
+        hairColor: '#52321c',
+        beard: 'none',
+        eyeColor: '#451a03',
+        headwear: 'guard_helm',
+        accessory: 'none',
+        outfitColor: '#334155'
+    },
     brok: {
         id: 'brok',
         name: 'Брок «Медвежья Лапа»',

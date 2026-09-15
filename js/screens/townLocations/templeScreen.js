@@ -122,31 +122,31 @@ export class TempleScreen {
                                 <rect x="396" y="354" width="48" height="26" rx="2" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
                             </g>
 
-                            <!-- СПРАЙТ ЖРИЦЫ ЭЛИЗИИ С БОЖЕСТВЕННЫМ НИМБОМ И АНИМАЦИЕЙ ДЫХАНИЯ -->
-                            <g id="temple-elysia-sprite" transform="translate(175, 48) scale(0.95)" class="npc-interior-breathe">
+                            <!-- СПРАЙТ ЖРИЦЫ ЭЛИЗИИ С БОЖЕСТВЕННЫМ НИМБОМ И АНИМАЦИЕЙ ДЫХАНИЯ (ПО ЦЕНТРУ ЭКРАНА) -->
+                            <g id="temple-elysia-sprite" transform="translate(116, 48) scale(0.95)" class="npc-interior-breathe">
                                 <!-- Пульсирующий святой нимб над головой -->
                                 <circle cx="120" cy="40" r="42" fill="url(#elysiaHaloGlow)" class="anim-halo-pulse"/>
                                 <circle cx="120" cy="40" r="30" fill="none" stroke="#facc15" stroke-width="2.5" class="anim-halo-pulse"/>
                                 ${NpcRenderer.render(this.npc)}
                             </g>
 
-                            <!-- ПЕРЕДНИЙ ПЛАН: СВЯЩЕННЫЙ МРАМОРНЫЙ АЛТАРЬ С КАНДЕЛЯБРАМИ И КУБКОМ -->
+                            <!-- ПЕРЕДНИЙ ПЛАН: СВЯЩЕННЫЙ МРАМОРНЫЙ АЛТАРЬ С КАНДЕЛЯБРАМИ И КУБКОМ (ПО ЦЕНТРУ ЭКРАНА) -->
                             <g id="temple-altar-foreground">
                                 <!-- Мраморная плита алтаря с золотым профилем -->
-                                <rect x="85" y="222" width="335" height="26" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
-                                <line x1="88" y1="225" x2="417" y2="225" stroke="#facc15" stroke-width="2"/>
+                                <rect x="65" y="222" width="330" height="26" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+                                <line x1="68" y1="225" x2="392" y2="225" stroke="#facc15" stroke-width="2"/>
                                 <!-- Фронтон алтаря с лазурным шелковым покровом -->
-                                <rect x="94" y="248" width="317" height="132" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
+                                <rect x="74" y="248" width="312" height="132" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
                                 <!-- Синий священный покров со звездами -->
-                                <path d="M110,248 L135,320 L160,248 Z" fill="#0284c7" stroke="#facc15" stroke-width="1.2"/>
-                                <path d="M345,248 L370,320 L395,248 Z" fill="#0284c7" stroke="#facc15" stroke-width="1.2"/>
+                                <path d="M90,248 L115,320 L140,248 Z" fill="#0284c7" stroke="#facc15" stroke-width="1.2"/>
+                                <path d="M320,248 L345,320 L370,248 Z" fill="#0284c7" stroke="#facc15" stroke-width="1.2"/>
                                 <!-- Золотой крест в круге по центру алтаря -->
-                                <circle cx="252" cy="300" r="22" fill="#0f172a" stroke="#ca8a04" stroke-width="2"/>
-                                <line x1="252" y1="282" x2="252" y2="318" stroke="#facc15" stroke-width="3"/>
-                                <line x1="238" y1="296" x2="266" y2="296" stroke="#facc15" stroke-width="3"/>
+                                <circle cx="230" cy="300" r="22" fill="#0f172a" stroke="#ca8a04" stroke-width="2"/>
+                                <line x1="230" y1="282" x2="230" y2="318" stroke="#facc15" stroke-width="3"/>
+                                <line x1="216" y1="296" x2="244" y2="296" stroke="#facc15" stroke-width="3"/>
 
                                 <!-- СВЯЩЕННАЯ ЗОЛОТАЯ ЧАША В ЦЕНТРЕ АЛТАРЯ -->
-                                <g id="altar-chalice" transform="translate(252, 210)">
+                                <g id="altar-chalice" transform="translate(230, 210)">
                                     <path d="M-9,-4 Q0,-8 9,-4 L7,10 Q0,14 -7,10 Z" fill="#facc15" stroke="#78350f" stroke-width="1.2"/>
                                     <line x1="0" y1="10" x2="0" y2="16" stroke="#ca8a04" stroke-width="2.5"/>
                                     <ellipse cx="0" cy="16" rx="8" ry="3" fill="#facc15" stroke="#78350f" stroke-width="1"/>
@@ -156,7 +156,7 @@ export class TempleScreen {
                                 </g>
 
                                 <!-- ЛЕВЫЙ ЗОЛОТОЙ КАНДЕЛЯБР СО СВЕЧАМИ -->
-                                <g id="candelabra-left" transform="translate(130, 185)">
+                                <g id="candelabra-left" transform="translate(110, 185)">
                                     <line x1="0" y1="12" x2="0" y2="40" stroke="#ca8a04" stroke-width="3"/>
                                     <ellipse cx="0" cy="40" rx="10" ry="3.5" fill="#ca8a04"/>
                                     <!-- 3 рожка со свечами -->
@@ -176,7 +176,7 @@ export class TempleScreen {
                                 </g>
 
                                 <!-- ПРАВЫЙ ЗОЛОТОЙ КАНДЕЛЯБР СО СВЕЧАМИ -->
-                                <g id="candelabra-right" transform="translate(370, 185)">
+                                <g id="candelabra-right" transform="translate(350, 185)">
                                     <line x1="0" y1="12" x2="0" y2="40" stroke="#ca8a04" stroke-width="3"/>
                                     <ellipse cx="0" cy="40" rx="10" ry="3.5" fill="#ca8a04"/>
                                     <line x1="-16" y1="20" x2="16" y2="20" stroke="#ca8a04" stroke-width="2"/>

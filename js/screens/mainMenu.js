@@ -49,11 +49,11 @@ export class MainMenu {
                         <button class="btn btn-menu-item" id="btn-about" style="animation-delay: 0.3s;">Об игре</button>
                     </div>
 
-                    <div class="version-info">v0.8.0 • Сюжетный Пролог и Хроники Бездны</div>
+                    <div class="version-info">v0.9.0 • Великий Триумф и Врата Юга</div>
                 </div>
 
-                <!-- Скрытая секретная кнопка в левом нижнем углу для перехода к бестиарию (3 клика, без звука) -->
-                <button class="secret-bestiary-trigger" id="secret-bestiary-trigger" title="" aria-hidden="true" tabindex="-1"></button>
+                <!-- Скрытая секретная кнопка в левом нижнем углу для перехода к бестиарию (3 клика, без звука и всплывающих подсказок) -->
+                <button class="secret-bestiary-trigger" id="secret-bestiary-trigger" tabindex="-1"></button>
 
                 <!-- Модальное окно "Об игре" -->
                 <div class="modal-backdrop hidden" id="about-modal-backdrop">

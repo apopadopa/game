@@ -466,4 +466,60 @@ export class Sfx {
         osc.start(now);
         osc.stop(now + 0.028);
     }
+
+    static chains(ctx, dest) {
+        // Звон и грохот падающих тяжелых железных цепей
+        const pitches = [1200, 950, 1400, 800, 1100, 650, 900];
+        pitches.forEach((freq, idx) => {
+            const time = ctx.currentTime + idx * 0.045 + Math.random() * 0.015;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, time);
+            osc.frequency.exponentialRampToValueAtTime(freq * 0.45, time + 0.12);
+
+            gain.gain.setValueAtTime(0.16, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+
+            osc.connect(gain);
+            gain.connect(dest);
+
+            osc.start(time);
+            osc.stop(time + 0.12);
+        });
+    }
+
+    static gateOpen(ctx, dest) {
+        // Глухой рокот, скрежет петель и распахивание тяжелых ворот
+        const now = ctx.currentTime;
+
+        // 1. Низкий басовый рокот камня
+        const rumbleOsc = ctx.createOscillator();
+        const rumbleGain = ctx.createGain();
+        rumbleOsc.type = 'sawtooth';
+        rumbleOsc.frequency.setValueAtTime(55, now);
+        rumbleOsc.frequency.linearRampToValueAtTime(40, now + 1.2);
+        rumbleGain.gain.setValueAtTime(0.25, now);
+        rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+        rumbleOsc.connect(rumbleGain);
+        rumbleGain.connect(dest);
+        rumbleOsc.start(now);
+        rumbleOsc.stop(now + 1.2);
+
+        // 2. Скрип массивных деревянных створок
+        const creakOsc = ctx.createOscillator();
+        const creakGain = ctx.createGain();
+        creakOsc.type = 'triangle';
+        creakOsc.frequency.setValueAtTime(160, now + 0.1);
+        creakOsc.frequency.linearRampToValueAtTime(280, now + 0.6);
+        creakOsc.frequency.linearRampToValueAtTime(140, now + 1.0);
+        creakGain.gain.setValueAtTime(0.001, now);
+        creakGain.gain.linearRampToValueAtTime(0.18, now + 0.3);
+        creakGain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+        creakOsc.connect(creakGain);
+        creakGain.connect(dest);
+        creakOsc.start(now);
+        creakOsc.stop(now + 1.1);
+    }
 }

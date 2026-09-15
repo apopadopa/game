@@ -4,6 +4,8 @@ import { Icons } from '../visuals/icons.js';
 import { CharacterRenderer } from '../visuals/characterRenderer.js';
 import { MobRenderer } from '../visuals/mobRenderer.js';
 import { getRandomBattleLoot, getMobRareDrop } from '../data/itemsData.js';
+import { getSkill, DEFAULT_ABILITY_DECKS } from '../data/skillsData.js';
+import { CheatSystem } from '../services/cheatSystem.js';
 
 export class BattleScreen {
     constructor(player, monster, room, callbacks = {}) {
@@ -27,6 +29,7 @@ export class BattleScreen {
         // Баффы и статусы
         this.playerStatus = {
             defending: false,
+            isParrying: false,
             shadowVeil: false,
             trapActive: false,
             counterThorns: 0
@@ -37,7 +40,10 @@ export class BattleScreen {
             poisonDmg: 0,
             burnTurns: 0,
             burnDmg: 0,
+            armorSunderStacks: 0,
+            huntersMarkTurns: 0,
             stunned: false,
+            isFrozen: false,
             defending: false
         };
 
@@ -63,7 +69,7 @@ export class BattleScreen {
                 this.classResource = { name: 'Энергия', current: 100, max: 100, combo: 0, maxCombo: 5, color: '#eab308' };
                 break;
             case 'mage':
-                this.classResource = { name: 'Мана', current: this.player.currentMp, max: this.player.maxMp, color: '#38bdf8' };
+                this.classResource = { name: 'Мана', current: this.player.currentMp, max: this.player.maxMp, color: '#38bdf8', arcaneCharges: 0, maxCharges: 3 };
                 break;
             case 'ranger':
             default:
@@ -195,6 +201,11 @@ export class BattleScreen {
                         <div class="potions-belt-items" id="potions-belt-items">
                             ${this.renderPotionsBelt()}
                         </div>
+                        ${CheatSystem.flags.instantWin ? `
+                            <button class="btn btn-primary btn-sm" id="btn-cheat-battle-win" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); border-color: #facc15; font-weight: 700; margin-left: auto; padding: 4px 10px; font-size: 11px;">
+                                ⚡ [ЧИТ] Победа
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
 
@@ -229,9 +240,10 @@ export class BattleScreen {
     renderPlayerResourceBar() {
         if (this.player.classId === 'rogue') {
             const comboDots = [];
+            const isMaxCombo = (this.classResource.combo || 0) >= 5;
             for (let i = 0; i < 5; i++) {
                 const filled = i < (this.classResource.combo || 0);
-                comboDots.push(`<span class="combo-point-dot ${filled ? 'filled' : ''}"></span>`);
+                comboDots.push(`<span class="combo-point-dot ${filled ? 'filled' : ''} ${isMaxCombo ? 'max-combo' : ''}"></span>`);
             }
             return `
                 <div class="battle-bar-group">
@@ -245,12 +257,14 @@ export class BattleScreen {
                     <div class="combo-points-row">
                         <span class="combo-label">Комбо:</span>
                         <div class="combo-dots-wrap">${comboDots.join('')}</div>
+                        ${isMaxCombo ? `<span class="combo-full-pulse">⚡ СЕРИЯ x5 (ФИНИШЕР ГОТОВ!)</span>` : ''}
                     </div>
                 </div>
             `;
         }
 
         if (this.player.classId === 'warrior') {
+            const isEnraged = this.classResource.current >= 70;
             return `
                 <div class="battle-bar-group">
                     <div class="battle-bar-label">
@@ -258,13 +272,19 @@ export class BattleScreen {
                         <span>${this.classResource.current} / 100</span>
                     </div>
                     <div class="battle-bar-track">
-                        <div class="battle-bar-fill rage" style="width: ${this.classResource.current}%"></div>
+                        <div class="battle-bar-fill rage ${isEnraged ? 'enraged-bar' : ''}" style="width: ${this.classResource.current}%"></div>
                     </div>
+                    ${isEnraged ? `
+                        <div class="warrior-enrage-badge">
+                            🔥 ИССТУПЛЕНИЕ (+25% урона, +15% крит)
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
 
         if (this.player.classId === 'mage') {
+            const charges = this.classResource.arcaneCharges || 0;
             return `
                 <div class="battle-bar-group">
                     <div class="battle-bar-label">
@@ -273,6 +293,17 @@ export class BattleScreen {
                     </div>
                     <div class="battle-bar-track">
                         <div class="battle-bar-fill mp" style="width: ${(this.player.currentMp / this.player.maxMp) * 100}%"></div>
+                    </div>
+                    <div class="mage-charges-row" style="display: flex; align-items: center; justify-content: space-between; margin-top: 5px;" title="Заряды Арканы: Каждое заклинание дает +1 заряд. При 3 зарядах следующее заклинание бесплатно и нанесет +35% урона!">
+                        <span style="font-size: 0.72rem; color: ${charges === 3 ? '#facc15' : '#c084fc'}; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                            ${charges === 3 ? '💥 ПРИЛИВ АРКАНЫ (0 MP)' : '✨ Резонанс арканы:'}
+                        </span>
+                        <div style="display: flex; gap: 6px;">
+                            ${[1, 2, 3].map(i => `
+                                <div class="mage-charge-pip ${i <= charges ? 'active' : ''}" 
+                                     style="width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid ${i <= charges ? '#e879f9' : '#334155'}; background: ${i <= charges ? 'radial-gradient(circle, #f5d0fe 0%, #c084fc 100%)' : '#0d1017'}; box-shadow: ${i <= charges ? '0 0 8px #c084fc' : 'none'}; transition: all 0.3s;"></div>
+                            `).join('')}
+                        </div>
                     </div>
                 </div>
             `;
@@ -288,6 +319,11 @@ export class BattleScreen {
                 <div class="battle-bar-track">
                     <div class="battle-bar-fill focus" style="width: ${this.classResource.current}%"></div>
                 </div>
+                ${this.monsterStatus.huntersMarkTurns > 0 ? `
+                    <div class="ranger-mark-status-hint">
+                        🎯 МЕТКА АКТИВНА (+30% урона, +20% крит)
+                    </div>
+                ` : ''}
             </div>
         `;
     }
@@ -298,10 +334,13 @@ export class BattleScreen {
             badges.push(`<span class="status-badge buff" title="${this.player.tavernBuff.name}: ${this.player.tavernBuff.desc || ''}">${Icons.ale(12)} ${this.player.tavernBuff.name} (${this.player.getTavernBuffFormattedTime()})</span>`);
         }
         if (this.playerStatus.defending) {
-            badges.push(`<span class="status-badge buff">${Icons.shield(12)} Оборона (-50%)</span>`);
+            badges.push(`<span class="status-badge buff">${Icons.shield(12)} Оборона (-70%)</span>`);
+        }
+        if (this.playerStatus.isParrying) {
+            badges.push(`<span class="status-badge buff" style="background: rgba(234, 179, 8, 0.25); color: #fef08a; border-color: #facc15;" title="Готовность парировать атаку и нанести контрудар!">${Icons.sword(12)} Стойка парирования</span>`);
         }
         if (this.playerStatus.shadowVeil) {
-            badges.push(`<span class="status-badge buff">${Icons.eye(12)} В тени (+80% уклон)</span>`);
+            badges.push(`<span class="status-badge buff" style="background: rgba(168, 85, 247, 0.25); color: #e9d5ff; border-color: #a855f7;" title="В тени: Уклонение 85%, следующий удар — Удар в спину (100% крит, +40% урона)">${Icons.eye(12)} В тени (Удар в спину)</span>`);
         }
         if (this.playerStatus.trapActive) {
             badges.push(`<span class="status-badge buff">${Icons.spark(12)} Капкан взведен</span>`);
@@ -314,6 +353,15 @@ export class BattleScreen {
 
     renderMonsterBuffs() {
         const badges = [];
+        if (this.monsterStatus.isFrozen) {
+            badges.push(`<span class="status-badge buff" style="background: rgba(56, 189, 248, 0.25); color: #7dd3fc; border-color: #38bdf8;" title="Заморожен: удар огнем вызовет ТЕРМОУДАР!">${Icons.ice(12)} Заморозка</span>`);
+        }
+        if (this.monsterStatus.armorSunderStacks > 0) {
+            badges.push(`<span class="status-badge debuff" style="background: rgba(239, 68, 68, 0.25); color: #fca5a5; border-color: #ef4444;" title="Броня снижена на ${this.monsterStatus.armorSunderStacks * 20}%">${Icons.armor(12)} Раскол брони x${this.monsterStatus.armorSunderStacks} (-${this.monsterStatus.armorSunderStacks * 20}%)</span>`);
+        }
+        if (this.monsterStatus.huntersMarkTurns > 0) {
+            badges.push(`<span class="status-badge debuff" style="background: rgba(234, 179, 8, 0.25); color: #fde047; border-color: #eab308;" title="Метка охотника: +30% урона лучника, +20% шанс крита">${Icons.target(12)} Метка охотника (${this.monsterStatus.huntersMarkTurns} ход.)</span>`);
+        }
         if (this.monsterStatus.poisonTurns > 0) {
             badges.push(`<span class="status-badge debuff">${Icons.poison(12)} Яд (${this.monsterStatus.poisonTurns} ход.)</span>`);
         }
@@ -362,128 +410,142 @@ export class BattleScreen {
         }).join('');
     }
 
+    renderSkillButtonIcon(iconName) {
+        switch (iconName) {
+            case 'sword': return Icons.sword(14);
+            case 'shield': return Icons.shield(14);
+            case 'armor': return Icons.armor(14);
+            case 'target': return Icons.target(14);
+            case 'spark': return Icons.spark(14);
+            case 'heart': return Icons.heart(14);
+            case 'lightning': return Icons.lightning(14);
+            case 'fire': return Icons.fire(14);
+            case 'poison': return Icons.poison(14);
+            case 'skull': return Icons.skull(14);
+            case 'blood': return Icons.blood(14);
+            case 'ice': return Icons.ice(14);
+            case 'eye': return Icons.eye(14);
+            case 'wind': return `<svg class="svg-icon" width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 7H13C14.5 7 15.5 6 15.5 4.5C15.5 3 14 2 12.5 2C11 2 10 3 10 4" stroke="#60a5fa" stroke-width="1.8"/><path d="M2 11H15C16.5 11 17.5 12 17.5 13.5C17.5 15 16 16 14.5 16C13 16 12 15 12 14" stroke="#60a5fa" stroke-width="1.8"/></svg>`;
+            default: return Icons.sword(14);
+        }
+    }
+
+    renderAbilityButton(skillId, fallbackSkillId) {
+        const skill = getSkill(skillId) || getSkill(fallbackSkillId);
+        if (!skill) return '';
+
+        let canAfford = true;
+        let costLabel = '';
+        let isGain = false;
+
+        if (skill.costRage) {
+            canAfford = this.classResource.current >= skill.costRage;
+            costLabel = `${skill.costRage} Ярости`;
+        } else if (skill.rageGain) {
+            costLabel = `+${skill.rageGain} Ярости`;
+            isGain = true;
+        } else if (skill.costEnergy) {
+            canAfford = this.classResource.current >= skill.costEnergy;
+            costLabel = `${skill.costEnergy} Энергии`;
+        } else if (skill.costComboAll) {
+            const combo = this.classResource.combo || 0;
+            canAfford = combo >= 1;
+            costLabel = `Все комбо (${combo})`;
+        } else if (skill.costMp) {
+            const hasArcaneSurge = this.player.classId === 'mage' && (this.classResource.arcaneCharges || 0) >= 3;
+            if (hasArcaneSurge) {
+                canAfford = true;
+                costLabel = '0 MP (ПРИЛИВ!)';
+                isGain = true;
+            } else {
+                canAfford = this.player.currentMp >= skill.costMp;
+                costLabel = `${skill.costMp} MP`;
+                if (skill.manaGain) costLabel += ` / +${skill.manaGain} реген`;
+            }
+        } else if (skill.costFocus) {
+            canAfford = this.classResource.current >= skill.costFocus;
+            costLabel = `${skill.costFocus} Конц.`;
+        } else if (skill.focusGain) {
+            costLabel = `+${skill.focusGain} Конц.`;
+            isGain = true;
+        } else if (skill.comboGain) {
+            costLabel = `+${skill.comboGain} комбо`;
+            isGain = true;
+        }
+
+        const iconSvg = this.renderSkillButtonIcon(skill.icon);
+        const disabledAttr = !canAfford ? 'disabled' : '';
+        const disabledClass = !canAfford ? 'disabled' : '';
+        const costClass = isGain ? 'cost-gain' : '';
+
+        return `
+            <button class="btn-battle-skill ${disabledClass}" data-action="${skill.id}" ${disabledAttr} title="${skill.name}: ${skill.desc}">
+                <span class="skill-name">${iconSvg} ${skill.name}</span>
+                <span class="skill-cost ${costClass}">${costLabel}</span>
+            </button>
+        `;
+    }
+
     renderActionButtons() {
         const cid = this.player.classId;
+        const defaultDeck = DEFAULT_ABILITY_DECKS[cid] || DEFAULT_ABILITY_DECKS.warrior;
+        const deck = this.player.abilityDeck || defaultDeck;
 
+        // Ячейка 1: Базовый удар
+        const btnSlot1 = this.renderAbilityButton(deck.slot1, defaultDeck.slot1);
+
+        // Ячейка 2: Сильнее удар
+        const btnSlot2 = this.renderAbilityButton(deck.slot2, defaultDeck.slot2);
+
+        // Классовая способность обороны / тактики (постоянная)
+        let btnDefend = '';
         if (cid === 'warrior') {
-            const hasRageHeavy = this.classResource.current >= 25;
-            const hasRageExecute = this.classResource.current >= 45;
-
-            return `
-                <button class="btn-battle-skill" data-action="warrior_strike" title="Наносит 100% физ. урона и генерирует +18 ярости">
-                    <span class="skill-name">${Icons.sword(14)} Удар мечом</span>
-                    <span class="skill-cost cost-gain">+18 Ярости</span>
-                </button>
-                <button class="btn-battle-skill ${!hasRageHeavy ? 'disabled' : ''}" data-action="warrior_heavy" ${!hasRageHeavy ? 'disabled' : ''} title="Сокрушительный удар (170% урона), снижает урон врага">
-                    <span class="skill-name">${Icons.lightning(14)} Сокрушительный выпад</span>
-                    <span class="skill-cost">25 Ярости</span>
-                </button>
+            btnDefend = `
                 <button class="btn-battle-skill" data-action="warrior_defend" title="Снижает входящий урон на 60%, восстанавливает +20 ярости и вешает шипы">
                     <span class="skill-name">${Icons.shield(14)} Глухая оборона</span>
                     <span class="skill-cost cost-gain">+20 Ярости</span>
                 </button>
-                <button class="btn-battle-skill ${!hasRageExecute ? 'disabled' : ''}" data-action="warrior_execute" ${!hasRageExecute ? 'disabled' : ''} title="Огромный урон (250%). Если у врага <35% HP — гарантированный крит!">
-                    <span class="skill-name">${Icons.skull(14)} Казнь</span>
-                    <span class="skill-cost">45 Ярости</span>
-                </button>
-                <button class="btn-battle-skill btn-battle-flee" data-action="flee" title="Попытка тактического отступления">
-                    <span class="skill-name">${Icons.door(14)} Отступить</span>
-                    <span class="skill-cost">Побег</span>
-                </button>
             `;
-        }
-
-        if (cid === 'rogue') {
-            const energy = this.classResource.current;
-            const combo = this.classResource.combo || 0;
-            const hasEnergyStab = energy >= 20;
-            const hasEnergyPoison = energy >= 35;
-            const hasEnergyShadow = energy >= 30;
-            const hasCombo = combo >= 1;
-
-            return `
-                <button class="btn-battle-skill ${!hasEnergyStab ? 'disabled' : ''}" data-action="rogue_stab" ${!hasEnergyStab ? 'disabled' : ''} title="Быстрый колющий удар кинжалом, дает +1 комбо-очко">
-                    <span class="skill-name">${Icons.sword(14)} Быстрый выпад</span>
-                    <span class="skill-cost">20 Энергии</span>
-                </button>
-                <button class="btn-battle-skill ${!hasEnergyPoison ? 'disabled' : ''}" data-action="rogue_poison" ${!hasEnergyPoison ? 'disabled' : ''} title="Отравленное лезвие: урон и периодический яд на 3 хода, +1 комбо-очко">
-                    <span class="skill-name">${Icons.poison(14)} Отравленный клинок</span>
-                    <span class="skill-cost">35 Энергии</span>
-                </button>
+        } else if (cid === 'rogue') {
+            const hasEnergyShadow = this.classResource.current >= 30;
+            btnDefend = `
                 <button class="btn-battle-skill ${!hasEnergyShadow ? 'disabled' : ''}" data-action="rogue_shadow" ${!hasEnergyShadow ? 'disabled' : ''} title="Шаг в тень: повышает уклонение до 85% на 1 ход, +1 комбо-очко">
                     <span class="skill-name">${Icons.eye(14)} Шаг в тень</span>
                     <span class="skill-cost">30 Энергии</span>
                 </button>
-                <button class="btn-battle-skill ${!hasCombo ? 'disabled' : ''}" data-action="rogue_eviscerate" ${!hasCombo ? 'disabled' : ''} title="Расходует все комбо-очки (до 380% урона при 5 очках!)">
-                    <span class="skill-name">${Icons.blood(14)} Потрошение</span>
-                    <span class="skill-cost">Все комбо (${combo})</span>
-                </button>
-                <button class="btn-battle-skill btn-battle-flee" data-action="flee" title="Попытка тактического отступления">
-                    <span class="skill-name">${Icons.door(14)} Отступить</span>
-                    <span class="skill-cost">Побег</span>
-                </button>
             `;
-        }
-
-        if (cid === 'mage') {
-            const mp = this.player.currentMp;
-            const hasDart = mp >= 5;
-            const hasFireball = mp >= 25;
-            const hasFrost = mp >= 20;
-            const hasCascade = mp >= 40;
-
-            return `
-                <button class="btn-battle-skill ${!hasDart ? 'disabled' : ''}" data-action="mage_dart" ${!hasDart ? 'disabled' : ''} title="Магическая стрела (90% маг. урона), восполняет 8 MP">
-                    <span class="skill-name">${Icons.spark(14)} Чародейская стрела</span>
-                    <span class="skill-cost">5 MP / +8 реген</span>
-                </button>
-                <button class="btn-battle-skill ${!hasFireball ? 'disabled' : ''}" data-action="mage_fireball" ${!hasFireball ? 'disabled' : ''} title="Огненный шар: 180% маг. урона стихией огня + горение на 2 хода">
-                    <span class="skill-name">${Icons.fire(14)} Огненный шар</span>
-                    <span class="skill-cost">25 MP</span>
-                </button>
+        } else if (cid === 'mage') {
+            const hasArcaneSurge = (this.classResource.arcaneCharges || 0) >= 3;
+            const hasFrost = hasArcaneSurge || this.player.currentMp >= 20;
+            const costLabel = hasArcaneSurge ? '0 MP (ПРИЛИВ!)' : '20 MP';
+            btnDefend = `
                 <button class="btn-battle-skill ${!hasFrost ? 'disabled' : ''}" data-action="mage_frost" ${!hasFrost ? 'disabled' : ''} title="Ледяная стрела: 140% урона холодом + заморозка (враг пропускает ход)">
                     <span class="skill-name">${Icons.ice(14)} Ледяная стрела</span>
-                    <span class="skill-cost">20 MP</span>
+                    <span class="skill-cost ${hasArcaneSurge ? 'cost-gain' : ''}">${costLabel}</span>
                 </button>
-                <button class="btn-battle-skill ${!hasCascade ? 'disabled' : ''}" data-action="mage_cascade" ${!hasCascade ? 'disabled' : ''} title="Арканный каскад: 280% чистого урона, игнорирующего броню!">
-                    <span class="skill-name">${Icons.lightning(14)} Арканный каскад</span>
-                    <span class="skill-cost">40 MP</span>
-                </button>
-                <button class="btn-battle-skill btn-battle-flee" data-action="flee" title="Попытка тактического отступления">
-                    <span class="skill-name">${Icons.door(14)} Отступить</span>
-                    <span class="skill-cost">Побег</span>
+            `;
+        } else {
+            const hasTrap = this.classResource.current >= 25;
+            btnDefend = `
+                <button class="btn-battle-skill ${!hasTrap ? 'disabled' : ''}" data-action="ranger_trap" ${!hasTrap ? 'disabled' : ''} title="Шипованный капкан: при атаке монстр получает встречный урон и теряет ход">
+                    <span class="skill-name">${Icons.shield(14)} Шипованный капкан</span>
+                    <span class="skill-cost">25 Конц.</span>
                 </button>
             `;
         }
 
-        // Ranger
-        const focus = this.classResource.current;
-        const hasRapid = focus >= 30;
-        const hasTrap = focus >= 25;
-        const hasSnipe = focus >= 55;
+        // Ячейка 3: Финальный супер-прием
+        const btnSlot3 = this.renderAbilityButton(deck.slot3, defaultDeck.slot3);
 
-        return `
-            <button class="btn-battle-skill" data-action="ranger_shot" title="Меткий выстрел из лука (110% урона), накапливает +20 концентрации">
-                <span class="skill-name">${Icons.target(14)} Меткий выстрел</span>
-                <span class="skill-cost cost-gain">+20 Концентрации</span>
-            </button>
-            <button class="btn-battle-skill ${!hasRapid ? 'disabled' : ''}" data-action="ranger_rapid" ${!hasRapid ? 'disabled' : ''} title="Двойной залп: два быстрых выстрела подряд">
-                <span class="skill-name">${Icons.lightning(14)} Двойной залп</span>
-                <span class="skill-cost">30 Концентрации</span>
-            </button>
-            <button class="btn-battle-skill ${!hasTrap ? 'disabled' : ''}" data-action="ranger_trap" ${!hasTrap ? 'disabled' : ''} title="Шипованный капкан: при атаке монстр получает встречный урон и теряет ход">
-                <span class="skill-name">${Icons.shield(14)} Шипованный капкан</span>
-                <span class="skill-cost">25 Концентрации</span>
-            </button>
-            <button class="btn-battle-skill ${!hasSnipe ? 'disabled' : ''}" data-action="ranger_snipe" ${!hasSnipe ? 'disabled' : ''} title="Снайперский выстрел: 260% урона с повышенным шансом критического удара">
-                <span class="skill-name">${Icons.target(14)} Снайперский выстрел</span>
-                <span class="skill-cost">55 Концентрации</span>
-            </button>
+        // Побег
+        const btnFlee = `
             <button class="btn-battle-skill btn-battle-flee" data-action="flee" title="Попытка тактического отступления">
                 <span class="skill-name">${Icons.door(14)} Отступить</span>
                 <span class="skill-cost">Побег</span>
             </button>
         `;
+
+        return `${btnSlot1} ${btnSlot2} ${btnDefend} ${btnSlot3} ${btnFlee}`;
     }
 
     renderPotionsBelt() {
@@ -528,6 +590,18 @@ export class BattleScreen {
                 this.usePotionInBattle(idx);
             });
         });
+
+        // Слушатель кнопки чита мгновенной победы
+        const btnCheatWin = this.container.querySelector('#btn-cheat-battle-win');
+        if (btnCheatWin) {
+            btnCheatWin.addEventListener('click', () => {
+                if (this.battleState !== 'active') return;
+                sound.playSfx('victory');
+                this.addCombatLog('⚡ [ЧИТ] Активирована мгновенная победа над монстром!', 'hero');
+                this.applyDamageToMonster(this.monsterHp, true);
+                setTimeout(() => this.handleVictory(), 200);
+            });
+        }
     }
 
     // =========================================================================
@@ -544,62 +618,41 @@ export class BattleScreen {
 
         // Вызов соответствующей способности класса
         let result = null;
-        switch (action) {
-            // Воин
-            case 'warrior_strike':
-                result = this.actionWarriorStrike();
-                break;
-            case 'warrior_heavy':
-                result = this.actionWarriorHeavy();
-                break;
-            case 'warrior_defend':
-                result = this.actionWarriorDefend();
-                break;
-            case 'warrior_execute':
-                result = this.actionWarriorExecute();
-                break;
-
-            // Разбойник
-            case 'rogue_stab':
-                result = this.actionRogueStab();
-                break;
-            case 'rogue_poison':
-                result = this.actionRoguePoison();
-                break;
-            case 'rogue_shadow':
-                result = this.actionRogueShadow();
-                break;
-            case 'rogue_eviscerate':
-                result = this.actionRogueEviscerate();
-                break;
-
-            // Маг
-            case 'mage_dart':
-                result = this.actionMageDart();
-                break;
-            case 'mage_fireball':
-                result = this.actionMageFireball();
-                break;
-            case 'mage_frost':
-                result = this.actionMageFrost();
-                break;
-            case 'mage_cascade':
-                result = this.actionMageCascade();
-                break;
-
-            // Лучник
-            case 'ranger_shot':
-                result = this.actionRangerShot();
-                break;
-            case 'ranger_rapid':
-                result = this.actionRangerRapid();
-                break;
-            case 'ranger_trap':
-                result = this.actionRangerTrap();
-                break;
-            case 'ranger_snipe':
-                result = this.actionRangerSnipe();
-                break;
+        if (['warrior_defend', 'rogue_shadow', 'mage_frost', 'ranger_trap'].includes(action)) {
+            switch (action) {
+                case 'warrior_defend':
+                    result = this.actionWarriorDefend();
+                    break;
+                case 'rogue_shadow':
+                    result = this.actionRogueShadow();
+                    break;
+                case 'mage_frost':
+                    result = this.actionMageFrost();
+                    break;
+                case 'ranger_trap':
+                    result = this.actionRangerTrap();
+                    break;
+            }
+        } else {
+            const skill = getSkill(action);
+            if (skill) {
+                result = this.executeSkillAbility(skill);
+            } else {
+                switch (action) {
+                    case 'warrior_strike': result = this.actionWarriorStrike(); break;
+                    case 'warrior_heavy': result = this.actionWarriorHeavy(); break;
+                    case 'warrior_execute': result = this.actionWarriorExecute(); break;
+                    case 'rogue_stab': result = this.actionRogueStab(); break;
+                    case 'rogue_poison': result = this.actionRoguePoison(); break;
+                    case 'rogue_eviscerate': result = this.actionRogueEviscerate(); break;
+                    case 'mage_dart': result = this.actionMageDart(); break;
+                    case 'mage_fireball': result = this.actionMageFireball(); break;
+                    case 'mage_cascade': result = this.actionMageCascade(); break;
+                    case 'ranger_shot': result = this.actionRangerShot(); break;
+                    case 'ranger_rapid': result = this.actionRangerRapid(); break;
+                    case 'ranger_snipe': result = this.actionRangerSnipe(); break;
+                }
+            }
         }
 
         if (!result) {
@@ -607,7 +660,12 @@ export class BattleScreen {
             return;
         }
 
-        this.animateHeroAttack(() => {
+        if (CheatSystem.flags.godMode) {
+            this.player.currentHp = this.player.maxHp;
+            this.player.currentMp = this.player.maxMp;
+        }
+
+        this.animateHeroAttack(action, result.isCrit, () => {
             this.playCombatVfx(action, result.isCrit, () => {
                 if (result.damage > 0) {
                     this.applyDamageToMonster(result.damage, result.isCrit);
@@ -637,7 +695,7 @@ export class BattleScreen {
         const res = this.player.useItem(inventoryIndex);
         if (res.success) {
             sound.playSfx('heal');
-            this.showFloatingCombatText(this.container.querySelector('#hero-figure-node'), `+${res.msg}`, 'heal');
+            this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), `+${res.msg}`, 'heal');
             this.addCombatLog(`${this.player.name} выпивает «${item.name}» (${res.msg}).`, 'heal');
             this.updateHud();
         } else {
@@ -670,43 +728,264 @@ export class BattleScreen {
 
     calculateDamage(basePower, isMagic = false, bonusCrit = 0, ignoreDefPercent = 0) {
         const statDmg = isMagic ? this.player.magicDamage : this.player.physicalDamage;
-        const totalBase = Math.round(statDmg * basePower);
+        let totalBase = Math.round(statDmg * basePower);
 
-        // Крит
+        // 1. Исступление воина (Ярость >= 70: +25% урона, +15% крит)
+        let enrageBonusCrit = 0;
+        if (this.player.classId === 'warrior' && this.classResource.current >= 70) {
+            totalBase = Math.round(totalBase * 1.25);
+            enrageBonusCrit = 15;
+        }
+
+        // 2. Метка охотника лучника (+30% урона, +20% крит)
+        let markBonusCrit = 0;
+        if (this.player.classId === 'ranger' && this.monsterStatus.huntersMarkTurns > 0) {
+            totalBase = Math.round(totalBase * 1.30);
+            markBonusCrit = 20;
+        }
+
+        // 3. Расчет крита
         const critRoll = Math.random() * 100;
-        const isCrit = critRoll < (this.player.critChance + bonusCrit);
+        const totalCritChance = this.player.critChance + bonusCrit + enrageBonusCrit + markBonusCrit;
+        const isCrit = critRoll < totalCritChance;
         const critMultiplier = isCrit ? 1.85 : 1.0;
 
-        // Защита монстра
-        const effectiveDef = Math.max(0, this.monster.def * (1 - ignoreDefPercent));
+        // 4. Раскол брони (каждый стак снижает эффективную защиту на 20%)
+        const sunderFactor = Math.min(0.6, (this.monsterStatus.armorSunderStacks || 0) * 0.20);
+        const effectiveIgnore = Math.min(1.0, ignoreDefPercent + sunderFactor);
+
+        // 5. Защита монстра
+        const effectiveDef = Math.max(0, this.monster.def * (1 - effectiveIgnore));
         const mitigated = Math.max(1, Math.round((totalBase * critMultiplier) - effectiveDef * 0.6));
 
-        // Разброс урона ±8%
+        // 6. Разброс урона ±8%
         const finalDmg = Math.max(1, Math.round(mitigated * (0.92 + Math.random() * 0.16)));
 
         return { damage: finalDmg, isCrit };
     }
 
+    executeSkillAbility(skill) {
+        // 1. Звуковое сопровождение
+        if (skill.isMagic) {
+            sound.playSfx('magic');
+        } else if (this.player.classId === 'ranger') {
+            sound.playSfx('shoot');
+        } else if (skill.category === 'finisher' || skill.stunChance) {
+            sound.playSfx('hit');
+        } else if (this.player.classId === 'rogue') {
+            sound.playSfx('stab');
+        } else {
+            sound.playSfx('slash');
+        }
+
+        // 2. Расход или приток классовых ресурсов
+        let comboSpent = 0;
+        let isArcaneSurge = false;
+
+        // Механика мага: Заряды Арканы и Прилив
+        if (this.player.classId === 'mage') {
+            const currentCharges = this.classResource.arcaneCharges || 0;
+            if (currentCharges >= 3) {
+                isArcaneSurge = true;
+                this.classResource.arcaneCharges = 0;
+            } else if (skill.isMagic || skill.costMp) {
+                this.classResource.arcaneCharges = Math.min(3, currentCharges + 1);
+            }
+        }
+
+        if (skill.costRage) {
+            this.classResource.current = Math.max(0, this.classResource.current - skill.costRage);
+        }
+        if (skill.rageGain) {
+            this.classResource.current = Math.min(100, this.classResource.current + skill.rageGain);
+        }
+        if (skill.costEnergy) {
+            this.classResource.current = Math.max(0, this.classResource.current - skill.costEnergy);
+        }
+        if (skill.comboGain) {
+            this.classResource.combo = Math.min(5, (this.classResource.combo || 0) + skill.comboGain);
+        }
+        if (skill.costComboAll) {
+            comboSpent = this.classResource.combo || 0;
+            this.classResource.combo = 0;
+        }
+        if (skill.costMp && !isArcaneSurge) {
+            this.player.currentMp = Math.max(0, this.player.currentMp - skill.costMp);
+        }
+        if (skill.manaGain) {
+            this.player.currentMp = Math.min(this.player.maxMp, this.player.currentMp + skill.manaGain);
+        }
+        if (skill.costFocus) {
+            this.classResource.current = Math.max(0, this.classResource.current - skill.costFocus);
+        }
+        if (skill.focusGain) {
+            this.classResource.current = Math.min(100, this.classResource.current + skill.focusGain);
+        }
+        if (skill.selfHpCost) {
+            this.player.currentHp = Math.max(1, this.player.currentHp - skill.selfHpCost);
+        }
+
+        // 3. Расчет множителя урона
+        let multiplier = skill.damageMultiplier || 1.0;
+        if (skill.costComboAll) {
+            multiplier = (skill.baseFinisherMultiplier || 1.6) + (comboSpent * (skill.comboMultiplierStep || 0.45));
+        }
+        if (isArcaneSurge) {
+            multiplier *= 1.35;
+        }
+
+        // 4. Расчет бонуса крита и проверка Удара в спину для разбойника
+        let bonusCrit = skill.bonusCrit || 0;
+        let skillArmorIgnore = skill.armorIgnore || 0;
+        let isBackstab = false;
+
+        if (this.player.classId === 'rogue' && this.playerStatus.shadowVeil) {
+            isBackstab = true;
+            this.playerStatus.shadowVeil = false;
+            bonusCrit = 100;
+            multiplier *= 1.40;
+            skillArmorIgnore = Math.max(skillArmorIgnore, 0.60);
+        }
+
+        if (isArcaneSurge) {
+            bonusCrit += 25;
+        }
+        if (skill.guaranteedCrit) {
+            bonusCrit = 100;
+        }
+        if (skill.executeThreshold && (this.monsterHp / this.monsterMaxHp) <= skill.executeThreshold) {
+            bonusCrit = 100;
+        }
+
+        // 5. Расчет урона
+        let { damage, isCrit } = this.calculateDamage(
+            multiplier, 
+            skill.isMagic, 
+            bonusCrit, 
+            skillArmorIgnore
+        );
+
+        // Раскол брони воина при тяжелых и добивающих ударах
+        if (this.player.classId === 'warrior' && (skill.category === 'heavy' || skill.category === 'finisher' || (skill.id && (skill.id.includes('heavy') || skill.id.includes('sunder') || skill.id.includes('execute') || skill.id.includes('slam'))))) {
+            this.monsterStatus.armorSunderStacks = Math.min(3, (this.monsterStatus.armorSunderStacks || 0) + 1);
+        }
+
+        // Взрыв яда разбойника при применении финишера
+        let poisonBurst = 0;
+        if (this.player.classId === 'rogue' && (skill.category === 'finisher' || skill.costComboAll) && this.monsterStatus.poisonTurns > 0) {
+            poisonBurst = this.monsterStatus.poisonTurns * (this.monsterStatus.poisonDmg || 8);
+            this.monsterStatus.poisonTurns = 0;
+            damage += poisonBurst;
+            this.showFloatingCombatText(this.container?.querySelector('#mob-figure-node'), `ВЗРЫВ ЯДА +${poisonBurst}`, 'thermal');
+        }
+
+        // Метка охотника при критическом попадании лучника
+        if (this.player.classId === 'ranger' && isCrit) {
+            this.monsterStatus.huntersMarkTurns = 3;
+        }
+
+        // Комбо мага: ТЕРМОУДАР (огонь по замороженной цели)
+        const isFireSkill = skill.icon === 'fire' || (skill.id && (skill.id.includes('fire') || skill.id.includes('flame') || skill.id.includes('meteor') || skill.id.includes('supernova')));
+        let thermalBonus = 0;
+        if (this.player.classId === 'mage' && isFireSkill && this.monsterStatus.isFrozen) {
+            thermalBonus = Math.round(this.player.magicDamage * 0.95 + 30);
+            damage += thermalBonus;
+            this.monsterStatus.isFrozen = false;
+            this.showFloatingCombatText(this.container?.querySelector('#mob-figure-node'), `ТЕРМОУДАР +${thermalBonus}`, 'thermal');
+        }
+
+        // Заморозка при заклинаниях холода
+        const isIceSkill = skill.icon === 'ice' || (skill.id && (skill.id.includes('frost') || skill.id.includes('blizzard') || skill.id.includes('absolute_zero')));
+        if (isIceSkill) {
+            this.monsterStatus.isFrozen = true;
+        }
+
+        // 6. Вторичные боевые эффекты и журнал
+        const notes = [];
+        if (isBackstab) {
+            notes.push('🗡️ [УДАР В СПИНУ: 100% крит, +40% урона, пробитие 60% брони!]');
+            this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), 'УДАР В СПИНУ!', 'crit');
+        }
+        if (poisonBurst > 0) {
+            notes.push(`💥 [ВЗРЫВ ЯДА: накопленный яд сдетонировал на +${poisonBurst} урона!]`);
+        }
+        if (this.player.classId === 'warrior' && this.classResource.current >= 70) {
+            notes.push('🔥 [ИССТУПЛЕНИЕ: +25% урона, +15% крит!]');
+        }
+        if (this.player.classId === 'warrior' && this.monsterStatus.armorSunderStacks > 0 && (skill.category === 'heavy' || skill.category === 'finisher')) {
+            notes.push(`🛡️ [Раскол брони x${this.monsterStatus.armorSunderStacks}: броня врага -${this.monsterStatus.armorSunderStacks * 20}%]`);
+        }
+        if (this.player.classId === 'ranger' && isCrit) {
+            notes.push('🎯 [МЕТКА ОХОТНИКА: цель помечена на 3 хода (+30% урона, +20% крит)!]');
+        }
+        if (isArcaneSurge) {
+            notes.push('💥 [ПРИЛИВ АРКАНЫ: 0 MP, +35% урона!]');
+            this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), 'ПРИЛИВ АРКАНЫ!', 'arcane');
+        }
+        if (thermalBonus > 0) {
+            notes.push(`⚡ [ТЕРМОУДАР: +${thermalBonus} взрыв пара и осколков льда!]`);
+        }
+        if (this.player.classId === 'mage' && !isArcaneSurge && (skill.isMagic || skill.costMp)) {
+            notes.push(`✨ [Заряд арканы: ${this.classResource.arcaneCharges}/3]`);
+        }
+        if (skill.stunChance && Math.random() < skill.stunChance) {
+            this.monsterStatus.stunned = true;
+            notes.push('Монстр ошеломлен!');
+        }
+        if (skill.bleedTurns) {
+            this.monsterStatus.poisonTurns = Math.max(this.monsterStatus.poisonTurns || 0, skill.bleedTurns);
+            this.monsterStatus.poisonDmg = Math.max(6, Math.round(this.player.physicalDamage * 0.4));
+            notes.push(`Кровотечение на ${skill.bleedTurns} хода!`);
+        }
+        if (skill.poisonTurns) {
+            this.monsterStatus.poisonTurns = Math.max(this.monsterStatus.poisonTurns || 0, skill.poisonTurns);
+            this.monsterStatus.poisonDmg = Math.max(5, Math.round(this.player.physicalDamage * 0.35));
+            notes.push(`Отравление ядом на ${skill.poisonTurns} хода!`);
+        }
+        if (skill.burnTurns) {
+            this.monsterStatus.burnTurns = Math.max(this.monsterStatus.burnTurns || 0, skill.burnTurns);
+            this.monsterStatus.burnDmg = Math.max(8, Math.round(this.player.magicDamage * 0.45));
+            notes.push(`Горение на ${skill.burnTurns} хода!`);
+        }
+        if (skill.leechPercent) {
+            const leech = Math.round(damage * skill.leechPercent);
+            this.player.currentHp = Math.min(this.player.maxHp, this.player.currentHp + leech);
+            notes.push(`+${leech} HP исцеления!`);
+        }
+        if (skill.stealthTurn) {
+            this.playerStatus.shadowVeil = true;
+            notes.push('Шаг в тень активирован!');
+        }
+
+        const critText = isCrit ? (bonusCrit >= 100 ? ' (СМЕРТЕЛЬНЫЙ КРИТ!)' : ' (КРИТ!)') : '';
+        const notesText = notes.length > 0 ? ` ${notes.join(' ')}` : '';
+        const log = `${this.player.name} применяет «${skill.name}» на ${damage} урона${critText}!${notesText}`;
+
+        return { damage, isCrit, log };
+    }
+
     // --- ВОИН ---
     actionWarriorStrike() {
         sound.playSfx('slash');
-        this.classResource.current = Math.min(100, this.classResource.current + 18);
+        this.classResource.current = Math.min(100, this.classResource.current + 20);
         const { damage, isCrit } = this.calculateDamage(1.0);
+        const enrageNote = this.classResource.current >= 70 ? ' 🔥 [ИССТУПЛЕНИЕ!]' : '';
         return {
             damage,
             isCrit,
-            log: `${this.player.name} наносит резкий удар мечом на ${damage} урона${isCrit ? ' (КРИТ!)' : ''} и накапливает +18 ярости.`
+            log: `${this.player.name} наносит резкий удар мечом на ${damage} урона${isCrit ? ' (КРИТ!)' : ''} и накапливает +20 ярости.${enrageNote}`
         };
     }
 
     actionWarriorHeavy() {
         sound.playSfx('hit');
         this.classResource.current -= 25;
-        const { damage, isCrit } = this.calculateDamage(1.7);
-        let extra = '';
-        if (Math.random() < 0.4) {
+        this.monsterStatus.armorSunderStacks = Math.min(3, (this.monsterStatus.armorSunderStacks || 0) + 1);
+        const { damage, isCrit } = this.calculateDamage(1.75);
+        let extra = ` 🛡️ [Раскол брони x${this.monsterStatus.armorSunderStacks}: защита монстра -${this.monsterStatus.armorSunderStacks * 20}%]`;
+        if (Math.random() < 0.45) {
             this.monsterStatus.stunned = true;
-            extra = ' Удар ошеломил противника!';
+            extra += ' Монстр ошеломлен!';
         }
         return {
             damage,
@@ -717,25 +996,27 @@ export class BattleScreen {
 
     actionWarriorDefend() {
         sound.playSfx('block');
-        this.classResource.current = Math.min(100, this.classResource.current + 20);
+        this.classResource.current = Math.min(100, this.classResource.current + 25);
         this.playerStatus.defending = true;
-        this.playerStatus.counterThorns = 15;
+        this.playerStatus.isParrying = true;
+        this.playerStatus.counterThorns = Math.round(this.player.physicalDamage * 0.45 + 12);
         return {
             damage: 0,
             isCrit: false,
-            log: `${this.player.name} встает в глухую оборону: входящий урон снижен на 60%, активированы шипы (+15 урона)!`
+            log: `${this.player.name} принимает боевую стойку парирования: входящий урон снижен на 70%, активированы шипы (+${this.playerStatus.counterThorns} урона) и готовность к КОНТРУДАРУ (+25 Ярости)!`
         };
     }
 
     actionWarriorExecute() {
         sound.playSfx('hit');
         this.classResource.current -= 45;
+        this.monsterStatus.armorSunderStacks = Math.min(3, (this.monsterStatus.armorSunderStacks || 0) + 1);
         const isTargetLow = (this.monsterHp / this.monsterMaxHp) <= 0.35;
-        const { damage, isCrit } = this.calculateDamage(2.5, false, isTargetLow ? 100 : 25);
+        const { damage, isCrit } = this.calculateDamage(2.6, false, isTargetLow ? 100 : 25);
         return {
             damage,
             isCrit,
-            log: `${this.player.name} обрушивает казнь на ${damage} урона${isCrit ? ' (СМЕРТЕЛЬНЫЙ КРИТ!)' : ''}!`
+            log: `${this.player.name} обрушивает казнь на ${damage} урона${isCrit ? ' (СМЕРТЕЛЬНЫЙ КРИТ!)' : ''}! 🛡️ [Броня врага расколота: -${this.monsterStatus.armorSunderStacks * 20}%]`
         };
     }
 
@@ -744,11 +1025,25 @@ export class BattleScreen {
         sound.playSfx('stab');
         this.classResource.current -= 20;
         this.classResource.combo = Math.min(5, (this.classResource.combo || 0) + 1);
-        const { damage, isCrit } = this.calculateDamage(1.05);
+
+        let isBackstab = false;
+        let mult = 1.1;
+        let bonusCrit = 0;
+        let armorIgnore = 0;
+        if (this.playerStatus.shadowVeil) {
+            isBackstab = true;
+            this.playerStatus.shadowVeil = false;
+            bonusCrit = 100;
+            mult = 1.55;
+            armorIgnore = 0.6;
+        }
+
+        const { damage, isCrit } = this.calculateDamage(mult, false, bonusCrit, armorIgnore);
+        const backstabText = isBackstab ? ' 🗡️ [УДАР В СПИНУ ИЗ ТЕНИ: 100% крит, -60% брони!]' : '';
         return {
             damage,
             isCrit,
-            log: `${this.player.name} делает быстрый выпад на ${damage} урона (+1 серия).`
+            log: `${this.player.name} делает молниеносный выпад на ${damage} урона (+1 серия).${backstabText}`
         };
     }
 
@@ -756,13 +1051,27 @@ export class BattleScreen {
         sound.playSfx('stab');
         this.classResource.current -= 35;
         this.classResource.combo = Math.min(5, (this.classResource.combo || 0) + 1);
-        const { damage, isCrit } = this.calculateDamage(1.2);
+
+        let isBackstab = false;
+        let mult = 1.25;
+        let bonusCrit = 0;
+        let armorIgnore = 0;
+        if (this.playerStatus.shadowVeil) {
+            isBackstab = true;
+            this.playerStatus.shadowVeil = false;
+            bonusCrit = 100;
+            mult = 1.7;
+            armorIgnore = 0.6;
+        }
+
+        const { damage, isCrit } = this.calculateDamage(mult, false, bonusCrit, armorIgnore);
         this.monsterStatus.poisonTurns = 3;
-        this.monsterStatus.poisonDmg = Math.max(5, Math.round(this.player.physicalDamage * 0.35));
+        this.monsterStatus.poisonDmg = Math.max(6, Math.round(this.player.physicalDamage * 0.4));
+        const backstabText = isBackstab ? ' 🗡️ [УДАР В СПИНУ ИЗ ТЕНИ!]' : '';
         return {
             damage,
             isCrit,
-            log: `${this.player.name} вонзает отравленный клинок на ${damage} урона! Монстр отравлен на 3 хода.`
+            log: `${this.player.name} вонзает отравленный клинок на ${damage} урона! Монстр отравлен на 3 хода (+1 серия).${backstabText}`
         };
     }
 
@@ -774,7 +1083,7 @@ export class BattleScreen {
         return {
             damage: 0,
             isCrit: false,
-            log: `${this.player.name} растворяется в тенях: шанс уклонения увеличен до 85% на 1 ход (+1 серия).`
+            log: `${this.player.name} растворяется в тенях: шанс уклонения 85%, следующий удар — Удар в спину (100% крит, +40% урона, -60% защиты)!`
         };
     }
 
@@ -783,11 +1092,21 @@ export class BattleScreen {
         const combo = this.classResource.combo || 1;
         this.classResource.combo = 0;
         const multiplier = 1.0 + combo * 0.55;
-        const { damage, isCrit } = this.calculateDamage(multiplier, false, combo * 8);
+        let { damage, isCrit } = this.calculateDamage(multiplier, false, combo * 10);
+
+        let poisonBurstNote = '';
+        if (this.monsterStatus.poisonTurns > 0) {
+            const burst = this.monsterStatus.poisonTurns * (this.monsterStatus.poisonDmg || 8);
+            this.monsterStatus.poisonTurns = 0;
+            damage += burst;
+            poisonBurstNote = ` 💥 [ВЗРЫВ ЯДА: яд сдетонировал на +${burst} урона!]`;
+            this.showFloatingCombatText(this.container?.querySelector('#mob-figure-node'), `ВЗРЫВ ЯДА +${burst}`, 'thermal');
+        }
+
         return {
             damage,
             isCrit,
-            log: `${this.player.name} проводит потрошение на ${combo} комбо-очках, нанося ${damage} сокрушительного урона${isCrit ? ' (КРИТ!)' : ''}!`
+            log: `${this.player.name} проводит потрошение на ${combo} комбо-очках, нанося ${damage} сокрушительного урона${isCrit ? ' (КРИТ!)' : ''}!${poisonBurstNote}`
         };
     }
 
@@ -795,47 +1114,92 @@ export class BattleScreen {
     actionMageDart() {
         sound.playSfx('magic');
         this.player.currentMp = Math.min(this.player.maxMp, this.player.currentMp - 5 + 8);
+        this.classResource.arcaneCharges = Math.min(3, (this.classResource.arcaneCharges || 0) + 1);
         const { damage, isCrit } = this.calculateDamage(0.95, true);
         return {
             damage,
             isCrit,
-            log: `${this.player.name} выпускает чародейскую стрелу на ${damage} маг. урона и восстанавливает ману.`
+            log: `${this.player.name} выпускает чародейскую стрелу на ${damage} маг. урона, восстанавливает ману и накапливает заряд арканы (${this.classResource.arcaneCharges}/3).`
         };
     }
 
     actionMageFireball() {
         sound.playSfx('magic');
-        this.player.currentMp = Math.max(0, this.player.currentMp - 25);
-        const { damage, isCrit } = this.calculateDamage(1.8, true, 10);
+        const isArcaneSurge = (this.classResource.arcaneCharges || 0) >= 3;
+        if (isArcaneSurge) {
+            this.classResource.arcaneCharges = 0;
+            this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), 'ПРИЛИВ АРКАНЫ!', 'arcane');
+        } else {
+            this.player.currentMp = Math.max(0, this.player.currentMp - 25);
+            this.classResource.arcaneCharges = Math.min(3, (this.classResource.arcaneCharges || 0) + 1);
+        }
+
+        const mult = isArcaneSurge ? 1.8 * 1.35 : 1.8;
+        const { damage, isCrit } = this.calculateDamage(mult, true, isArcaneSurge ? 35 : 10);
         this.monsterStatus.burnTurns = 2;
         this.monsterStatus.burnDmg = Math.max(6, Math.round(this.player.magicDamage * 0.4));
+
+        let totalDmg = damage;
+        let extraNote = '';
+        if (this.monsterStatus.isFrozen) {
+            const thermalBonus = Math.round(this.player.magicDamage * 0.95 + 30);
+            totalDmg += thermalBonus;
+            this.monsterStatus.isFrozen = false;
+            this.showFloatingCombatText(this.container?.querySelector('#mob-figure-node'), `ТЕРМОУДАР +${thermalBonus}`, 'thermal');
+            extraNote += ` ⚡ [ТЕРМОУДАР: +${thermalBonus} взрыв пара и осколков льда!]`;
+        }
+        if (isArcaneSurge) {
+            extraNote += ' 💥 [ПРИЛИВ АРКАНЫ: 0 MP, +35% урона!]';
+        }
+
         return {
-            damage,
+            damage: totalDmg,
             isCrit,
-            log: `${this.player.name} обрушивает огненный шар на ${damage} урона! Враг объят пламенем.`
+            log: `${this.player.name} обрушивает огненный шар на ${totalDmg} урона! Враг объят пламенем.${extraNote}`
         };
     }
 
     actionMageFrost() {
         sound.playSfx('magic');
-        this.player.currentMp = Math.max(0, this.player.currentMp - 20);
-        const { damage, isCrit } = this.calculateDamage(1.4, true);
+        const isArcaneSurge = (this.classResource.arcaneCharges || 0) >= 3;
+        if (isArcaneSurge) {
+            this.classResource.arcaneCharges = 0;
+            this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), 'ПРИЛИВ АРКАНЫ!', 'arcane');
+        } else {
+            this.player.currentMp = Math.max(0, this.player.currentMp - 20);
+            this.classResource.arcaneCharges = Math.min(3, (this.classResource.arcaneCharges || 0) + 1);
+        }
+
+        const mult = isArcaneSurge ? 1.4 * 1.35 : 1.4;
+        const { damage, isCrit } = this.calculateDamage(mult, true, isArcaneSurge ? 25 : 0);
         this.monsterStatus.stunned = true;
+        this.monsterStatus.isFrozen = true;
+        const extraNote = isArcaneSurge ? ' 💥 [ПРИЛИВ АРКАНЫ: 0 MP, +35% урона!]' : '';
         return {
             damage,
             isCrit,
-            log: `${this.player.name} посылает ледяную стрелу на ${damage} урона. Монстр скован льдом и пропустит ход!`
+            log: `${this.player.name} посылает ледяную стрелу на ${damage} урона. Монстр скован льдом и пропустит ход!${extraNote}`
         };
     }
 
     actionMageCascade() {
         sound.playSfx('magic');
-        this.player.currentMp = Math.max(0, this.player.currentMp - 40);
-        const { damage, isCrit } = this.calculateDamage(2.8, true, 15, 0.5);
+        const isArcaneSurge = (this.classResource.arcaneCharges || 0) >= 3;
+        if (isArcaneSurge) {
+            this.classResource.arcaneCharges = 0;
+            this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), 'ПРИЛИВ АРКАНЫ!', 'arcane');
+        } else {
+            this.player.currentMp = Math.max(0, this.player.currentMp - 40);
+            this.classResource.arcaneCharges = Math.min(3, (this.classResource.arcaneCharges || 0) + 1);
+        }
+
+        const mult = isArcaneSurge ? 2.8 * 1.35 : 2.8;
+        const { damage, isCrit } = this.calculateDamage(mult, true, isArcaneSurge ? 40 : 15, 0.5);
+        const extraNote = isArcaneSurge ? ' 💥 [ПРИЛИВ АРКАНЫ: 0 MP, +35% урона!]' : '';
         return {
             damage,
             isCrit,
-            log: `${this.player.name} высвобождает арканный каскад на ${damage} урона, игнорируя защиту врага${isCrit ? ' (КРИТ!)' : ''}!`
+            log: `${this.player.name} высвобождает арканный каскад на ${damage} урона, игнорируя защиту врага${isCrit ? ' (КРИТ!)' : ''}!${extraNote}`
         };
     }
 
@@ -844,10 +1208,15 @@ export class BattleScreen {
         sound.playSfx('shoot');
         this.classResource.current = Math.min(100, this.classResource.current + 20);
         const { damage, isCrit } = this.calculateDamage(1.15);
+        let markNote = '';
+        if (isCrit) {
+            this.monsterStatus.huntersMarkTurns = 3;
+            markNote = ' 🎯 [МЕТКА ОХОТНИКА: цель помечена на 3 хода (+30% урона, +20% крит)!]';
+        }
         return {
             damage,
             isCrit,
-            log: `${this.player.name} делает меткий выстрел на ${damage} урона (+20 концентрации).`
+            log: `${this.player.name} делает меткий выстрел на ${damage} урона (+20 концентрации).${markNote}`
         };
     }
 
@@ -857,10 +1226,16 @@ export class BattleScreen {
         const shot1 = this.calculateDamage(0.85);
         const shot2 = this.calculateDamage(0.85);
         const total = shot1.damage + shot2.damage;
+        const isCrit = shot1.isCrit || shot2.isCrit;
+        let markNote = '';
+        if (isCrit) {
+            this.monsterStatus.huntersMarkTurns = 3;
+            markNote = ' 🎯 [МЕТКА ОХОТНИКА!]';
+        }
         return {
             damage: total,
-            isCrit: shot1.isCrit || shot2.isCrit,
-            log: `${this.player.name} выпускает двойную очередь стрел на ${shot1.damage} + ${shot2.damage} (${total} урона)!`
+            isCrit,
+            log: `${this.player.name} выпускает двойную очередь стрел на ${shot1.damage} + ${shot2.damage} (${total} урона)!${markNote}`
         };
     }
 
@@ -879,10 +1254,15 @@ export class BattleScreen {
         sound.playSfx('shoot');
         this.classResource.current -= 55;
         const { damage, isCrit } = this.calculateDamage(2.6, false, 35, 0.3);
+        let markNote = '';
+        if (isCrit) {
+            this.monsterStatus.huntersMarkTurns = 3;
+            markNote = ' 🎯 [МЕТКА ОХОТНИКА!]';
+        }
         return {
             damage,
             isCrit,
-            log: `${this.player.name} производит снайперский выстрел на ${damage} урона${isCrit ? ' (КРИТ В СЕРДЦЕ!)' : ''}!`
+            log: `${this.player.name} производит снайперский выстрел на ${damage} урона${isCrit ? ' (КРИТ В СЕРДЦЕ!)' : ''}!${markNote}`
         };
     }
 
@@ -955,6 +1335,22 @@ export class BattleScreen {
                 sound.playSfx('magic');
                 this.showFloatingCombatText(this.container.querySelector('#hero-figure-node'), 'УКЛОНЕНИЕ', 'dodge');
                 this.addCombatLog(`${this.player.name} ловко уклоняется от атаки противника!`, 'hero');
+
+                // Реакция плута/разбойника: мгновенный контрвыпад и восполнение энергии
+                if (this.player.classId === 'rogue') {
+                    this.classResource.current = Math.min(100, this.classResource.current + 15);
+                    const counterDmg = Math.max(1, Math.round(this.player.physicalDamage * 0.55));
+                    sound.playSfx('stab');
+                    this.applyDamageToMonster(counterDmg, false);
+                    this.showFloatingCombatText(this.container?.querySelector('#mob-figure-node'), `КОНТРВЫПАД -${counterDmg}`, 'player');
+                    this.addCombatLog(`⚡ КОНТРВЫПАД! Уклонившись, ${this.player.name} наносит встречный укол на ${counterDmg} урона и восстанавливает +15 энергии!`, 'hero');
+                    this.updateHud();
+                    if (this.monsterHp <= 0) {
+                        setTimeout(() => this.handleVictory(), 500);
+                        return;
+                    }
+                }
+
                 this.finishMonsterTurn();
                 return;
             }
@@ -965,16 +1361,61 @@ export class BattleScreen {
                 if (intent.type === 'heavy') rawDmg = Math.round(rawDmg * 1.7);
                 if (intent.type === 'ability') rawDmg = Math.round(rawDmg * 1.4);
 
+                // Тактический отскок охотника/лучника при тяжелом ударе
+                let rangerDisengaged = false;
+                if (this.player.classId === 'ranger' && intent.type === 'heavy') {
+                    rangerDisengaged = true;
+                    rawDmg = Math.round(rawDmg * 0.55);
+                    this.classResource.current = Math.min(100, this.classResource.current + 25);
+                    this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), 'ОТСКОК (-45%)', 'dodge');
+                    this.addCombatLog(`🤸 ТАКТИЧЕСКИЙ ОТСКОК! ${this.player.name} кувырком уходит из-под тяжелого удара: урон снижен на 45%, +25 концентрации!`, 'hero');
+                }
+
                 // Снижение броней игрока
                 let defFactor = this.player.defense * 0.7;
-                if (this.playerStatus.defending) defFactor = defFactor * 1.8 + (rawDmg * 0.5);
+                if (this.playerStatus.defending) defFactor = defFactor * 2.0 + (rawDmg * 0.5);
 
                 const finalDmg = Math.max(2, Math.round(rawDmg - defFactor));
+                let effectiveDmg = finalDmg;
+
+                // Пассивная механика мага: Щит Маны (поглощает 35% урона маной)
+                if (this.player.classId === 'mage' && this.player.currentMp >= 8 && effectiveDmg > 4) {
+                    const absorbTarget = Math.round(effectiveDmg * 0.35);
+                    const mpCost = Math.ceil(absorbTarget / 1.5);
+                    if (this.player.currentMp >= mpCost) {
+                        this.player.currentMp -= mpCost;
+                        effectiveDmg -= absorbTarget;
+                        this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), `ЩИТ -${absorbTarget}`, 'magic');
+                        this.addCombatLog(`Щит маны поглотил ${absorbTarget} урона ценой ${mpCost} MP!`, 'hero');
+                    }
+                }
+
+                // Парирование и автоматический контрудар воина
+                let wasParrying = this.playerStatus.isParrying;
+                if (this.player.classId === 'warrior' && wasParrying) {
+                    this.playerStatus.isParrying = false;
+                    effectiveDmg = Math.max(1, Math.round(effectiveDmg * 0.30)); // дополнительное поглощение до 70%
+                    const riposteDmg = Math.max(1, Math.round(this.player.physicalDamage * 1.3));
+                    sound.playSfx('slash');
+                    this.shakeScreen('crit');
+                    this.applyDamageToMonster(riposteDmg, true);
+                    this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), 'ПАРИРОВАНИЕ!', 'player');
+                    this.showFloatingCombatText(this.container?.querySelector('#mob-figure-node'), `КОНТРУДАР -${riposteDmg}!`, 'crit');
+                    this.addCombatLog(`⚔️ ПАРИРОВАНИЕ! ${this.player.name} отбивает удар щитом и проводит сокрушительный КОНТРУДАР на ${riposteDmg} урона!`, 'hero');
+                }
 
                 // Нанесение урона герою
                 sound.playSfx('hit');
-                this.player.currentHp = Math.max(0, this.player.currentHp - finalDmg);
-                this.showFloatingCombatText(this.container.querySelector('#hero-figure-node'), `-${finalDmg}`, 'mob');
+                if (CheatSystem.flags.godMode) {
+                    effectiveDmg = 0;
+                    this.player.currentHp = this.player.maxHp;
+                    this.player.currentMp = this.player.maxMp;
+                    this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), '🛡️ БОГ', 'player');
+                    this.addCombatLog(`🛡️ [Режим Бога] Урон полностью поглощен божественным щитом!`, 'hero');
+                } else {
+                    this.player.currentHp = Math.max(0, this.player.currentHp - effectiveDmg);
+                    this.showFloatingCombatText(this.container?.querySelector('#hero-figure-node'), `-${effectiveDmg}`, 'mob');
+                }
 
                 // Обратный урон шипов воина
                 if (this.playerStatus.counterThorns > 0) {
@@ -984,11 +1425,17 @@ export class BattleScreen {
 
                 // Начисление ярости воину при получении удара
                 if (this.player.classId === 'warrior') {
-                    this.classResource.current = Math.min(100, this.classResource.current + 12);
+                    this.classResource.current = Math.min(100, this.classResource.current + 14);
                 }
 
-                this.addCombatLog(`«${this.monster.fullName}» проводит атаку [${intent.title}] и наносит ${finalDmg} урона.`, 'mob');
+                this.addCombatLog(`«${this.monster.fullName}» проводит атаку [${intent.title}] и наносит ${effectiveDmg} урона.`, 'mob');
                 this.updateHud();
+
+                // Проверка победы (если контрудар добил монстра)
+                if (this.monsterHp <= 0) {
+                    setTimeout(() => this.handleVictory(), 600);
+                    return;
+                }
 
                 // Проверка гибели героя
                 if (this.player.currentHp <= 0) {
@@ -1004,8 +1451,13 @@ export class BattleScreen {
     finishMonsterTurn() {
         // Сброс временных баффов раунда
         this.playerStatus.defending = false;
+        this.playerStatus.isParrying = false;
         this.playerStatus.shadowVeil = false;
         this.playerStatus.counterThorns = 0;
+
+        if (this.monsterStatus.huntersMarkTurns > 0) {
+            this.monsterStatus.huntersMarkTurns--;
+        }
 
         // Восстановление ресурсов игрока в начале нового раунда
         if (this.player.classId === 'rogue') {
@@ -1052,46 +1504,145 @@ export class BattleScreen {
     // =========================================================================
 
     applyDamageToMonster(amount, isCrit = false) {
+        if (CheatSystem.flags.instantWin) {
+            amount = Math.max(amount, this.monsterHp);
+        }
         this.monsterHp = Math.max(0, this.monsterHp - amount);
         const mobNode = this.container.querySelector('#mob-figure-node');
+        if (mobNode) {
+            const hitClass = isCrit ? 'anim-mob-heavy-recoil' : 'anim-mob-hit-flinch';
+            mobNode.classList.remove('anim-mob-heavy-recoil', 'anim-mob-hit-flinch', 'anim-hit-shake');
+            void mobNode.offsetWidth;
+            mobNode.classList.add(hitClass);
+            setTimeout(() => {
+                mobNode.classList.remove(hitClass);
+            }, isCrit ? 450 : 320);
+        }
         this.showFloatingCombatText(mobNode, `-${amount}${isCrit ? '!' : ''}`, isCrit ? 'crit' : 'player');
     }
 
-    animateHeroAttack(callback) {
+    animateHeroAttack(action, isCrit = false, callback) {
+        // Поддержка вызова без передачи action: animateHeroAttack(callback)
+        if (typeof action === 'function') {
+            callback = action;
+            action = null;
+            isCrit = false;
+        }
+
         const heroNode = this.container.querySelector('#hero-figure-node');
         const mobNode = this.container.querySelector('#mob-figure-node');
+        const cid = this.player.classId;
 
-        if (heroNode) heroNode.classList.add('anim-attack-hero');
-        setTimeout(() => {
-            if (mobNode) mobNode.classList.add('anim-hit-shake');
-        }, 150);
+        let heroAnimClass = 'anim-attack-hero';
+        let animDuration = 360;
+
+        if (cid === 'warrior') {
+            const isHeavy = action === 'warrior_heavy' || action === 'warrior_execute' || action?.includes('heavy') || action?.includes('slam') || action?.includes('execute') || isCrit;
+            const isDefend = action === 'warrior_defend';
+            if (isDefend) {
+                heroAnimClass = 'anim-warrior-guard';
+                animDuration = 350;
+            } else if (isHeavy) {
+                heroAnimClass = 'anim-warrior-slam';
+                animDuration = 420;
+            } else {
+                heroAnimClass = 'anim-warrior-slash';
+                animDuration = 360;
+            }
+        } else if (cid === 'rogue') {
+            const isStealth = action === 'rogue_shadow';
+            const isFlurry = action === 'rogue_eviscerate' || action?.includes('flurry') || action?.includes('eviscerate');
+            const wasInShadow = this.playerStatus.shadowVeil;
+            if (isStealth) {
+                heroAnimClass = 'anim-rogue-shadow-veil';
+                animDuration = 380;
+            } else if (wasInShadow || isCrit) {
+                heroAnimClass = 'anim-rogue-shadow-dash';
+                animDuration = 400;
+            } else if (isFlurry) {
+                heroAnimClass = 'anim-rogue-flurry';
+                animDuration = 420;
+            } else {
+                heroAnimClass = 'anim-rogue-dagger-thrust';
+                animDuration = 340;
+            }
+        } else if (cid === 'ranger') {
+            const isPowerShot = action === 'ranger_snipe' || action?.includes('snipe') || action?.includes('heavy') || isCrit;
+            const isTrap = action === 'ranger_trap';
+            if (isTrap) {
+                heroAnimClass = 'anim-warrior-guard';
+                animDuration = 320;
+            } else if (isPowerShot) {
+                heroAnimClass = 'anim-ranger-power-shot';
+                animDuration = 420;
+            } else {
+                heroAnimClass = 'anim-ranger-draw-release';
+                animDuration = 350;
+            }
+        } else if (cid === 'mage') {
+            heroAnimClass = 'anim-mage-cast';
+            animDuration = 380;
+        }
+
+        if (heroNode) {
+            heroNode.classList.remove('anim-attack-hero', 'anim-warrior-slash', 'anim-warrior-slam', 'anim-warrior-guard', 'anim-rogue-dagger-thrust', 'anim-rogue-shadow-dash', 'anim-rogue-flurry', 'anim-rogue-shadow-veil', 'anim-ranger-draw-release', 'anim-ranger-power-shot', 'anim-mage-cast');
+            void heroNode.offsetWidth;
+            heroNode.classList.add(heroAnimClass);
+        }
 
         setTimeout(() => {
-            if (heroNode) heroNode.classList.remove('anim-attack-hero');
-            if (mobNode) mobNode.classList.remove('anim-hit-shake');
+            if (mobNode) {
+                const hitClass = isCrit ? 'anim-mob-heavy-recoil' : 'anim-mob-hit-flinch';
+                mobNode.classList.remove('anim-mob-heavy-recoil', 'anim-mob-hit-flinch', 'anim-hit-shake');
+                void mobNode.offsetWidth;
+                mobNode.classList.add(hitClass);
+            }
+        }, Math.round(animDuration * 0.45));
+
+        setTimeout(() => {
+            if (heroNode) heroNode.classList.remove(heroAnimClass);
+            if (mobNode) mobNode.classList.remove('anim-mob-heavy-recoil', 'anim-mob-hit-flinch', 'anim-hit-shake');
             if (callback) callback();
-        }, 360);
+        }, animDuration);
     }
 
     animateMobAttack(callback) {
         const mobNode = this.container.querySelector('#mob-figure-node');
         const heroNode = this.container.querySelector('#hero-figure-node');
+        const intent = this.monsterIntent;
 
-        if (mobNode) mobNode.classList.add('anim-attack-mob');
-        setTimeout(() => {
-            if (heroNode) heroNode.classList.add('anim-hit-shake');
-        }, 150);
+        const mobAnimClass = intent?.type === 'heavy' ? 'anim-mob-heavy-smash' : 'anim-attack-mob';
+        const animDuration = intent?.type === 'heavy' ? 440 : 360;
+
+        if (mobNode) {
+            mobNode.classList.remove('anim-attack-mob', 'anim-mob-heavy-smash');
+            void mobNode.offsetWidth;
+            mobNode.classList.add(mobAnimClass);
+        }
 
         setTimeout(() => {
-            if (mobNode) mobNode.classList.remove('anim-attack-mob');
-            if (heroNode) heroNode.classList.remove('anim-hit-shake');
+            if (heroNode) {
+                if (this.player.classId === 'warrior' && this.playerStatus.defending) {
+                    heroNode.classList.add('anim-warrior-parry-block');
+                } else if (this.player.classId === 'ranger' && intent?.type === 'heavy') {
+                    heroNode.classList.add('anim-ranger-backhop');
+                } else {
+                    heroNode.classList.add('anim-hit-shake');
+                }
+            }
+        }, Math.round(animDuration * 0.4));
+
+        setTimeout(() => {
+            if (mobNode) mobNode.classList.remove(mobAnimClass);
+            if (heroNode) heroNode.classList.remove('anim-hit-shake', 'anim-warrior-parry-block', 'anim-ranger-backhop');
             if (callback) callback();
-        }, 360);
+        }, animDuration);
     }
 
     showFloatingCombatText(targetElement, text, type = 'normal') {
+        if (!this.container || !targetElement) return;
         const layer = this.container.querySelector('#floating-numbers-layer');
-        if (!layer || !targetElement) return;
+        if (!layer) return;
 
         const rect = targetElement.getBoundingClientRect();
         const screenRect = this.container.getBoundingClientRect();
@@ -1114,6 +1665,7 @@ export class BattleScreen {
     }
 
     shakeScreen(intensity = 'light') {
+        if (!this.container) return;
         const wrap = this.container.querySelector('.battle-screen-wrap');
         if (!wrap) return;
         const cls = `screen-shake-${intensity}`;
@@ -1442,6 +1994,172 @@ export class BattleScreen {
             return;
         }
 
+        // Падение метеора
+        if (action === 'mage_meteor_strike') {
+            this.shakeScreen('heavy');
+            this.spawnProjectile({
+                overlay,
+                startX: mobX + 60,
+                startY: -50,
+                endX: mobX,
+                endY: mobY,
+                duration: 280,
+                html: `<svg class="vfx-elem vfx-meteor-svg" viewBox="0 0 100 130"><path d="M 50 10 L 75 75 L 50 120 L 25 75 Z" fill="#ef4444" filter="drop-shadow(0 0 16px #f97316)"/><circle cx="50" cy="95" r="26" fill="#facc15"/><circle cx="50" cy="95" r="14" fill="#fef08a"/></svg>`,
+                onImpact: () => {
+                    this.shakeScreen('crit');
+                    this.spawnImpact({
+                        overlay,
+                        x: mobX,
+                        y: mobY,
+                        duration: 520,
+                        html: `<svg class="vfx-elem vfx-explosion-svg" viewBox="0 0 240 240"><circle cx="120" cy="120" r="32" fill="#fef08a" class="anim-fire-core"/><circle cx="120" cy="120" r="90" fill="none" stroke="#ea580c" stroke-width="18" class="anim-fire-blast"/><ellipse cx="120" cy="170" rx="90" ry="24" fill="none" stroke="#f97316" stroke-width="5" class="vfx-pulse-ring"/></svg>`
+                    });
+                    if (callback) callback();
+                }
+            });
+            return;
+        }
+
+        // Ледяной буран / Абсолютный ноль
+        if (action === 'mage_blizzard_cone' || action === 'mage_absolute_zero') {
+            this.shakeScreen(action === 'mage_absolute_zero' ? 'crit' : 'light');
+            this.spawnImpact({
+                overlay,
+                x: mobX,
+                y: mobY,
+                duration: 500,
+                html: `<svg class="vfx-elem vfx-blizzard-svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="75" fill="none" stroke="#38bdf8" stroke-width="5" stroke-dasharray="16 10" class="vfx-rotate-shield" filter="drop-shadow(0 0 14px #0284c7)"/><polygon points="100,25 108,80 100,95 92,80" fill="#bae6fd"/><polygon points="100,175 108,120 100,105 92,120" fill="#bae6fd"/><polygon points="25,100 80,92 95,100 80,108" fill="#bae6fd"/><polygon points="175,100 120,92 105,100 120,108" fill="#bae6fd"/><circle cx="100" cy="100" r="16" fill="#ffffff"/></svg>`
+            });
+            setTimeout(() => { if (callback) callback(); }, 180);
+            return;
+        }
+
+        // Искровой разряд / Грозовой шквал
+        if (action === 'mage_shock_bolt' || action === 'mage_lightning_storm') {
+            this.shakeScreen('heavy');
+            this.spawnImpact({
+                overlay,
+                x: mobX,
+                y: mobY - 20,
+                duration: 450,
+                html: `<svg class="vfx-elem vfx-lightning-storm-svg" viewBox="0 0 180 220"><polyline points="90,-10 115,50 75,90 120,135 85,170 100,210" stroke="#fef08a" stroke-width="6" fill="none" filter="drop-shadow(0 0 12px #eab308)"/><polyline points="105,0 125,45 105,75 130,120 110,160" stroke="#67e8f9" stroke-width="3" fill="none"/><circle cx="100" cy="205" r="32" fill="none" stroke="#facc15" stroke-width="4" class="vfx-pulse-ring"/></svg>`
+            });
+            setTimeout(() => { if (callback) callback(); }, 160);
+            return;
+        }
+
+        // Вытягивание жизни
+        if (action === 'mage_siphon_life') {
+            this.shakeScreen('light');
+            this.spawnImpact({
+                overlay,
+                x: (heroX + mobX) / 2,
+                y: (heroY + mobY) / 2,
+                duration: 500,
+                html: `<svg class="vfx-elem vfx-siphon-svg" viewBox="0 0 280 100"><path d="M 260 50 Q 140 10 20 50" stroke="#ec4899" stroke-width="5" fill="none" stroke-dasharray="14 6" class="siphon-stream" filter="drop-shadow(0 0 10px #db2777)"/><path d="M 260 50 Q 140 90 20 50" stroke="#a855f7" stroke-width="4" fill="none" stroke-dasharray="12 8" class="siphon-stream-alt"/><circle cx="20" cy="50" r="16" fill="#f43f5e" opacity="0.6" class="vfx-pulse-ring"/></svg>`
+            });
+            setTimeout(() => { if (callback) callback(); }, 170);
+            return;
+        }
+
+        // Касание пламени
+        if (action === 'mage_flame_touch') {
+            this.shakeScreen('light');
+            this.spawnImpact({
+                overlay,
+                x: mobX,
+                y: mobY,
+                duration: 400,
+                html: `<svg class="vfx-elem vfx-explosion-svg" viewBox="0 0 160 160"><circle cx="80" cy="80" r="22" fill="#fef08a" class="anim-fire-core"/><circle cx="80" cy="80" r="50" fill="none" stroke="#ea580c" stroke-width="8" class="anim-fire-blast"/></svg>`
+            });
+            setTimeout(() => { if (callback) callback(); }, 140);
+            return;
+        }
+
+        // Астральная сверхновая
+        if (action === 'mage_supernova') {
+            this.shakeScreen('crit');
+            this.spawnImpact({
+                overlay,
+                x: mobX,
+                y: mobY,
+                duration: 580,
+                html: `<svg class="vfx-elem vfx-supernova-blast-svg" viewBox="0 0 240 240"><circle cx="120" cy="120" r="32" fill="#fef08a" filter="drop-shadow(0 0 20px #f59e0b)"/><circle cx="120" cy="120" r="75" fill="none" stroke="#f97316" stroke-width="10" stroke-dasharray="20 10" class="vfx-rotate-shield"/><circle cx="120" cy="120" r="95" fill="none" stroke="#ef4444" stroke-width="5" class="vfx-pulse-ring"/><line x1="120" y1="15" x2="120" y2="225" stroke="#fef08a" stroke-width="5"/><line x1="15" y1="120" x2="225" y2="120" stroke="#fef08a" stroke-width="5"/></svg>`
+            });
+            setTimeout(() => { if (callback) callback(); }, 190);
+            return;
+        }
+
+        // Гравитационный коллапс
+        if (action === 'mage_void_collapse') {
+            this.shakeScreen('crit');
+            this.spawnImpact({
+                overlay,
+                x: mobX,
+                y: mobY,
+                duration: 620,
+                html: `<svg class="vfx-elem vfx-void-collapse-svg" viewBox="0 0 220 220"><circle cx="110" cy="110" r="26" fill="#090a0f" stroke="#c084fc" stroke-width="4" filter="drop-shadow(0 0 16px #a855f7)"/><circle cx="110" cy="110" r="60" fill="none" stroke="#e879f9" stroke-width="7" stroke-dasharray="16 10" class="vfx-rotate-shield"/><ellipse cx="110" cy="110" rx="85" ry="30" fill="none" stroke="#7c3aed" stroke-width="4" transform="rotate(-30 110 110)"/></svg>`
+            });
+            setTimeout(() => { if (callback) callback(); }, 210);
+            return;
+        }
+
+        // Обработка эффектов способностей из древа навыков
+        const skill = getSkill(action);
+        if (skill) {
+            if (skill.isMagic) {
+                this.shakeScreen(isCrit ? 'crit' : 'light');
+                this.spawnImpact({
+                    overlay,
+                    x: mobX,
+                    y: mobY,
+                    duration: 480,
+                    html: `<svg class="vfx-elem vfx-supernova-svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="50" fill="${skill.iconColor || '#c084fc'}" opacity="0.5" filter="blur(8px)"/><circle cx="100" cy="100" r="70" fill="none" stroke="${skill.iconColor || '#c084fc'}" stroke-width="4" stroke-dasharray="10 5" class="vfx-pulse-ring"/></svg>`
+                });
+                setTimeout(() => { if (callback) callback(); }, 150);
+                return;
+            }
+            if (this.player.classId === 'ranger') {
+                this.spawnProjectile({
+                    overlay,
+                    startX: heroX,
+                    startY: heroY,
+                    endX: mobX,
+                    endY: mobY,
+                    duration: 190,
+                    html: `<svg class="vfx-elem vfx-arrow-svg" viewBox="0 0 110 30"><line x1="20" y1="15" x2="100" y2="15" stroke="${skill.iconColor || '#eab308'}" stroke-width="3.5"/><polygon points="100,10 110,15 100,20" fill="#fde047"/></svg>`,
+                    onImpact: () => {
+                        this.shakeScreen(isCrit ? 'crit' : 'light');
+                        if (callback) callback();
+                    }
+                });
+                return;
+            }
+            if (skill.category === 'finisher') {
+                this.shakeScreen('crit');
+                this.spawnImpact({
+                    overlay,
+                    x: mobX,
+                    y: mobY,
+                    duration: 450,
+                    html: `<svg class="vfx-elem vfx-heavy-slam-svg" viewBox="0 0 200 200"><path d="M 30 30 L 170 170" stroke="${skill.iconColor || '#ef4444'}" stroke-width="8" stroke-linecap="round"/><path d="M 170 30 L 30 170" stroke="#facc15" stroke-width="8" stroke-linecap="round"/><circle cx="100" cy="100" r="45" stroke="#ef4444" stroke-width="5" fill="none" class="vfx-pulse-ring"/></svg>`
+                });
+                setTimeout(() => { if (callback) callback(); }, 160);
+                return;
+            }
+            // Strike / Heavy
+            this.shakeScreen(isCrit ? 'crit' : 'light');
+            this.spawnImpact({
+                overlay,
+                x: mobX,
+                y: mobY,
+                duration: 380,
+                html: `<svg class="vfx-elem vfx-slash-svg" viewBox="0 0 160 160"><path d="M 20 20 Q 90 80 140 140" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" fill="none" filter="drop-shadow(0 0 8px ${skill.iconColor || '#38bdf8'})"/><path d="M 25 15 Q 85 75 135 135" stroke="${skill.iconColor || '#38bdf8'}" stroke-width="12" opacity="0.6" stroke-linecap="round" fill="none"/></svg>`
+            });
+            setTimeout(() => { if (callback) callback(); }, 130);
+            return;
+        }
+
         // Запасной вариант
         this.shakeScreen(isCrit ? 'crit' : 'light');
         if (callback) callback();
@@ -1585,6 +2303,43 @@ export class BattleScreen {
         const potionsItems = this.container.querySelector('#potions-belt-items');
         if (potionsItems) potionsItems.innerHTML = this.renderPotionsBelt();
 
+        // Обновление боевых аур и визуального накала
+        const heroFigure = this.container.querySelector('#hero-figure-node');
+        if (heroFigure) {
+            if (this.player.classId === 'warrior' && this.classResource.current >= 70) {
+                heroFigure.classList.add('warrior-enraged-aura');
+            } else {
+                heroFigure.classList.remove('warrior-enraged-aura');
+            }
+
+            if (this.player.classId === 'rogue' && (this.classResource.combo || 0) >= 5) {
+                heroFigure.classList.add('rogue-maxcombo-aura');
+            } else {
+                heroFigure.classList.remove('rogue-maxcombo-aura');
+            }
+
+            if (this.playerStatus.shadowVeil) {
+                heroFigure.classList.add('rogue-shadow-aura');
+            } else {
+                heroFigure.classList.remove('rogue-shadow-aura');
+            }
+        }
+
+        const mobFigure = this.container.querySelector('#mob-figure-node');
+        if (mobFigure) {
+            if (this.monsterStatus.huntersMarkTurns > 0) {
+                mobFigure.classList.add('mob-marked-aura');
+            } else {
+                mobFigure.classList.remove('mob-marked-aura');
+            }
+
+            if (this.monsterIntent?.type === 'heavy') {
+                mobFigure.classList.add('mob-heavy-intent-aura');
+            } else {
+                mobFigure.classList.remove('mob-heavy-intent-aura');
+            }
+        }
+
         this.initEvents();
     }
 
@@ -1645,7 +2400,7 @@ export class BattleScreen {
                         <span class="final-boss-icon">${Icons.crown(24)}</span>
                         <div class="final-boss-text">
                             <div class="final-boss-title">ВЕЛИКАЯ ПОБЕДА НАД ВЛАДЫКОЙ БЕЗДНЫ!</div>
-                            <div class="final-boss-desc">Тьма катакомб повержена! Врата Южного тракта в городе теперь открыты!</div>
+                            <div class="final-boss-desc">Тьма катакомб сокрушена! Ступайте вглубь древней тайны за троном, чтобы раскрыть финал!</div>
                         </div>
                     </div>
                 ` : ''}

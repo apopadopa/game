@@ -320,6 +320,16 @@ export class Icons {
         `;
     }
 
+    static menu(size = 16) {
+        return `
+            <svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none">
+                <line x1="2" y1="4" x2="14" y2="4" stroke="#cbd5e1" stroke-width="1.8" stroke-linecap="round"/>
+                <line x1="2" y1="8" x2="14" y2="8" stroke="#cbd5e1" stroke-width="1.8" stroke-linecap="round"/>
+                <line x1="2" y1="12" x2="14" y2="12" stroke="#cbd5e1" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+        `;
+    }
+
     static tunic(size = 20) {
         return `
             <svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 20 20" fill="none">

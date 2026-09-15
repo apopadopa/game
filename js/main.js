@@ -1,17 +1,21 @@
 import { MainMenu } from './screens/mainMenu.js';
 import { CharacterCreation } from './screens/characterCreation.js';
 import { StoryPrologueScreen } from './screens/storyPrologueScreen.js';
+import { StoryCutsceneScreen } from './screens/storyCutsceneScreen.js';
 import { TownScreen } from './screens/townScreen.js';
 import { InventoryScreen } from './screens/inventoryScreen.js';
 import { DungeonScreen } from './screens/dungeonScreen.js';
 import { BattleScreen } from './screens/battleScreen.js';
 import { MobShowcaseScreen } from './screens/mobShowcaseScreen.js';
+import { CutscenesMenuScreen } from './screens/cutscenesMenuScreen.js';
+import { SaveSystem } from './services/saveSystem.js';
 import { Player } from './entities/player.js';
 import { sound } from './audio/audioEngine.js';
 import { menuTheme } from './audio/music/menuTheme.js';
 import { creationTheme } from './audio/music/characterCreationMusic.js';
 import { townTheme } from './audio/music/townTheme.js';
 import { AudioSettings } from './ui/audioSettings.js';
+import { GameDialog } from './ui/gameDialog.js';
 
 class Game {
     constructor() {
@@ -23,6 +27,7 @@ class Game {
     }
 
     init() {
+        GameDialog.installGlobal();
         AudioSettings.init();
         this.setupAutoplayUnlock();
         this.setupKeyboardShortcuts();
@@ -111,6 +116,49 @@ class Game {
         this.currentScreen = new MobShowcaseScreen({
             onBack: () => {
                 this.showMainMenu();
+            },
+            onOpenCutscenes: () => {
+                this.showCutscenesMenu();
+            }
+        });
+        this.currentScreen.render(this.container);
+    }
+
+    showCutscenesMenu() {
+        if (this.currentScreen && typeof this.currentScreen.cleanup === 'function') {
+            this.currentScreen.cleanup();
+        }
+        this.dungeonSavedState = null;
+        this.previousScreenType = 'cutscenes_menu';
+
+        if (!this.player) {
+            const saved = SaveSystem.load();
+            this.player = saved ? new Player(saved) : new Player({ name: 'Герой', classId: 'warrior', className: 'Воин' });
+        }
+
+        this.currentScreen = new CutscenesMenuScreen(this.player, {
+            onBackToBestiary: () => {
+                this.showBestiaryScreen();
+            },
+            onMainMenu: () => {
+                this.showMainMenu();
+            },
+            onPlayCutscene: (sceneId) => {
+                if (sceneId === 'prologue') {
+                    if (this.currentScreen && typeof this.currentScreen.cleanup === 'function') {
+                        this.currentScreen.cleanup();
+                    }
+                    this.currentScreen = new StoryPrologueScreen(this.player, {
+                        onFinish: () => {
+                            this.showCutscenesMenu();
+                        }
+                    });
+                    this.currentScreen.render(this.container);
+                } else {
+                    this.playCutscene(sceneId, () => {
+                        this.showCutscenesMenu();
+                    });
+                }
             }
         });
         this.currentScreen.render(this.container);
@@ -149,6 +197,27 @@ class Game {
         this.currentScreen.render(this.container);
     }
 
+    playCutscene(cutsceneType, onFinish = null) {
+        if (this.currentScreen && typeof this.currentScreen.cleanup === 'function') {
+            this.currentScreen.cleanup();
+        }
+        this.previousScreenType = 'cutscene';
+
+        this.currentScreen = new StoryCutsceneScreen(this.player, cutsceneType, {
+            onFinish: () => {
+                if (onFinish) {
+                    onFinish();
+                } else {
+                    this.enterTown();
+                }
+            },
+            onMainMenu: () => {
+                this.showMainMenu();
+            }
+        });
+        this.currentScreen.render(this.container);
+    }
+
     enterTown() {
         if (this.currentScreen && typeof this.currentScreen.cleanup === 'function') {
             this.currentScreen.cleanup();
@@ -158,7 +227,9 @@ class Game {
 
         this.currentScreen = new TownScreen(this.player, {
             onOpenMenu: (tab = 'inventory') => this.showInventoryMenu(null, tab),
-            onEnterDungeon: () => this.enterDungeon()
+            onEnterDungeon: () => this.enterDungeon(),
+            onPlayCutscene: (type, onFinish) => this.playCutscene(type, onFinish),
+            onMainMenu: () => this.showMainMenu()
         });
         this.currentScreen.render(this.container);
     }
@@ -180,6 +251,10 @@ class Game {
             },
             onStartBattle: (monster, room, state) => {
                 this.enterBattle(monster, room, state);
+            },
+            onPlayCutscene: (cutsceneType, dungeonState) => {
+                this.dungeonSavedState = dungeonState;
+                this.playCutscene(cutsceneType, () => this.enterDungeon());
             }
         }, this.dungeonSavedState);
 

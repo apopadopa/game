@@ -129,6 +129,14 @@ export class MobShowcaseScreen {
                             ${this.renderTrackHtml(MOB_TIERS.FINAL_BOSS)}
                         </div>
                     </div>
+
+                    <!-- НИЖНЯЯ ПАНЕЛЬ: ПЕРЕХОД В РЕЖИМ КАТСЦЕН -->
+                    <div class="showcase-bottom-bar" style="margin-top: 36px; margin-bottom: 30px; padding: 24px; text-align: center; border-top: 1px solid rgba(148, 163, 184, 0.15); display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                        <button class="btn btn-primary btn-lg btn-cutscene-mode" id="btn-open-cutscene-mode" style="padding: 14px 32px; font-size: 16px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35); cursor: pointer;">
+                            🎬 Перейти в режим катсцен
+                        </button>
+                        <span style="font-size: 13px; color: #94a3b8;">Просмотр сюжетных глав, эпических финалов и архивных сцен</span>
+                    </div>
                 </div>
 
                 <!-- МОДАЛЬНОЕ ОКНО ДЕТАЛЬНОГО ОСМОТРА МОБА -->
@@ -327,6 +335,17 @@ export class MobShowcaseScreen {
                 this.callbacks.onBack();
             }
         });
+
+        // Кнопка перехода в режим катсцен
+        const btnCutscenes = this.container.querySelector('#btn-open-cutscene-mode');
+        if (btnCutscenes) {
+            btnCutscenes.addEventListener('click', () => {
+                sound.playSfx('selectHero');
+                if (this.callbacks.onOpenCutscenes) {
+                    this.callbacks.onOpenCutscenes();
+                }
+            });
+        }
 
         // Кнопка случайных вариантов для всех 32 мобов
         this.container.querySelector('#btn-randomize-all').addEventListener('click', () => {

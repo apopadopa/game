@@ -1331,6 +1331,202 @@ export const ITEMS_DATABASE = {
         icon: Icons.gem(24)
     },
 
+    // НОВЫЕ ЛЕГЕНДАРНЫЕ И РЕДКИЕ АРТЕФАКТЫ (ARTIFACTS & RELICS)
+    stone_spirit_amulet: {
+        id: 'stone_spirit_amulet',
+        name: 'Каменный амулет горного духа',
+        desc: 'Древний базальтовый камень с руной несокрушимости (+4 к защите, +18 HP).',
+        price: 65,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 2,
+        defense: 4,
+        maxHp: 18,
+        icon: Icons.amulet(24),
+        rarity: 'common'
+    },
+    ring_of_feline_grace: {
+        id: 'ring_of_feline_grace',
+        name: 'Кольцо кошачьей поступи',
+        desc: 'Ускоряет реакцию и обостряет чувства (+6% к уклонению, +3% к криту).',
+        price: 85,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 3,
+        dodgeChance: 6,
+        critChance: 3,
+        icon: Icons.ring(24),
+        rarity: 'common'
+    },
+    salamander_fire_opal: {
+        id: 'salamander_fire_opal',
+        name: 'Огненный опал саламандры',
+        desc: 'Сохраняет жар первородных вулканов (+4 физ. урона, +5 маг. урона).',
+        price: 115,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 4,
+        physicalDamage: 4,
+        magicDamage: 5,
+        icon: Icons.gem(24),
+        rarity: 'uncommon'
+    },
+    crimson_moon_ring: {
+        id: 'crimson_moon_ring',
+        name: 'Перстень багровой луны',
+        desc: 'Пробуждает первобытную ярость в бою (+6 физ. урона, +6% крита, +15 HP).',
+        price: 150,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 7,
+        physicalDamage: 6,
+        critChance: 6,
+        maxHp: 15,
+        icon: Icons.ring(24),
+        rarity: 'uncommon'
+    },
+    star_oracle_amulet: {
+        id: 'star_oracle_amulet',
+        name: 'Амулет звёздного оракула',
+        desc: 'Таинственный кристалл созвездий (+8 маг. урона, +35 MP).',
+        price: 175,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 8,
+        magicDamage: 8,
+        maxMp: 35,
+        icon: Icons.amulet(24),
+        rarity: 'uncommon'
+    },
+    steel_guardian_seal: {
+        id: 'steel_guardian_seal',
+        name: 'Печать стального стража',
+        desc: 'Тяжелый освященный медальон имперской когорты (+7 к защите, +30 HP).',
+        price: 190,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 9,
+        defense: 7,
+        maxHp: 30,
+        icon: Icons.shield(24),
+        rarity: 'uncommon'
+    },
+    frost_whisper_ring: {
+        id: 'frost_whisper_ring',
+        name: 'Кольцо ледяного шёпота',
+        desc: 'Окутывает владельца морозной аурой (+7 маг. урона, +6 к защите, +25 MP).',
+        price: 240,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 12,
+        magicDamage: 7,
+        defense: 6,
+        maxMp: 25,
+        icon: Icons.ring(24),
+        rarity: 'rare'
+    },
+    shadow_blade_earring: {
+        id: 'shadow_blade_earring',
+        name: 'Талисман теневого клинка',
+        desc: 'Реликвия мастеров гильдии теней (+9 физ. урона, +9% крита, +7% уклонения).',
+        price: 270,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 13,
+        physicalDamage: 9,
+        critChance: 9,
+        dodgeChance: 7,
+        icon: Icons.gem(24),
+        rarity: 'rare'
+    },
+    basilisk_petrifying_eye: {
+        id: 'basilisk_petrifying_eye',
+        name: 'Око Древнего Василиска',
+        desc: 'Окаменевший зрачок пещерного чудовища (+11 к защите, +50 HP, +5 физ. урона).',
+        price: 380,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 17,
+        defense: 11,
+        maxHp: 50,
+        physicalDamage: 5,
+        icon: Icons.eye(24),
+        rarity: 'rare'
+    },
+    storm_tempest_amulet: {
+        id: 'storm_tempest_amulet',
+        name: 'Амулет Бури и Молний',
+        desc: 'Искрится неистовой небесной мощью (+14 маг. урона, +8% крита, +40 MP).',
+        price: 410,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 18,
+        magicDamage: 14,
+        critChance: 8,
+        maxMp: 40,
+        icon: Icons.lightning(24),
+        rarity: 'rare'
+    },
+    titan_of_oblivion_ring: {
+        id: 'titan_of_oblivion_ring',
+        name: 'Перстень Титана Забвения',
+        desc: 'Кованое кольцо расы титанов (+16 физ. урона, +14 к защите, +65 HP).',
+        price: 580,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 22,
+        physicalDamage: 16,
+        defense: 14,
+        maxHp: 65,
+        icon: Icons.ring(24),
+        rarity: 'epic'
+    },
+    astral_monarch_circlet: {
+        id: 'astral_monarch_circlet',
+        name: 'Венец Астрального Владыки',
+        desc: 'Диадема магов высшей сферы (+20 маг. урона, +80 MP, +10% крита).',
+        price: 620,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 23,
+        magicDamage: 20,
+        maxMp: 80,
+        critChance: 10,
+        icon: Icons.crown(24),
+        rarity: 'epic'
+    },
+    orb_of_eternal_night: {
+        id: 'orb_of_eternal_night',
+        name: 'Сфера Вечной Ночи',
+        desc: 'Сгусток чистейшей первородной тьмы (+22 физ. урона, +22 маг. урона, +12% уклонения, +80 HP, +80 MP).',
+        price: 920,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 27,
+        physicalDamage: 22,
+        magicDamage: 22,
+        dodgeChance: 12,
+        maxHp: 80,
+        maxMp: 80,
+        icon: Icons.orb(24),
+        rarity: 'legendary'
+    },
+    phoenix_rebirth_hand: {
+        id: 'phoenix_rebirth_hand',
+        name: 'Длань Пылающего Феникса',
+        desc: 'Пылающий золотом артефакт перерождения (+25 физ. урона, +18 к защите, +16% крита, +120 HP).',
+        price: 1100,
+        slot: 'accessory',
+        type: 'relic',
+        reqLevel: 28,
+        physicalDamage: 25,
+        defense: 18,
+        critChance: 16,
+        maxHp: 120,
+        icon: Icons.fire(24),
+        rarity: 'legendary'
+    },
+
     // =========================================================================
     // СНАДОБЬЯ И ЗЕЛЬЯ (POTIONS / CONSUMABLES)
     // =========================================================================
@@ -2273,15 +2469,15 @@ export function getTraderStock(traderId, playerLevel = 1) {
         case 'shop':
             itemIds = [
                 // 1 уровень
-                'hp_potion', 'mp_potion', 'torch', 'escape_scroll', 'bronze_ring_of_might',
+                'hp_potion', 'mp_potion', 'torch', 'escape_scroll', 'bronze_ring_of_might', 'stone_spirit_amulet',
                 // 2 уровень
-                'greater_hp_potion', 'greater_mp_potion', 'stoneskin_scroll', 'thief_silver_ring',
+                'greater_hp_potion', 'greater_mp_potion', 'stoneskin_scroll', 'thief_silver_ring', 'ring_of_feline_grace', 'salamander_fire_opal',
                 // 3 уровень
-                'full_recovery_potion', 'berserker_elixir', 'amulet_of_ghost_step',
+                'full_recovery_potion', 'berserker_elixir', 'amulet_of_ghost_step', 'crimson_moon_ring', 'shadow_blade_earring',
                 // 4 уровень
-                'archmage_draught', 'ring_of_ancient_kings',
+                'archmage_draught', 'ring_of_ancient_kings', 'basilisk_petrifying_eye', 'titan_of_oblivion_ring',
                 // 5 уровень
-                'elixir_of_immortality', 'eye_of_the_void'
+                'elixir_of_immortality', 'eye_of_the_void', 'orb_of_eternal_night'
             ];
             break;
 
@@ -2290,13 +2486,13 @@ export function getTraderStock(traderId, playerLevel = 1) {
                 // 1 уровень
                 'holy_water', 'blessed_amulet', 'minor_prayer_beads',
                 // 2 уровень
-                'vial_of_dawn', 'paladin_crusader_cross', 'tears_of_goddess',
+                'vial_of_dawn', 'paladin_crusader_cross', 'tears_of_goddess', 'star_oracle_amulet', 'steel_guardian_seal',
                 // 3 уровень
-                'seraphim_feather_amulet',
+                'seraphim_feather_amulet', 'frost_whisper_ring',
                 // 4 уровень
-                'archangel_halo_relic',
+                'archangel_halo_relic', 'storm_tempest_amulet', 'astral_monarch_circlet',
                 // 5 уровень
-                'chalice_of_eternity'
+                'chalice_of_eternity', 'phoenix_rebirth_hand'
             ];
             break;
 

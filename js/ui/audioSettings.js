@@ -1,6 +1,15 @@
 import { sound } from '../audio/audioEngine.js';
 
 export class AudioSettings {
+    static updateSliderFill(input) {
+        if (!input || input.type !== 'range') return;
+        const min = parseFloat(input.min) || 0;
+        const max = parseFloat(input.max) || 100;
+        const val = parseFloat(input.value) || 0;
+        const pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+        input.style.setProperty('--fill', `${pct}%`);
+    }
+
     static init() {
         const modal = document.getElementById('settings-modal');
         const btnOpen = document.getElementById('btn-open-settings');
@@ -16,6 +25,16 @@ export class AudioSettings {
         const labelMusic = document.getElementById('label-music-val');
         const labelSfx = document.getElementById('label-sfx-val');
         const labelText = document.getElementById('label-text-val');
+
+        // Инициализируем визуальный градиент заполнения для всех ползунков настроек
+        [sliderMaster, sliderMusic, sliderSfx, sliderText].forEach(s => this.updateSliderFill(s));
+
+        // Глобальный слушатель для любых существующих и будущих кастомных ползунков в игре
+        document.addEventListener('input', (e) => {
+            if (e.target && e.target.type === 'range') {
+                this.updateSliderFill(e.target);
+            }
+        });
 
         btnOpen.addEventListener('click', () => {
             sound.ensureReady();

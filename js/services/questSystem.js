@@ -225,12 +225,17 @@ export class QuestSystem {
     }
 
     static hasQuestsForBuilding(player, buildingId) {
+        if (buildingId === 'southRoad') {
+            const hasTurnIn = this.hasTurnInQuestsForNpc(player, 'varran') || this.hasTurnInQuestsForNpc(player, 'bran');
+            const hasAvailable = this.hasAvailableQuestsForNpc(player, 'varran') || this.hasAvailableQuestsForNpc(player, 'bran');
+            return { hasAvailable, hasTurnIn };
+        }
+
         const buildingNpcMap = {
             shop: 'rashid',
             blacksmith: 'torvald',
             tavern: 'brok',
-            temple: 'elysia',
-            southRoad: 'varran'
+            temple: 'elysia'
         };
         const npcId = buildingNpcMap[buildingId];
         if (!npcId) return { hasAvailable: false, hasTurnIn: false };

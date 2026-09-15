@@ -24,26 +24,184 @@ export class CharacterCreation {
         };
 
         this.maleHairStyles = [
-            { id: 'short', name: 'Короткая' },
-            { id: 'long', name: 'Длинная' },
-            { id: 'mohawk', name: 'Ирокез' },
-            { id: 'ponytail', name: 'Хвост' },
-            { id: 'bald', name: 'Бритый' }
+            { id: 'spiky_wild', name: 'Взъерошенные иглы' },
+            { id: 'messy_bangs', name: 'Ниспадающие пряди' },
+            { id: 'short', name: 'Короткая классика' },
+            { id: 'messy', name: 'Творческий беспорядок' },
+            { id: 'curtain', name: 'Шторы (пробор)' },
+            { id: 'undercut', name: 'Андеркат' },
+            { id: 'fade_side', name: 'Фейд с пробором' },
+            { id: 'topknot', name: 'Топ-кнот (узел)' },
+            { id: 'mohawk', name: 'Боевой ирокез' },
+            { id: 'dreadlocks', name: 'Дреды' },
+            { id: 'viking_braid', name: 'Северная коса' },
+            { id: 'curly_crop', name: 'Кудрявый кроп' },
+            { id: 'noble_wavy', name: 'Благородные волны' },
+            { id: 'ponytail', name: 'Низкий хвост' },
+            { id: 'ponytail_high', name: 'Высокий хвост' },
+            { id: 'long', name: 'Длинные прямые' },
+            { id: 'bald', name: 'Бритый наголо' }
         ];
 
         this.femaleHairStyles = [
+            { id: 'messy_bangs', name: 'Ниспадающие пряди' },
+            { id: 'spiky_wild', name: 'Взъерошенные иглы' },
             { id: 'bob', name: 'Каре' },
-            { id: 'long', name: 'Длинные волны' },
-            { id: 'ponytail', name: 'Хвост' },
-            { id: 'braids', name: 'Две косы' },
-            { id: 'pixie', name: 'Пикси' }
+            { id: 'pixie', name: 'Короткая пикси' },
+            { id: 'short_messy', name: 'Короткие пряди' },
+            { id: 'hime_cut', name: 'Химэ (прямой срез)' },
+            { id: 'bun_top', name: 'Высокий пучок' },
+            { id: 'twin_buns', name: 'Двойные пучки' },
+            { id: 'ponytail', name: 'Классический хвост' },
+            { id: 'ponytail_high', name: 'Высокий конский хвост' },
+            { id: 'twin_braids', name: 'Две косы' },
+            { id: 'single_braid', name: 'Толстая коса' },
+            { id: 'side_braid', name: 'Коса набок' },
+            { id: 'long', name: 'Длинные прямые' },
+            { id: 'long_waves', name: 'Длинные волны' },
+            { id: 'curls_loose', name: 'Пышные кудри' },
+            { id: 'noble_wavy', name: 'Благородные волны' },
+            { id: 'valkyrie', name: 'Косы Валькирии' },
+            { id: 'warrior_halfup', name: 'Боевой полухвост' },
+            { id: 'undercut_fem', name: 'Бунтарский андеркат' },
+            { id: 'asymmetric', name: 'Асимметрия' }
+        ];
+
+        this.beards = [
+            { id: 'none', name: 'Гладко выбрит' },
+            { id: 'stubble', name: 'Легкая щетина' },
+            { id: 'heavy_stubble', name: 'Трехдневная щетина' },
+            { id: 'short_boxed', name: 'Аккуратная борода' },
+            { id: 'full', name: 'Густая борода' },
+            { id: 'goatee', name: 'Эспаньолка' },
+            { id: 'van_dyke', name: 'Ван Дейк' },
+            { id: 'braided', name: 'Борода с косицей' },
+            { id: 'viking_double', name: 'Двойные косы викинга' },
+            { id: 'mustache_classic', name: 'Классические усы' },
+            { id: 'mustache_horseshoe', name: 'Усы-подкова' },
+            { id: 'mutton_chops', name: 'Бакенбарды' }
+        ];
+
+        this.maleAccessories = [
+            { id: 'none', name: 'Нет' },
+            { id: 'blindfold', name: 'Тёмная повязка созерцателя' },
+            { id: 'sunglasses', name: 'Круглые тёмные очки' },
+            { id: 'cloth_bandage', name: 'Льняная повязка на глаза' },
+            { id: 'eyepatch', name: 'Кожаная повязка' },
+            { id: 'eyepatch_skull', name: 'Пиратская повязка' },
+            { id: 'scar_eye', name: 'Шрам через глаз' },
+            { id: 'scar', name: 'Боевой шрам на щеке' },
+            { id: 'scar_cross', name: 'Крестообразный шрам' },
+            { id: 'scar_slash', name: 'След когтей' },
+            { id: 'mask', name: 'Тканевая полумаска' },
+            { id: 'porcelain_mask', name: 'Фарфоровая полумаска' },
+            { id: 'monocle', name: 'Аристократический монокль' },
+            { id: 'warpaint', name: 'Боевой раскрас' },
+            { id: 'earrings', name: 'Золотая серьга' }
+        ];
+
+        this.femaleAccessories = [
+            { id: 'none', name: 'Нет' },
+            { id: 'blindfold', name: 'Тёмная повязка созерцателя' },
+            { id: 'sunglasses', name: 'Круглые тёмные очки' },
+            { id: 'cloth_bandage', name: 'Льняная повязка на глаза' },
+            { id: 'circlet', name: 'Золотая диадема' },
+            { id: 'earrings', name: 'Жемчужные серьги' },
+            { id: 'earrings_feathers', name: 'Серьги с перьями' },
+            { id: 'scar_eye', name: 'Шрам через глаз' },
+            { id: 'scar', name: 'Изящный шрам' },
+            { id: 'scar_cross', name: 'Крестообразный шрам' },
+            { id: 'mask', name: 'Шелковая полумаска' },
+            { id: 'porcelain_mask', name: 'Фарфоровая полумаска' },
+            { id: 'monocle', name: 'Монокль на цепочке' },
+            { id: 'warpaint', name: 'Ритуальный раскрас' }
         ];
 
         this.palettes = {
-            skin: ['#fae0d0', '#f1c29b', '#d69f7e', '#a36c4b', '#5c3826', '#87a96b', '#7c8b9e', '#e3d5b8'],
-            hair: ['#161618', '#2b1d16', '#6b321a', '#b84920', '#d8b168', '#b0b0b8', '#5b328a', '#245a4a'],
-            eye: ['#4b9cd3', '#2e7d32', '#8d5b2c', '#c0392b', '#8e44ad', '#f39c12', '#00e5ff', '#dcdcdc'],
-            outfit: ['#5a4634', '#3b4d3c', '#2c3e50', '#5b3a29', '#3e3746', '#2b2a29']
+            skin: [
+                { color: '#fff0e5', name: 'Фарфор' },
+                { color: '#fae0d0', name: 'Слоновая кость' },
+                { color: '#f5d3b3', name: 'Светлый персик' },
+                { color: '#f1c29b', name: 'Песочный' },
+                { color: '#e6b280', name: 'Золотистый загар' },
+                { color: '#d69f7e', name: 'Южный загар' },
+                { color: '#c6865a', name: 'Бронза' },
+                { color: '#a36c4b', name: 'Тёмный янтарь' },
+                { color: '#855132', name: 'Горький шоколад' },
+                { color: '#5c3826', name: 'Глубокое дерево' },
+                { color: '#3d2417', name: 'Эбеновое дерево' },
+                { color: '#e0d2c7', name: 'Бледный пепел' },
+                { color: '#87a96b', name: 'Лесной эльф' },
+                { color: '#688c5a', name: 'Оркский малахит' },
+                { color: '#7c8b9e', name: 'Подземный дроу' },
+                { color: '#9d87a5', name: 'Сумеречный лиловый' }
+            ],
+            hair: [
+                { color: '#ffffff', name: 'Первозданный снег' },
+                { color: '#f1f5f9', name: 'Платиновый иней' },
+                { color: '#d1d5db', name: 'Пепельное серебро' },
+                { color: '#9ca3af', name: 'Стальной дым' },
+                { color: '#4b5563', name: 'Мокрый графит' },
+                { color: '#161618', name: 'Вороново крыло' },
+                { color: '#2b1d16', name: 'Тёмный каштан' },
+                { color: '#422518', name: 'Жареный кофе' },
+                { color: '#6b321a', name: 'Медный дуб' },
+                { color: '#8b4513', name: 'Благородный орех' },
+                { color: '#a0522d', name: 'Красное дерево' },
+                { color: '#b84920', name: 'Огненно-рыжий' },
+                { color: '#d97706', name: 'Янтарное золото' },
+                { color: '#d8b168', name: 'Пшеничный блонд' },
+                { color: '#fef08a', name: 'Солнечный лен' },
+                { color: '#a855f7', name: 'Мистический аметист' },
+                { color: '#5b328a', name: 'Королевский пурпур' },
+                { color: '#3b82f6', name: 'Сапфировая волна' },
+                { color: '#06b6d4', name: 'Небесная лазурь' },
+                { color: '#10b981', name: 'Изумрудный мох' },
+                { color: '#245a4a', name: 'Глубокая хвоя' },
+                { color: '#ec4899', name: 'Розовый кварц' },
+                { color: '#dc2626', name: 'Багряный рубин' },
+                { color: '#6366f1', name: 'Грозовой индиго' }
+            ],
+            eye: [
+                { color: '#00f0ff', name: 'Лазурная Бездна (Око Бесконечности)' },
+                { color: '#38bdf8', name: 'Небесно-голубой' },
+                { color: '#4b9cd3', name: 'Морская лазурь' },
+                { color: '#1d4ed8', name: 'Глубокий сапфир' },
+                { color: '#10b981', name: 'Изумрудный' },
+                { color: '#2e7d32', name: 'Хвойный нефрит' },
+                { color: '#84cc16', name: 'Светло-оливковый' },
+                { color: '#8d5b2c', name: 'Теплый янтарь' },
+                { color: '#5c3826', name: 'Темный карий' },
+                { color: '#2b1810', name: 'Черный обсидиан' },
+                { color: '#c0392b', name: 'Кровавый рубин' },
+                { color: '#f97316', name: 'Пылающий топаз' },
+                { color: '#facc15', name: 'Золотой дракон' },
+                { color: '#8e44ad', name: 'Тайный аметист' },
+                { color: '#c084fc', name: 'Лавандовый' },
+                { color: '#dcdcdc', name: 'Ледяное серебро' },
+                { color: '#64748b', name: 'Грозовая сталь' },
+                { color: '#f43f5e', name: 'Алая роза' },
+                { color: 'hetero_blue_gold', name: 'Гетерохромия (Лазурь и Золото)' },
+                { color: 'hetero_red_cyan', name: 'Гетерохромия (Рубин и Циан)' }
+            ],
+            outfit: [
+                { color: '#11121c', name: 'Полночная бездна (Ткань мага)' },
+                { color: '#262626', name: 'Угольно-черный' },
+                { color: '#5a4634', name: 'Холщовый лен' },
+                { color: '#785438', name: 'Дубленая кожа' },
+                { color: '#3b4d3c', name: 'Охотничий ельник' },
+                { color: '#1e3a29', name: 'Глубокий малахит' },
+                { color: '#2c3e50', name: 'Морской бушлат' },
+                { color: '#1e293b', name: 'Стальной кобальт' },
+                { color: '#4a1525', name: 'Благородный бордо' },
+                { color: '#831843', name: 'Королевский бархат' },
+                { color: '#3e3746', name: 'Сумеречный шелк' },
+                { color: '#4338ca', name: 'Индиго чародея' },
+                { color: '#854d0e', name: 'Горчичное сукно' },
+                { color: '#d97706', name: 'Шафрановый плащ' },
+                { color: '#f1f5f9', name: 'Белоснежный сатин' },
+                { color: '#94a3b8', name: 'Пепельное сукно' }
+            ]
         };
 
         this.classes = {
@@ -135,7 +293,7 @@ export class CharacterCreation {
 
                     <div class="tab-content active" id="tab-appearance">
                         <div class="setting-group">
-                            <label>Оттенок кожи</label>
+                            <label>Оттенок кожи <span class="selected-color-name" id="selected-skin-name"></span></label>
                             <div class="palette" id="skin-palette"></div>
                         </div>
                         <div class="setting-group">
@@ -143,28 +301,22 @@ export class CharacterCreation {
                             <div class="btn-group" id="hair-style-group"></div>
                         </div>
                         <div class="setting-group">
-                            <label>Цвет волос</label>
+                            <label>Цвет волос <span class="selected-color-name" id="selected-hair-name"></span></label>
                             <div class="palette" id="hair-palette"></div>
                         </div>
                         <div class="setting-group">
-                            <label>Цвет глаз</label>
+                            <label>Цвет глаз <span class="selected-color-name" id="selected-eye-name"></span></label>
                             <div class="palette" id="eye-palette"></div>
                         </div>
                         <div class="setting-group" id="beard-setting-wrapper">
                             <label>Растительность на лице</label>
-                            <div class="btn-group" id="beard-group">
-                                <button class="choice-btn ${this.visuals.beard === 'none' ? 'active' : ''}" data-value="none">Гладко выбрит</button>
-                                <button class="choice-btn ${this.visuals.beard === 'stubble' ? 'active' : ''}" data-value="stubble">Щетина</button>
-                                <button class="choice-btn ${this.visuals.beard === 'full' ? 'active' : ''}" data-value="full">Густая борода</button>
-                                <button class="choice-btn ${this.visuals.beard === 'goatee' ? 'active' : ''}" data-value="goatee">Эспаньолка</button>
-                                <button class="choice-btn ${this.visuals.beard === 'braided' ? 'active' : ''}" data-value="braided">С косицей</button>
-                            </div>
+                            <div class="btn-group" id="beard-group"></div>
                         </div>
                     </div>
 
                     <div class="tab-content" id="tab-equipment">
                         <div class="setting-group">
-                            <label>Цвет походной рубахи</label>
+                            <label>Цвет походной рубахи <span class="selected-color-name" id="selected-outfit-name"></span></label>
                             <div class="palette" id="outfit-palette"></div>
                         </div>
                         <div class="setting-group">
@@ -208,6 +360,7 @@ export class CharacterCreation {
         this.initGenderSelectors();
         this.renderHairStyleButtons();
         this.renderAccessoryButtons();
+        this.renderBeardButtons();
         this.initVisualsSelectors();
         this.renderClassCards();
         this.renderOriginCards();
@@ -227,12 +380,18 @@ export class CharacterCreation {
             if (this.gender !== 'male') {
                 this.gender = 'male';
                 this.visuals.gender = 'male';
-                this.visuals.hairStyle = 'short';
+                if (!this.maleHairStyles.some(s => s.id === this.visuals.hairStyle)) {
+                    this.visuals.hairStyle = this.maleHairStyles[0].id;
+                }
+                if (!this.maleAccessories.some(a => a.id === this.visuals.accessory)) {
+                    this.visuals.accessory = 'none';
+                }
                 btnMale.classList.add('active');
                 btnFemale.classList.remove('active');
                 this.container.querySelector('#beard-setting-wrapper').style.display = 'flex';
                 this.renderHairStyleButtons();
                 this.renderAccessoryButtons();
+                this.renderBeardButtons();
                 this.randomizeName();
                 this.updateAvatarSvg();
             }
@@ -242,8 +401,13 @@ export class CharacterCreation {
             if (this.gender !== 'female') {
                 this.gender = 'female';
                 this.visuals.gender = 'female';
-                this.visuals.hairStyle = 'bob';
+                if (!this.femaleHairStyles.some(s => s.id === this.visuals.hairStyle)) {
+                    this.visuals.hairStyle = this.femaleHairStyles[0].id;
+                }
                 this.visuals.beard = 'none';
+                if (!this.femaleAccessories.some(a => a.id === this.visuals.accessory)) {
+                    this.visuals.accessory = 'none';
+                }
                 btnFemale.classList.add('active');
                 btnMale.classList.remove('active');
                 this.container.querySelector('#beard-setting-wrapper').style.display = 'none';
@@ -257,7 +421,12 @@ export class CharacterCreation {
 
     renderHairStyleButtons() {
         const group = this.container.querySelector('#hair-style-group');
+        if (!group) return;
         const styles = this.gender === 'female' ? this.femaleHairStyles : this.maleHairStyles;
+
+        if (!styles.some(s => s.id === this.visuals.hairStyle)) {
+            this.visuals.hairStyle = styles[0].id;
+        }
 
         group.innerHTML = styles.map(s => `
             <button class="choice-btn ${this.visuals.hairStyle === s.id ? 'active' : ''}" data-value="${s.id}">${s.name}</button>
@@ -273,28 +442,35 @@ export class CharacterCreation {
         });
     }
 
+    renderBeardButtons() {
+        const group = this.container.querySelector('#beard-group');
+        if (!group) return;
+
+        if (!this.beards.some(b => b.id === this.visuals.beard)) {
+            this.visuals.beard = 'none';
+        }
+
+        group.innerHTML = this.beards.map(b => `
+            <button class="choice-btn ${this.visuals.beard === b.id ? 'active' : ''}" data-value="${b.id}">${b.name}</button>
+        `).join('');
+
+        group.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                group.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.visuals.beard = btn.dataset.value;
+                this.updateAvatarSvg();
+            });
+        });
+    }
+
     renderAccessoryButtons() {
         const group = this.container.querySelector('#accessory-group');
-        let options = [];
+        if (!group) return;
+        const options = this.gender === 'female' ? this.femaleAccessories : this.maleAccessories;
 
-        if (this.gender === 'female') {
-            options = [
-                { id: 'none', name: 'Нет' },
-                { id: 'earrings', name: 'Серьги' },
-                { id: 'circlet', name: 'Диадема' },
-                { id: 'scar', name: 'Шрам' },
-                { id: 'mask', name: 'Полумаска' },
-                { id: 'warpaint', name: 'Раскрас' }
-            ];
-        } else {
-            options = [
-                { id: 'none', name: 'Нет' },
-                { id: 'scar', name: 'Шрам' },
-                { id: 'eyepatch', name: 'Повязка' },
-                { id: 'mask', name: 'Полумаска' },
-                { id: 'monocle', name: 'Монокль' },
-                { id: 'warpaint', name: 'Раскрас' }
-            ];
+        if (!options.some(o => o.id === this.visuals.accessory)) {
+            this.visuals.accessory = 'none';
         }
 
         group.innerHTML = options.map(o => `
@@ -356,35 +532,52 @@ export class CharacterCreation {
     }
 
     initVisualsSelectors() {
-        const createPalette = (selector, list, key) => {
+        const createPalette = (selector, list, key, labelId) => {
             const container = this.container.querySelector(selector);
-            list.forEach(color => {
+            const labelSpan = this.container.querySelector(labelId);
+            if (!container) return;
+
+            const updateLabel = (colorVal) => {
+                if (!labelSpan) return;
+                const found = list.find(item => (typeof item === 'object' ? item.color === colorVal : item === colorVal));
+                labelSpan.textContent = found ? (typeof found === 'object' ? `— ${found.name}` : `— ${found}`) : '';
+            };
+
+            updateLabel(this.visuals[key]);
+
+            list.forEach(item => {
+                const color = typeof item === 'object' ? item.color : item;
+                const name = typeof item === 'object' ? item.name : item;
                 const dot = document.createElement('div');
                 dot.className = `color-dot ${this.visuals[key] === color ? 'active' : ''}`;
-                dot.style.backgroundColor = color;
+                dot.title = name;
+
+                if (color === 'hetero_blue_gold') {
+                    dot.style.background = 'linear-gradient(135deg, #38bdf8 50%, #facc15 50%)';
+                } else if (color === 'hetero_red_cyan') {
+                    dot.style.background = 'linear-gradient(135deg, #dc2626 50%, #00f0ff 50%)';
+                } else if (color === '#00f0ff') {
+                    dot.style.background = 'radial-gradient(circle, #ffffff 15%, #00f0ff 70%)';
+                    dot.style.boxShadow = '0 0 6px rgba(0, 240, 255, 0.7)';
+                } else {
+                    dot.style.backgroundColor = color;
+                }
+
                 dot.addEventListener('click', () => {
                     this.visuals[key] = color;
                     container.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
                     dot.classList.add('active');
+                    updateLabel(color);
                     this.updateAvatarSvg();
                 });
                 container.appendChild(dot);
             });
         };
 
-        createPalette('#skin-palette', this.palettes.skin, 'skinColor');
-        createPalette('#hair-palette', this.palettes.hair, 'hairColor');
-        createPalette('#eye-palette', this.palettes.eye, 'eyeColor');
-        createPalette('#outfit-palette', this.palettes.outfit, 'outfitColor');
-
-        this.container.querySelectorAll('#beard-group .choice-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.container.querySelectorAll('#beard-group .choice-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                this.visuals.beard = btn.dataset.value;
-                this.updateAvatarSvg();
-            });
-        });
+        createPalette('#skin-palette', this.palettes.skin, 'skinColor', '#selected-skin-name');
+        createPalette('#hair-palette', this.palettes.hair, 'hairColor', '#selected-hair-name');
+        createPalette('#eye-palette', this.palettes.eye, 'eyeColor', '#selected-eye-name');
+        createPalette('#outfit-palette', this.palettes.outfit, 'outfitColor', '#selected-outfit-name');
     }
 
     randomizeName() {

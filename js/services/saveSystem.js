@@ -23,7 +23,14 @@ export class SaveSystem {
                     currentMp: player.currentMp,
                     equipment: player.equipment,
                     inventory: player.inventory,
-                    smithBonuses: player.smithBonuses || { physicalDamage: 0, defense: 0, critChance: 0 }
+                    smithBonuses: player.smithBonuses || { physicalDamage: 0, defense: 0, critChance: 0 },
+                    skillPoints: player.skillPoints !== undefined ? player.skillPoints : 0,
+                    skills: player.skills,
+                    abilityDeck: player.abilityDeck,
+                    hasDefeatedFinalBoss: !!player.hasDefeatedFinalBoss,
+                    hasViewedAbyssEnding: !!player.hasViewedAbyssEnding,
+                    hasOpenedSouthGates: !!player.hasOpenedSouthGates,
+                    quests: player.quests
                 }
             };
             localStorage.setItem(this.SAVE_KEY, JSON.stringify(data));

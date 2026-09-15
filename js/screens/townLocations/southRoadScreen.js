@@ -1,22 +1,29 @@
 import { sound } from '../../audio/audioEngine.js';
 import { townTheme } from '../../audio/music/townTheme.js';
+import { southRoadTheme } from '../../audio/music/southRoadTheme.js';
 import { CharacterRenderer } from '../../visuals/characterRenderer.js';
+import { NpcRenderer, NPC_CONFIGS } from '../../visuals/npcRenderer.js';
 import { Icons } from '../../visuals/icons.js';
 import { QuestSystem } from '../../services/questSystem.js';
 import { QuestRenderer } from '../../ui/questRenderer.js';
+import { SaveSystem } from '../../services/saveSystem.js';
 
 export class SouthRoadScreen {
     constructor(player, callbacks = {}) {
         this.player = player;
         this.callbacks = callbacks;
-        this.currentDialog = null;
+        this.selectedNpcId = 'varran'; // 'varran' | 'bran' | 'gate'
+        this.activeSubTab = 'dialog';  // 'dialog' | 'quests'
+        this.dialogState = null;        // custom sub-dialogue if selected
+        this.isGateAnimating = false;
 
-        sound.switchMusic(townTheme, 1.2);
+        sound.switchMusic(southRoadTheme, 1.2);
     }
 
     render(container) {
         this.container = container;
-        const isUnlocked = !!this.player.hasDefeatedFinalBoss;
+        const isGateOpen = !!this.player.hasOpenedSouthGates;
+        const canOpenGate = !!this.player.hasDefeatedFinalBoss && !!this.player.hasViewedAbyssEnding && !isGateOpen;
 
         container.innerHTML = `
             <div class="interior-screen south-road-screen">
@@ -31,7 +38,7 @@ export class SouthRoadScreen {
                     </div>
                     <div class="interior-title-wrap">
                         <h2>Застава Южного Тракта</h2>
-                        <span class="interior-subtitle">Укреплённые врата королевства. Путь в цветущие долины и столицу внешнего мира</span>
+                        <span class="interior-subtitle">Укреплённый пограничный форпост. Гарнизон южного дозора и путь во внешний мир</span>
                     </div>
                     <button class="btn btn-secondary" id="btn-leave-south-road">${Icons.arrowLeft(13)} На площадь города</button>
                 </div>
@@ -44,283 +51,337 @@ export class SouthRoadScreen {
                                 <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                                     <stop offset="0%" stop-color="#1e3a8a"/>
                                     <stop offset="35%" stop-color="#0284c7"/>
-                                    <stop offset="70%" stop-color="#7dd3fc"/>
+                                    <stop offset="65%" stop-color="#38bdf8"/>
                                     <stop offset="100%" stop-color="#bae6fd"/>
                                 </linearGradient>
 
-                                <linearGradient id="sunGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#fef08a" stop-opacity="0.9"/>
+                                <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#fef08a" stop-opacity="0.95"/>
+                                    <stop offset="40%" stop-color="#f59e0b" stop-opacity="0.5"/>
                                     <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+                                </radialGradient>
+
+                                <radialGradient id="fireGlow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#fef08a" stop-opacity="0.95"/>
+                                    <stop offset="35%" stop-color="#f97316" stop-opacity="0.7"/>
+                                    <stop offset="70%" stop-color="#ea580c" stop-opacity="0.3"/>
+                                    <stop offset="100%" stop-color="#c2410c" stop-opacity="0"/>
+                                </radialGradient>
+
+                                <linearGradient id="palisadeWood" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#3b1d06"/>
+                                    <stop offset="50%" stop-color="#5a2f10"/>
+                                    <stop offset="100%" stop-color="#2a1403"/>
                                 </linearGradient>
 
-                                <linearGradient id="wallStone" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <linearGradient id="gateHeavyWood" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#2a1a10"/>
+                                    <stop offset="50%" stop-color="#452718"/>
+                                    <stop offset="100%" stop-color="#1a0f08"/>
+                                </linearGradient>
+
+                                <linearGradient id="stoneWallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                                     <stop offset="0%" stop-color="#475569"/>
                                     <stop offset="50%" stop-color="#334155"/>
                                     <stop offset="100%" stop-color="#1e293b"/>
                                 </linearGradient>
 
-                                <linearGradient id="gateWood" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#451a03"/>
-                                    <stop offset="50%" stop-color="#78350f"/>
-                                    <stop offset="100%" stop-color="#451a03"/>
-                                </linearGradient>
+                                <filter id="sceneGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#38bdf8" flood-opacity="0.8"/>
+                                </filter>
 
-                                <radialGradient id="torchFlame" cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stop-color="#fef08a"/>
-                                    <stop offset="40%" stop-color="#f97316"/>
-                                    <stop offset="85%" stop-color="#dc2626"/>
-                                    <stop offset="100%" stop-color="#7f1d1d" stop-opacity="0"/>
-                                </radialGradient>
+                                <filter id="goldAura" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#f59e0b" flood-opacity="0.8"/>
+                                </filter>
                             </defs>
 
-                            <!-- 1. НЕБО И ДАЛЬНИЕ СОЛНЕЧНЫЕ ДОЛИНЫ -->
+                            <!-- 1. НЕБО, СОЛНЦЕ И ГОРЫ ВДАЛИ -->
                             <rect width="520" height="400" fill="url(#skyGrad)"/>
-                            <circle cx="260" cy="110" r="70" fill="url(#sunGlow)"/>
+                            <circle cx="260" cy="85" r="80" fill="url(#sunGlow)"/>
 
-                            <!-- Дальние горные пики -->
-                            <polygon points="60,220 130,130 200,220" fill="#93c5fd" opacity="0.6"/>
-                            <polygon points="120,220 180,150 240,220" fill="#bfdbfe" opacity="0.5"/>
-                            <polygon points="270,220 350,120 430,220" fill="#93c5fd" opacity="0.6"/>
-                            <polygon points="360,220 420,155 480,220" fill="#bfdbfe" opacity="0.5"/>
+                            <!-- Плывущие облака -->
+                            <ellipse cx="90" cy="55" rx="45" ry="14" fill="#ffffff" opacity="0.65"/>
+                            <ellipse cx="125" cy="50" rx="35" ry="12" fill="#ffffff" opacity="0.6"/>
+                            <ellipse cx="410" cy="65" rx="55" ry="15" fill="#ffffff" opacity="0.55"/>
+                            <ellipse cx="445" cy="60" rx="35" ry="13" fill="#ffffff" opacity="0.5"/>
 
-                            <!-- Зеленые холмы королевства -->
-                            <path d="M0,230 Q140,180 260,210 Q380,180 520,230 L520,400 L0,400 Z" fill="#15803d"/>
-                            <path d="M0,245 Q160,220 260,235 Q360,220 520,245 L520,400 L0,400 Z" fill="#166534"/>
+                            <!-- Дальние горные хребты со снежными шапками -->
+                            <polygon points="10,180 80,105 150,180" fill="#93c5fd" opacity="0.55"/>
+                            <polygon points="70,118 80,105 90,118 80,123" fill="#f8fafc"/>
+                            <polygon points="110,180 185,90 260,180" fill="#60a5fa" opacity="0.5"/>
+                            <polygon points="172,105 185,90 198,105 185,112" fill="#f8fafc"/>
+                            <polygon points="260,180 340,95 420,180" fill="#93c5fd" opacity="0.55"/>
+                            <polygon points="328,109 340,95 352,109 340,116" fill="#f8fafc"/>
+                            <polygon points="380,180 455,110 530,180" fill="#60a5fa" opacity="0.5"/>
+                            <polygon points="444,122 455,110 466,122 455,128" fill="#f8fafc"/>
 
-                            <!-- Извилистый Южный тракт (дорога вдаль) -->
-                            <polygon points="230,230 290,230 360,400 160,400" fill="#d4c39c"/>
-                            <polygon points="245,230 275,230 330,400 190,400" fill="#bfa074" opacity="0.7"/>
+                            <!-- Хвойный зеленый лес на предгорьях -->
+                            <path d="M0,175 Q130,140 260,165 Q390,140 520,175 L520,240 L0,240 Z" fill="#14532d"/>
+                            <!-- Силуэты вековых сосен вдоль горизонта -->
+                            <polygon points="30,170 36,150 42,170" fill="#0f3c20"/>
+                            <polygon points="55,168 62,145 69,168" fill="#0b2e18"/>
+                            <polygon points="120,165 127,142 134,165" fill="#0f3c20"/>
+                            <polygon points="390,166 397,144 404,166" fill="#0f3c20"/>
+                            <polygon points="470,168 478,146 486,168" fill="#0b2e18"/>
 
-                            <!-- 2. МОНУМЕНТАЛЬНАЯ КРЕПОСТНАЯ СТЕНА И АРКА -->
-                            <!-- Левый бастион стены -->
-                            <rect x="0" y="80" width="160" height="320" fill="url(#wallStone)" stroke="#0f172a" stroke-width="2"/>
-                            <!-- Зубцы левой стены -->
-                            <rect x="0" y="60" width="30" height="24" fill="url(#wallStone)" stroke="#0f172a" stroke-width="1.5"/>
-                            <rect x="42" y="60" width="30" height="24" fill="url(#wallStone)" stroke="#0f172a" stroke-width="1.5"/>
-                            <rect x="84" y="60" width="30" height="24" fill="url(#wallStone)" stroke="#0f172a" stroke-width="1.5"/>
-                            <rect x="126" y="60" width="34" height="24" fill="url(#wallStone)" stroke="#0f172a" stroke-width="1.5"/>
+                            <!-- Земляная равнина и холмы перед заставой -->
+                            <path d="M0,195 Q140,175 260,190 Q380,175 520,195 L520,400 L0,400 Z" fill="#22421f"/>
+                            <path d="M0,230 Q160,205 260,225 Q360,205 520,230 L520,400 L0,400 Z" fill="#1a3518"/>
 
-                            <!-- Правый бастион стены -->
-                            <rect x="360" y="80" width="160" height="320" fill="url(#wallStone)" stroke="#0f172a" stroke-width="2"/>
-                            <!-- Зубцы правой стены -->
-                            <rect x="360" y="60" width="34" height="24" fill="url(#wallStone)" stroke="#0f172a" stroke-width="1.5"/>
-                            <rect x="404" y="60" width="30" height="24" fill="url(#wallStone)" stroke="#0f172a" stroke-width="1.5"/>
-                            <rect x="444" y="60" width="30" height="24" fill="url(#wallStone)" stroke="#0f172a" stroke-width="1.5"/>
-                            <rect x="484" y="60" width="36" height="24" fill="url(#wallStone)" stroke="#0f172a" stroke-width="1.5"/>
+                            <!-- 2. ЮЖНЫЙ ТРАКТ (ГРУНТОВАЯ ДОРОГА, ВЫХОДЯЩАЯ ИЗ ВОРОТ) -->
+                            <polygon points="220,190 300,190 380,400 140,400" fill="#a1885f"/>
+                            <polygon points="235,190 285,190 350,400 170,400" fill="#8c734b"/>
+                            <!-- Колеи от телег и гравий -->
+                            <path d="M245,195 Q250,280 205,400" stroke="#715c3a" stroke-width="3" fill="none"/>
+                            <path d="M275,195 Q270,280 315,400" stroke="#715c3a" stroke-width="3" fill="none"/>
+                            <circle cx="225" cy="330" r="3" fill="#604f32"/>
+                            <circle cx="280" cy="360" r="4" fill="#604f32"/>
+                            <circle cx="260" cy="270" r="2.5" fill="#604f32"/>
 
-                            <!-- Центральная арка над воротами -->
-                            <path d="M160,180 Q260,110 360,180 L360,80 L160,80 Z" fill="url(#wallStone)" stroke="#0f172a" stroke-width="2"/>
-                            <path d="M150,185 Q260,100 370,185" stroke="#facc15" stroke-width="3" fill="none"/>
-
-                            <!-- Королевский герб льва над сводом ворот -->
-                            <circle cx="260" cy="115" r="22" fill="#1e293b" stroke="#facc15" stroke-width="2"/>
-                            <polygon points="260,100 274,124 246,124" fill="#facc15"/>
-                            <circle cx="260" cy="116" r="4" fill="#b45309"/>
-
-                            <!-- Развевающиеся знамена королевства -->
-                            <g transform="translate(18, 30)">
-                                <line x1="0" y1="0" x2="0" y2="40" stroke="#78350f" stroke-width="3"/>
-                                <polygon points="0,0 35,8 0,22" fill="#1e3a8a" stroke="#ca8a04" stroke-width="1.2"/>
-                                <polygon points="0,2 25,9 0,16" fill="#facc15"/>
-                            </g>
-                            <g transform="translate(502, 30)">
-                                <line x1="0" y1="0" x2="0" y2="40" stroke="#78350f" stroke-width="3"/>
-                                <polygon points="0,0 -35,8 0,22" fill="#1e3a8a" stroke="#ca8a04" stroke-width="1.2"/>
-                                <polygon points="0,2 -25,9 0,16" fill="#facc15"/>
+                            <!-- 3. БРЕВЕНЧАТЫЙ ЧАСТОКОЛ И КАМЕННЫЕ ОПОРЫ ВОРОТ -->
+                            <!-- Левый частокол -->
+                            <g id="left-palisade">
+                                <rect x="0" y="140" width="170" height="150" fill="url(#palisadeWood)" stroke="#1a0b02" stroke-width="2"/>
+                                <!-- Заостренные бревенчатые зубья частокола -->
+                                <path d="M0,140 L10,120 L20,140 L30,120 L40,140 L50,120 L60,140 L70,120 L80,140 L90,120 L100,140 L110,120 L120,140 L130,120 L140,140 L150,120 L160,140 L170,120 L170,140" fill="#45230c" stroke="#1a0b02" stroke-width="1.5"/>
+                                <!-- Горизонтальные брусья крепежа -->
+                                <line x1="0" y1="165" x2="170" y2="165" stroke="#1c0f05" stroke-width="5"/>
+                                <line x1="0" y1="215" x2="170" y2="215" stroke="#1c0f05" stroke-width="5"/>
                             </g>
 
-                            <!-- ВРАТА: ЗАКРЫТЫ ИЛИ РАСПАХНУТЫ -->
-                            ${isUnlocked ? `
-                                <!-- Ворота распахнуты настежь -->
-                                <polygon points="160,180 180,185 180,390 160,400" fill="url(#gateWood)" stroke="#000" stroke-width="1.5"/>
-                                <polygon points="360,180 340,185 340,390 360,400" fill="url(#gateWood)" stroke="#000" stroke-width="1.5"/>
-                                <!-- Лучезарное сияние победы в проёме -->
-                                <polygon points="180,185 340,185 380,400 140,400" fill="#fef08a" opacity="0.35"/>
-                            ` : `
-                                <!-- Массивные закрытые дубовые створки -->
-                                <g id="closed-gate-doors">
-                                    <path d="M160,180 Q260,120 260,120 L260,400 L160,400 Z" fill="url(#gateWood)" stroke="#1c1917" stroke-width="2"/>
-                                    <path d="M360,180 Q260,120 260,120 L260,400 L360,400 Z" fill="url(#gateWood)" stroke="#1c1917" stroke-width="2"/>
-                                    <line x1="260" y1="120" x2="260" y2="400" stroke="#000000" stroke-width="3"/>
-                                    <!-- Кованые железные поперечные полосы -->
-                                    <rect x="160" y="210" width="200" height="10" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
-                                    <rect x="160" y="290" width="200" height="10" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
-                                    <rect x="160" y="360" width="200" height="10" fill="#0f172a" stroke="#334155" stroke-width="1.2"/>
-                                    <!-- Большой амбарный замок и цепи карантина -->
-                                    <circle cx="260" cy="295" r="14" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
-                                    <rect x="254" y="290" width="12" height="15" rx="2" fill="#ca8a04"/>
-                                    <circle cx="260" cy="296" r="2.5" fill="#1e293b"/>
-                                </g>
-                            `}
-
-                            <!-- Пылающие жаровни на колоннах -->
-                            <g transform="translate(136, 175)">
-                                <rect x="0" y="20" width="16" height="30" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
-                                <path d="M-6,20 L22,20 L16,32 L0,32 Z" fill="#334155"/>
-                                <circle cx="8" cy="14" r="14" fill="url(#torchFlame)"/>
-                                <circle cx="8" cy="10" r="5" fill="#fef08a"/>
-                            </g>
-                            <g transform="translate(368, 175)">
-                                <rect x="0" y="20" width="16" height="30" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
-                                <path d="M-6,20 L22,20 L16,32 L0,32 Z" fill="#334155"/>
-                                <circle cx="8" cy="14" r="14" fill="url(#torchFlame)"/>
-                                <circle cx="8" cy="10" r="5" fill="#fef08a"/>
+                            <!-- Правый частокол -->
+                            <g id="right-palisade">
+                                <rect x="350" y="140" width="170" height="150" fill="url(#palisadeWood)" stroke="#1a0b02" stroke-width="2"/>
+                                <!-- Зубья -->
+                                <path d="M350,140 L360,120 L370,140 L380,120 L390,140 L400,120 L410,140 L420,120 L430,140 L440,120 L450,140 L460,120 L470,140 L480,120 L490,140 L500,120 L510,140 L520,120 L520,140" fill="#45230c" stroke="#1a0b02" stroke-width="1.5"/>
+                                <!-- Горизонтальные брусья крепежа -->
+                                <line x1="350" y1="165" x2="520" y2="165" stroke="#1c0f05" stroke-width="5"/>
+                                <line x1="350" y1="215" x2="520" y2="215" stroke="#1c0f05" stroke-width="5"/>
                             </g>
 
-                            <!-- ============================================== -->
-                            <!-- СТРАЖНИК 1 (СЛЕВА): КАПИТАН ВАРРАН (С АЛЕБАРДОЙ) -->
-                            <!-- ============================================== -->
-                            <g id="npc-guard-left" class="interactive-guard" style="cursor: pointer;" transform="translate(80, 205)" title="Поговорить с капитаном Варраном">
-                                <ellipse cx="25" cy="180" rx="30" ry="8" fill="#000000" opacity="0.4"/>
+                            <!-- ДОЗОРНАЯ ВЫШКА СЛЕВА -->
+                            <g transform="translate(18, 55)" id="guard-watchtower">
+                                <!-- Опорные бревна вышки -->
+                                <line x1="10" y1="95" x2="20" y2="10" stroke="#3b1d06" stroke-width="4"/>
+                                <line x1="70" y1="95" x2="60" y2="10" stroke="#3b1d06" stroke-width="4"/>
+                                <line x1="15" y1="50" x2="65" y2="50" stroke="#45230c" stroke-width="3"/>
+                                <line x1="10" y1="95" x2="60" y2="10" stroke="#3b1d06" stroke-width="2" opacity="0.6"/>
+                                <line x1="70" y1="95" x2="20" y2="10" stroke="#3b1d06" stroke-width="2" opacity="0.6"/>
+                                <!-- Помост дозорного -->
+                                <rect x="12" y="8" width="56" height="14" rx="2" fill="#5a2f10" stroke="#1a0b02" stroke-width="2"/>
+                                <!-- Перила помоста -->
+                                <rect x="10" y="-8" width="60" height="16" fill="none" stroke="#78350f" stroke-width="2.5"/>
+                                <line x1="25" y1="-8" x2="25" y2="8" stroke="#78350f" stroke-width="2"/>
+                                <line x1="40" y1="-8" x2="40" y2="8" stroke="#78350f" stroke-width="2"/>
+                                <line x1="55" y1="-8" x2="55" y2="8" stroke="#78350f" stroke-width="2"/>
+                                <!-- Коническая крыша вышки -->
+                                <polygon points="5,-8 40,-32 75,-8" fill="#7f1d1d" stroke="#450a0a" stroke-width="2"/>
+                                <!-- Флагшток и королевский вымпел -->
+                                <line x1="40" y1="-32" x2="40" y2="-52" stroke="#d97706" stroke-width="2.5"/>
+                                <polygon points="40,-52 68,-44 40,-36" fill="#1e3a8a" stroke="#ca8a04" stroke-width="1.2"/>
+                                <polygon points="40,-50 58,-44 40,-38" fill="#facc15"/>
+                                <!-- Фонарь на вышке -->
+                                <circle cx="16" cy="18" r="10" fill="url(#sunGlow)"/>
+                                <rect x="14" y="14" width="4" height="7" rx="1" fill="#fef08a" stroke="#ca8a04" stroke-width="0.8"/>
+                            </g>
+
+                            <!-- КАМЕННЫЕ ПИЛОНЫ И АРКА ВРАТ -->
+                            <!-- Левый пилон -->
+                            <rect x="160" y="110" width="40" height="180" rx="3" fill="url(#stoneWallGrad)" stroke="#0f172a" stroke-width="2.5"/>
+                            <rect x="156" y="102" width="48" height="12" rx="2" fill="#475569" stroke="#0f172a" stroke-width="2"/>
+                            <!-- Правый пилон -->
+                            <rect x="320" y="110" width="40" height="180" rx="3" fill="url(#stoneWallGrad)" stroke="#0f172a" stroke-width="2.5"/>
+                            <rect x="316" y="102" width="48" height="12" rx="2" fill="#475569" stroke="#0f172a" stroke-width="2"/>
+                            <!-- Каменная перемычка-арка -->
+                            <path d="M190,130 Q260,95 330,130 L330,105 Q260,70 190,105 Z" fill="url(#stoneWallGrad)" stroke="#0f172a" stroke-width="2.5"/>
+                            <path d="M195,128 Q260,98 325,128" stroke="#ca8a04" stroke-width="2" fill="none"/>
+
+                            <!-- Гербовый щит с золотым львом над вратами -->
+                            <g transform="translate(260, 92)">
+                                <path d="M-14,-14 L14,-14 L14,4 Q14,16 0,22 Q-14,16 -14,4 Z" fill="#1e3a8a" stroke="#facc15" stroke-width="2"/>
+                                <polygon points="0,-8 6,-2 0,6 -6,-2" fill="#facc15"/>
+                                <circle cx="0" cy="-2" r="2.5" fill="#b45309"/>
+                            </g>
+
+                            <!-- 4. СТВОРЫ ВРАТ (ЗАКРЫТЫ ИЛИ ОТКРЫТЫ) -->
+                            <g id="scene-gate" style="cursor: pointer;" class="${this.selectedNpcId === 'gate' ? 'selected-interactive' : ''}" title="Южные Врата">
+                                ${this.selectedNpcId === 'gate' ? '<ellipse cx="260" cy="245" rx="65" ry="18" fill="#f59e0b" opacity="0.4" class="anim-pulse"/>' : ''}
+                                ${isGateOpen ? `
+                                    <!-- ВРАТА РАСПАХНУТЫ ВПЕРЕД К ВЕЛИКОЙ ПОБЕДЕ -->
+                                    <polygon points="195,130 215,136 215,260 195,268" fill="url(#gateHeavyWood)" stroke="#0f0904" stroke-width="2"/>
+                                    <polygon points="325,130 305,136 305,260 325,268" fill="url(#gateHeavyWood)" stroke="#0f0904" stroke-width="2"/>
+                                    <!-- Золотые сияющие солнечные лучи сквозь открытые врата -->
+                                    <g id="gate-sun-rays">
+                                        <polygon points="215,136 305,136 345,285 175,285" fill="#fef08a" opacity="0.5" filter="url(#goldAura)"/>
+                                        <line x1="260" y1="136" x2="260" y2="285" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+                                        <line x1="240" y1="136" x2="220" y2="285" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+                                        <line x1="280" y1="136" x2="300" y2="285" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+                                    </g>
+                                    <!-- Вывеска статуса -->
+                                    <g transform="translate(260, 240)" id="gate-status-badge-svg">
+                                        <rect x="-48" y="0" width="96" height="20" rx="4" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5"/>
+                                        <text x="0" y="14" text-anchor="middle" fill="#fde047" font-size="10" font-weight="bold">ВРАТА ОТКРЫТЫ</text>
+                                    </g>
+                                ` : `
+                                    <!-- Золотые лучи (скрыты до распахивания) -->
+                                    <g id="gate-sun-rays" style="opacity: 0;">
+                                        <polygon points="215,136 305,136 345,285 175,285" fill="#fef08a" opacity="0.5" filter="url(#goldAura)"/>
+                                        <line x1="260" y1="136" x2="260" y2="285" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+                                        <line x1="240" y1="136" x2="220" y2="285" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+                                        <line x1="280" y1="136" x2="300" y2="285" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+                                    </g>
+                                    <!-- ЛЕВАЯ СТВОРКА ВРАТ -->
+                                    <g id="gate-door-left">
+                                        <path d="M195,130 Q260,110 260,110 L260,265 L195,265 Z" fill="url(#gateHeavyWood)" stroke="#1a0b02" stroke-width="2"/>
+                                        <line x1="260" y1="110" x2="260" y2="265" stroke="#000000" stroke-width="2.5"/>
+                                        <rect x="195" y="145" width="65" height="9" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                                        <rect x="195" y="195" width="65" height="9" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                                        <rect x="195" y="245" width="65" height="9" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                                        <circle cx="210" cy="149" r="2" fill="#cbd5e1"/>
+                                        <circle cx="240" cy="149" r="2" fill="#cbd5e1"/>
+                                        <circle cx="210" cy="199" r="2" fill="#cbd5e1"/>
+                                    </g>
+                                    <!-- ПРАВАЯ СТВОРКА ВРАТ -->
+                                    <g id="gate-door-right">
+                                        <path d="M325,130 Q260,110 260,110 L260,265 L325,265 Z" fill="url(#gateHeavyWood)" stroke="#1a0b02" stroke-width="2"/>
+                                        <rect x="260" y="145" width="65" height="9" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                                        <rect x="260" y="195" width="65" height="9" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                                        <rect x="260" y="245" width="65" height="9" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                                        <circle cx="280" cy="149" r="2" fill="#cbd5e1"/>
+                                        <circle cx="310" cy="149" r="2" fill="#cbd5e1"/>
+                                        <circle cx="310" cy="199" r="2" fill="#cbd5e1"/>
+                                    </g>
+                                    <!-- ЗАМОК С ТЯЖЕЛОЙ ЦЕПЬЮ -->
+                                    <g id="gate-lock-chains">
+                                        <path d="M230,190 Q260,215 290,190" stroke="#475569" stroke-width="4" fill="none"/>
+                                        <circle cx="260" cy="200" r="16" fill="#0f172a" stroke="#ea580c" stroke-width="2.5"/>
+                                        <path d="M254,196 L266,196 L266,206 L254,206 Z" fill="#f59e0b"/>
+                                        <circle cx="260" cy="200" r="2" fill="#1e293b"/>
+                                    </g>
+                                    <!-- ВЫВЕСКА СТАТУСА -->
+                                    <g transform="translate(260, 240)" id="gate-status-badge-svg">
+                                        <rect x="-48" y="0" width="96" height="20" rx="4" fill="#0f172a" stroke="#ea580c" stroke-width="1.5" id="gate-status-badge-rect"/>
+                                        <text x="0" y="14" text-anchor="middle" fill="#fca5a5" font-size="9.5" font-weight="bold" id="gate-status-badge-text">КАРАНТИН</text>
+                                    </g>
+                                `}
+                            </g>
+
+                            <!-- 5. ЛАГЕРНАЯ ЖИЗНЬ ГАРНИЗОНА: КОСТЕР (СЛЕВА СБОКУ) -->
+                            <g id="camp-fire-area" transform="translate(15, 290)">
+                                <!-- Тень костровища -->
+                                <ellipse cx="25" cy="50" rx="26" ry="9" fill="#000000" opacity="0.4"/>
+                                <!-- Каменное кольцо очага -->
+                                <ellipse cx="25" cy="46" rx="20" ry="8" fill="#292524" stroke="#1c1917" stroke-width="1.8"/>
+                                <circle cx="10" cy="46" r="4.5" fill="#44403c"/>
+                                <circle cx="20" cy="49" r="4" fill="#57534e"/>
+                                <circle cx="32" cy="48" r="4.5" fill="#44403c"/>
+                                <circle cx="40" cy="44" r="4" fill="#57534e"/>
+
+                                <!-- Угли и пламя костра -->
+                                <circle cx="25" cy="44" r="24" fill="url(#fireGlow)" class="anim-torch-glow"/>
+                                <path d="M18,44 Q25,22 32,44 Z" fill="#ea580c" class="anim-forge-flame"/>
+                                <path d="M20,44 Q25,28 30,44 Z" fill="#f59e0b"/>
+                                <circle cx="25" cy="42" r="3.5" fill="#fef08a"/>
+
+                                <!-- Тренога с чугунным котелком -->
+                                <line x1="12" y1="48" x2="25" y2="18" stroke="#090a0f" stroke-width="2"/>
+                                <line x1="38" y1="48" x2="25" y2="18" stroke="#090a0f" stroke-width="2"/>
+                                <line x1="25" y1="18" x2="25" y2="28" stroke="#475569" stroke-width="1.2"/>
+                                <ellipse cx="25" cy="33" rx="7" ry="5.5" fill="#1e293b" stroke="#020617" stroke-width="1.5"/>
+                                <path d="M23,26 Q25,20 27,26" stroke="#f8fafc" stroke-width="1" fill="none" opacity="0.6"/>
+                            </g>
+
+                            <!-- БОЧКИ С ЭЛЕМ И ЯЩИКИ ГАРНИЗОНА (СПРАВА СБОКУ) -->
+                            <g transform="translate(460, 295)">
+                                <ellipse cx="14" cy="24" rx="12" ry="15" fill="#78350f" stroke="#3b1d06" stroke-width="2"/>
+                                <line x1="4" y1="16" x2="24" y2="16" stroke="#1c1917" stroke-width="1.5"/>
+                                <line x1="4" y1="30" x2="24" y2="30" stroke="#1c1917" stroke-width="1.5"/>
+                                <rect x="24" y="16" width="26" height="22" fill="#451a03" stroke="#1c0f05" stroke-width="1.5"/>
+                            </g>
+
+                            <!-- 6. БАРРИКАДЫ НА ОБОЧИНАХ ДОРОГИ -->
+                            <g transform="translate(162, 335)">
+                                <line x1="0" y1="18" x2="26" y2="-8" stroke="#451a03" stroke-width="3.5"/>
+                                <line x1="26" y1="18" x2="0" y2="-8" stroke="#451a03" stroke-width="3.5"/>
+                                <line x1="13" y1="22" x2="13" y2="-12" stroke="#78350f" stroke-width="3.5"/>
+                            </g>
+                            <g transform="translate(332, 335)">
+                                <line x1="0" y1="18" x2="26" y2="-8" stroke="#451a03" stroke-width="3.5"/>
+                                <line x1="26" y1="18" x2="0" y2="-8" stroke="#451a03" stroke-width="3.5"/>
+                                <line x1="13" y1="22" x2="13" y2="-12" stroke="#78350f" stroke-width="3.5"/>
+                            </g>
+
+                            <!-- 7. ПОЗИЦИЯ 1: КАПИТАН ВАРРАН И ПОЛЕВОЙ СТОЛ (СЛЕВА ОТ ВРАТ, ЦЕНТР X=100) -->
+                            <g id="scene-guard-varran" class="interactive-scene-npc ${this.selectedNpcId === 'varran' ? 'selected-npc' : ''}" style="cursor: pointer;" title="Поговорить с капитаном Варраном">
+                                <!-- Подсветка выбора под ногами -->
+                                ${this.selectedNpcId === 'varran' ? '<ellipse cx="100" cy="325" rx="38" ry="12" fill="#38bdf8" opacity="0.45" class="anim-pulse" filter="url(#sceneGlow)"/>' : ''}
                                 
-                                <!-- Алебарда капитана -->
-                                <g transform="translate(48, -10)">
-                                    <line x1="0" y1="0" x2="0" y2="190" stroke="#78350f" stroke-width="3.5"/>
-                                    <!-- Топорище и шип алебарды -->
-                                    <polygon points="0,0 0,-25 4,-25 4,0" fill="#cbd5e1" stroke="#334155" stroke-width="1"/>
-                                    <path d="M0,5 Q18,-2 16,22 Q5,15 0,16 Z" fill="#cbd5e1" stroke="#334155" stroke-width="1"/>
-                                    <path d="M0,5 Q-12,8 -10,18 L0,14 Z" fill="#94a3b8" stroke="#334155" stroke-width="0.8"/>
+                                <!-- Фигура Капитана Варрана -->
+                                <g transform="translate(14, 128) scale(0.72)">
+                                    ${NpcRenderer.render(NPC_CONFIGS.varran, 240, 320)}
                                 </g>
 
-                                <!-- Фигура капитана в доспехах -->
-                                <!-- Ноги и поножи -->
-                                <rect x="12" y="115" width="10" height="60" fill="#334155" stroke="#1e293b" stroke-width="1"/>
-                                <rect x="28" y="115" width="10" height="60" fill="#334155" stroke="#1e293b" stroke-width="1"/>
-                                <rect x="10" y="165" width="14" height="12" rx="2" fill="#475569"/>
-                                <rect x="26" y="165" width="14" height="12" rx="2" fill="#475569"/>
+                                <!-- Алебарда капитана в руке -->
+                                <g transform="translate(138, 160)">
+                                    <line x1="0" y1="-30" x2="0" y2="155" stroke="#78350f" stroke-width="3.5"/>
+                                    <polygon points="0,-30 0,-52 4,-52 4,-30" fill="#cbd5e1" stroke="#334155" stroke-width="1.2"/>
+                                    <path d="M0,-24 Q18,-30 16,-8 Q6,-14 0,-12 Z" fill="#cbd5e1" stroke="#334155" stroke-width="1.2"/>
+                                    <polygon points="0,-18 -12,-12 0,-8" fill="#cbd5e1" stroke="#334155" stroke-width="1"/>
+                                </g>
 
-                                <!-- Кираса и плащ -->
-                                <path d="M5,45 L45,45 L48,125 L2,125 Z" fill="#1e3a8a"/>
-                                <rect x="10" y="45" width="30" height="70" rx="3" fill="#64748b" stroke="#1e293b" stroke-width="1.5"/>
-                                <path d="M15,48 L35,48 L32,80 L25,92 L18,80 Z" fill="#facc15" opacity="0.85"/>
-                                <rect x="8" y="105" width="34" height="8" rx="2" fill="#0f172a" stroke="#ca8a04" stroke-width="1"/>
-                                <rect x="21" y="104" width="8" height="10" fill="#facc15"/>
+                                <!-- Походный стол командования перед Варраном -->
+                                <g transform="translate(65, 285)">
+                                    <line x1="5" y1="15" x2="5" y2="40" stroke="#3b1d06" stroke-width="3"/>
+                                    <line x1="65" y1="15" x2="65" y2="40" stroke="#3b1d06" stroke-width="3"/>
+                                    <polygon points="0,15 70,15 64,22 -6,22" fill="#5a2f10" stroke="#1c0f05" stroke-width="1.8"/>
+                                    <polygon points="10,14 55,14 50,20 6,20" fill="#fed7aa" stroke="#ca8a04" stroke-width="1"/>
+                                    <line x1="16" y1="17" x2="45" y2="17" stroke="#b45309" stroke-width="1" stroke-dasharray="3 2"/>
+                                    <circle cx="58" cy="10" r="9" fill="url(#sunGlow)"/>
+                                    <rect x="56" y="7" width="4" height="6" fill="#fef08a" stroke="#b45309" stroke-width="0.8"/>
+                                </g>
 
-                                <!-- Руки капитана -->
-                                <path d="M5,50 L-4,85 L4,88 L12,55 Z" fill="#475569" stroke="#1e293b" stroke-width="1"/>
-                                <circle cx="0" cy="90" r="5" fill="#334155"/>
-                                <path d="M40,50 L48,85 L42,88 L36,55 Z" fill="#475569" stroke="#1e293b" stroke-width="1"/>
-                                <circle cx="48" cy="90" r="5" fill="#334155"/>
-
-                                <!-- Голова и глухой стальной рыцарский шлем с плюмажем -->
-                                <circle cx="25" cy="30" r="14" fill="#cbd5e1" stroke="#1e293b" stroke-width="1.5"/>
-                                <path d="M14,24 L36,24 L34,36 L25,44 L16,36 Z" fill="#475569" stroke="#1e293b" stroke-width="1"/>
-                                <line x1="18" y1="28" x2="32" y2="28" stroke="#000000" stroke-width="2"/>
-                                <!-- Алый плюмаж капитана -->
-                                <path d="M25,16 Q32,-2 25,-12 Q18,-2 25,16" fill="#dc2626" stroke="#991b1b" stroke-width="1"/>
-
-                                <!-- Табличка имени -->
-                                <g transform="translate(-10, 192)">
-                                    <rect x="0" y="0" width="70" height="18" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1"/>
-                                    <text x="35" y="12" text-anchor="middle" fill="#f8fafc" font-size="9" font-weight="bold">Капитан Варран</text>
+                                <!-- Бейдж с именем капитана -->
+                                <g transform="translate(100, 340)">
+                                    <rect x="-48" y="0" width="96" height="20" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+                                    <text x="0" y="14" text-anchor="middle" fill="#f8fafc" font-size="10" font-weight="bold">Капитан Варран</text>
                                 </g>
                             </g>
 
-                            <!-- ============================================== -->
-                            <!-- СТРАЖНИК 2 (СПРАВА): СТРАЖНИК БРАН (СО ЩИТОМ И МЕЧОМ) -->
-                            <!-- ============================================== -->
-                            <g id="npc-guard-right" class="interactive-guard" style="cursor: pointer;" transform="translate(390, 205)" title="Поговорить со стражником Браном">
-                                <ellipse cx="25" cy="180" rx="30" ry="8" fill="#000000" opacity="0.4"/>
+                            <!-- 8. ПОЗИЦИЯ 2: ЧАСОВОЙ БРАН (СПРАВА ОТ ВРАТ, ЦЕНТР X=420) -->
+                            <g id="scene-guard-bran" class="interactive-scene-npc ${this.selectedNpcId === 'bran' ? 'selected-npc' : ''}" style="cursor: pointer;" title="Поговорить со стражником Браном">
+                                <!-- Подсветка выбора под ногами -->
+                                ${this.selectedNpcId === 'bran' ? '<ellipse cx="420" cy="325" rx="38" ry="12" fill="#38bdf8" opacity="0.45" class="anim-pulse" filter="url(#sceneGlow)"/>' : ''}
 
-                                <!-- Ноги часового -->
-                                <rect x="12" y="115" width="10" height="60" fill="#334155" stroke="#1e293b" stroke-width="1"/>
-                                <rect x="28" y="115" width="10" height="60" fill="#334155" stroke="#1e293b" stroke-width="1"/>
-                                <rect x="10" y="165" width="14" height="12" rx="2" fill="#475569"/>
-                                <rect x="26" y="165" width="14" height="12" rx="2" fill="#475569"/>
-
-                                <!-- Корпус в кольчуге и бригантине -->
-                                <rect x="10" y="45" width="30" height="70" rx="3" fill="#475569" stroke="#1e293b" stroke-width="1.2"/>
-                                <rect x="12" y="50" width="26" height="55" fill="#334155"/>
-                                <rect x="8" y="105" width="34" height="8" rx="2" fill="#0f172a" stroke="#ca8a04" stroke-width="1"/>
-                                <rect x="21" y="104" width="8" height="10" fill="#facc15"/>
-
-                                <!-- Меч в правой руке -->
-                                <g transform="translate(42, 60)">
-                                    <rect x="0" y="0" width="4" height="70" fill="#cbd5e1" stroke="#334155" stroke-width="0.8"/>
-                                    <rect x="-6" y="20" width="16" height="4" fill="#ca8a04"/>
-                                    <circle cx="2" cy="12" r="3" fill="#ca8a04"/>
+                                <!-- Фигура Брана -->
+                                <g transform="translate(334, 128) scale(0.72)">
+                                    ${NpcRenderer.render(NPC_CONFIGS.bran, 240, 320)}
                                 </g>
 
-                                <!-- Рыцарский щит часового с королевским гербом -->
-                                <g transform="translate(-14, 55)">
-                                    <path d="M0,0 L24,0 L22,35 Q12,52 12,54 Q12,52 2,35 Z" fill="#1e3a8a" stroke="#facc15" stroke-width="1.8"/>
-                                    <line x1="12" y1="5" x2="12" y2="45" stroke="#facc15" stroke-width="2"/>
-                                    <line x1="3" y1="18" x2="21" y2="18" stroke="#facc15" stroke-width="2"/>
-                                    <circle cx="12" cy="18" r="3" fill="#ef4444"/>
+                                <!-- Щит Брана на левой руке -->
+                                <g transform="translate(388, 215)">
+                                    <path d="M0,0 L26,0 L24,32 Q13,50 13,52 Q13,50 2,32 Z" fill="#1e3a8a" stroke="#facc15" stroke-width="2"/>
+                                    <line x1="13" y1="4" x2="13" y2="46" stroke="#facc15" stroke-width="2"/>
+                                    <polygon points="13,10 18,16 13,22 8,16" fill="#facc15"/>
                                 </g>
 
-                                <!-- Голова и стальной шлем часового -->
-                                <circle cx="25" cy="30" r="13" fill="#94a3b8" stroke="#1e293b" stroke-width="1.5"/>
-                                <path d="M15,22 L35,22 L33,34 L25,40 L17,34 Z" fill="#64748b" stroke="#1e293b" stroke-width="1"/>
-                                <line x1="19" y1="27" x2="31" y2="27" stroke="#000000" stroke-width="2"/>
-                                <polygon points="25,12 28,19 22,19" fill="#facc15"/>
+                                <!-- Копье стражника в правой руке -->
+                                <g transform="translate(458, 160)">
+                                    <line x1="0" y1="-25" x2="0" y2="160" stroke="#78350f" stroke-width="3"/>
+                                    <polygon points="0,-25 -5,-8 0,-5 5,-8" fill="#cbd5e1" stroke="#334155" stroke-width="1.2"/>
+                                </g>
 
-                                <!-- Табличка имени -->
-                                <g transform="translate(-10, 192)">
-                                    <rect x="0" y="0" width="70" height="18" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1"/>
-                                    <text x="35" y="12" text-anchor="middle" fill="#f8fafc" font-size="9" font-weight="bold">Стражник Бран</text>
+                                <!-- Бейдж с именем стражника -->
+                                <g transform="translate(420, 340)">
+                                    <rect x="-48" y="0" width="96" height="20" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+                                    <text x="0" y="14" text-anchor="middle" fill="#f8fafc" font-size="10" font-weight="bold">Стражник Бран</text>
                                 </g>
                             </g>
                         </svg>
                     </div>
 
-                    <!-- ПРАВАЯ ПАНЕЛЬ: СТАТУС И ВЗАИМОДЕЙСТВИЕ -->
-                    <div class="interior-interaction-panel south-road-panel">
-                        <!-- СТАТУСНЫЙ БАННЕР ВРАТ -->
-                        ${isUnlocked ? `
-                            <div class="gate-status-banner unlocked anim-pop-in">
-                                <div class="gate-status-header">
-                                    <span class="gate-status-icon">${Icons.crown(24)}</span>
-                                    <div>
-                                        <h4 class="gate-status-title">ВРАТА КОРОЛЕВСТВА ОТКРЫТЫ!</h4>
-                                        <span class="gate-status-badge success">${Icons.check(12)} Владыка Бездны повержен</span>
-                                    </div>
-                                </div>
-                                <p class="gate-status-desc">
-                                    Древняя скверна рассеялась, стражники приветствуют Спасителя королевства с воинскими почестями! Дорога на Юг свободна для прохода.
-                                </p>
-                            </div>
-                        ` : `
-                            <div class="gate-status-banner locked">
-                                <div class="gate-status-header">
-                                    <span class="gate-status-icon">${Icons.lock(24)}</span>
-                                    <div>
-                                        <h4 class="gate-status-title">ВРАТА ЗАПЕРТЫ: КАРАНТИН</h4>
-                                        <span class="gate-status-badge warning">${Icons.warning(12)} Угроза скверны</span>
-                                    </div>
-                                </div>
-                                <p class="gate-status-desc">
-                                    По указу наместника проход на Южный тракт заблокирован до полного истребления зла в Катакомбах. Спуститесь на <strong>30-й этаж</strong> и уничтожьте <strong>Владыку Бездны</strong>!
-                                </p>
-                            </div>
-                        `}
-
-                        <!-- СЛОТ КВЕСТОВЫХ ПОДСКАЗОК/ДЕЙСТВИЙ -->
-                        <div id="southroad-quest-prompt-slot">
-                            ${QuestRenderer.renderNpcQuestPrompts(this.player, 'varran')}
-                            ${QuestRenderer.renderNpcQuestPrompts(this.player, 'bran')}
-                        </div>
-
-                        <!-- БЛОК ДИАЛОГА СО СТРАЖНИКАМИ -->
-                        <div class="guard-dialog-box" id="guard-dialog-container">
-                            <div class="dialog-idle-placeholder">
-                                <span class="placeholder-icon">${Icons.message(24)}</span>
-                                <p>Подойдите к часовым у ворот или выберите стражника для разговора.</p>
-                            </div>
-                        </div>
-
-                        <!-- КНОПКИ ДЕЙСТВИЙ -->
-                        <div class="south-road-actions-grid">
-                            <button class="btn btn-secondary btn-action" id="btn-talk-varran">
-                                ${Icons.message(16)} Поговорить с капитаном Варраном
-                            </button>
-                            <button class="btn btn-secondary btn-action" id="btn-talk-bran">
-                                ${Icons.message(16)} Поговорить со стражником Браном
-                            </button>
-                            <button class="btn ${isUnlocked ? 'btn-primary btn-pulse-gold' : 'btn-warning'} btn-lg btn-action-pass" id="btn-attempt-pass">
-                                ${isUnlocked ? `${Icons.crown(18)} Пройти через Врата к Победе!` : `${Icons.lock(18)} Попробовать пройти через Врата`}
-                            </button>
-                        </div>
+                    <!-- ПРАВАЯ ПАНЕЛЬ: В ТОЧНОСТИ КАК В ДРУГИХ ГОРОДСКИХ ЗДАНИЯХ -->
+                    <div class="interior-interaction-panel south-road-panel" id="south-road-panel-container">
+                        ${this.renderInteractionPanel()}
                     </div>
                 </div>
             </div>
@@ -359,309 +420,522 @@ export class SouthRoadScreen {
         `;
 
         this.initEvents();
-        this.bindQuestPromptEvents();
     }
 
-    bindQuestPromptEvents() {
-        const slot = this.container.querySelector('#southroad-quest-prompt-slot');
-        if (!slot) return;
-        slot.querySelectorAll('.btn-quest-turnin').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const questId = btn.dataset.questId;
-                const q = QuestSystem.getQuestById(questId);
-                const speaker = (q && q.targetId === 'bran') ? 'bran' : 'varran';
-                this.handleQuestInteraction(speaker, questId);
-            });
-        });
-    }
+    renderInteractionPanel() {
+        const isGateOpen = !!this.player.hasOpenedSouthGates;
+        const canOpenGate = !!this.player.hasDefeatedFinalBoss && !!this.player.hasViewedAbyssEnding && !isGateOpen;
+        const varranQuests = QuestSystem.getAvailableQuestsForNpc(this.player, 'varran').length;
+        const branQuests = QuestSystem.getAvailableQuestsForNpc(this.player, 'bran').length;
 
-    handleQuestInteraction(speaker, questId) {
-        const res = QuestSystem.interactWithNpc(this.player, questId, speaker);
-        if (res.success) {
-            const speakerTitle = speaker === 'varran' ? 'Капитан Варран' : 'Стражник Бран';
-            let rewardText = '';
-            if (res.isComplete && res.results) {
-                rewardText = `<br><br><span style="color: #facc15; font-weight: bold;">Награда получена: +${res.results.gold} золота, +${res.results.exp} опыта${res.results.item ? `, ${res.results.item.name}` : ''}${res.results.bonusDamage ? `, +${res.results.bonusDamage} к физ. урону` : ''}!</span>`;
+        // ВЕРХНИЕ ВКЛАДКИ ВЫБОРА NPC / ОБЪЕКТА
+        const switcherHtml = `
+            <div class="goods-tabs npc-switcher-tabs">
+                <button class="goods-tab-btn ${this.selectedNpcId === 'varran' ? 'active' : ''}" id="btn-select-varran">
+                    Капитан Варран ${varranQuests > 0 ? `<span class="badge-tab-count">${varranQuests}</span>` : ''}
+                </button>
+                <button class="goods-tab-btn ${this.selectedNpcId === 'bran' ? 'active' : ''}" id="btn-select-bran">
+                    Стражник Бран ${branQuests > 0 ? `<span class="badge-tab-count">${branQuests}</span>` : ''}
+                </button>
+                <button class="goods-tab-btn ${this.selectedNpcId === 'gate' ? 'active' : ''}" id="btn-select-gate">
+                    ${isGateOpen ? `${Icons.crown(13)} Южные Врата` : (canOpenGate ? `${Icons.spark(13)} Южные Врата` : `${Icons.lock(13)} Южные Врата`)}
+                </button>
+            </div>
+        `;
+
+        if (this.selectedNpcId === 'gate') {
+            return `
+                ${switcherHtml}
+                <div class="south-gate-view anim-pop-in">
+                    ${isGateOpen ? `
+                        <div class="gate-status-banner unlocked">
+                            <div class="gate-status-header">
+                                <span class="gate-status-icon">${Icons.crown(24)}</span>
+                                <div>
+                                    <h4 class="gate-status-title">ВРАТА КОРОЛЕВСТВА ОТКРЫТЫ!</h4>
+                                    <span class="gate-status-badge success">${Icons.check(12)} Владыка Бездны повержен</span>
+                                </div>
+                            </div>
+                            <p class="gate-status-desc">
+                                Древняя скверна рассеялась, стражники салютуют Спасителю королевства! Дорога на Юг свободна для перехода.
+                            </p>
+                        </div>
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button class="btn btn-primary btn-lg btn-pulse-gold" id="btn-attempt-pass" style="width: 100%; padding: 14px;">
+                                ${Icons.crown(18)} Шагнуть через Врата (Смотреть великий финал)
+                            </button>
+                        </div>
+                    ` : (canOpenGate ? `
+                        <div class="gate-status-banner unlocked" style="border-color: #facc15;">
+                            <div class="gate-status-header">
+                                <span class="gate-status-icon">${Icons.spark(24)}</span>
+                                <div>
+                                    <h4 class="gate-status-title">ВРАТА ГОТОВЫ К ОТКРЫТИЮ!</h4>
+                                    <span class="gate-status-badge success">${Icons.check(12)} Катакомбы очищены</span>
+                                </div>
+                            </div>
+                            <p class="gate-status-desc">
+                                Владыка Бездны сокрушен, и проклятие пало! Поговорите с <strong>капитаном Варраном</strong> на заставе, чтобы гарнизон сбросил цепи и распахнул Южные Врата.
+                            </p>
+                        </div>
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button class="btn btn-primary btn-lg btn-pulse-gold" id="btn-switch-to-varran-gate" style="width: 100%; padding: 14px; font-weight: bold;">
+                                ${Icons.message(16)} Поговорить с капитаном Варраном об открытии Врат
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="gate-status-banner locked">
+                            <div class="gate-status-header">
+                                <span class="gate-status-icon">${Icons.lock(24)}</span>
+                                <div>
+                                    <h4 class="gate-status-title">ВРАТА ЗАПЕРТЫ: КАРАНТИН</h4>
+                                    <span class="gate-status-badge warning">${Icons.warning(12)} Королевский указ</span>
+                                </div>
+                            </div>
+                            <p class="gate-status-desc">
+                                По указу наместника проход на Южный тракт наглухо закрыт до полного истребления скверны. Спуститесь на <strong>30-й этаж Катакомб</strong> и уничтожьте <strong>Владыку Бездны</strong>!
+                            </p>
+                        </div>
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button class="btn btn-warning btn-lg" id="btn-attempt-pass" style="width: 100%; padding: 12px;">
+                                ${Icons.lock(16)} Попробовать открыть Врата
+                            </button>
+                        </div>
+                    `)}
+                </div>
+            `;
+        }
+
+        const npcConfig = NPC_CONFIGS[this.selectedNpcId] || NPC_CONFIGS.varran;
+        const npcTitle = this.selectedNpcId === 'varran' ? 'Командир Южного дозора' : 'Часовой пограничного рубежа';
+        const availQuestsCount = QuestSystem.getAvailableQuestsForNpc(this.player, this.selectedNpcId).length;
+
+        // Базовые реплики
+        let defaultSpeech = '';
+        if (this.selectedNpcId === 'varran') {
+            if (isGateOpen) {
+                defaultSpeech = '«Честь и слава Спасителю королевства! Южные Врата открыты настежь по твоему слову. Путь во внешний мир свободен!»';
+            } else if (canOpenGate) {
+                defaultSpeech = '«Стой, путник... Постой-ка! Воздух со стороны катакомб стал свежим, а земля под ногами больше не дрожит! Неужели на 30-м этаже что-то произошло?!»';
+            } else {
+                defaultSpeech = '«Стой, путник! Дорога на Юг заблокирована королевским указом. Пока в Катакомбах на 30 этаже властвует чудовище — никто не покинет заставу!»';
             }
-            this.showDialog(speaker, speakerTitle, `${res.dialogText}${rewardText}`, [
-                {
-                    label: '«Благодарю за доверие!»',
-                    action: () => {
-                        this.closeDialog();
-                        this.updateQuestPrompts();
-                    }
-                }
-            ]);
-            this.updateQuestPrompts();
-            const goldVal = this.container.querySelector('#loc-gold-val');
-            if (goldVal) goldVal.textContent = this.player.gold;
+        } else {
+            defaultSpeech = isGateOpen
+                ? '«Глазам своим не верю! Врата распахнуты, парни в гарнизоне салютуют великому герою!»'
+                : '«Капитан Варран держит гарнизон в строгой дисциплине. Не суйся вглубь без хорошей экипировки от кузнеца!»';
         }
+
+        const currentSpeech = this.dialogState ? this.dialogState.text : defaultSpeech;
+
+        return `
+            ${switcherHtml}
+
+            <div class="npc-dialog-card anim-pop-in">
+                <div class="npc-header-row">
+                    <div class="npc-badge-mini">
+                        <div class="npc-bust-circle">${NpcRenderer.renderBust(npcConfig)}</div>
+                        <span class="npc-title">${npcConfig.name}</span>
+                    </div>
+                    <span class="npc-status-tag">${npcTitle}</span>
+                </div>
+                <div class="npc-speech-bubble" id="npc-speech">
+                    ${currentSpeech}
+                </div>
+                <div id="npc-quest-prompt-slot">
+                    ${QuestRenderer.renderNpcQuestPrompts(this.player, this.selectedNpcId)}
+                </div>
+            </div>
+
+            <div class="goods-tabs">
+                <button class="goods-tab-btn ${this.activeSubTab === 'dialog' ? 'active' : ''}" id="tab-sub-dialog">
+                    Беседа и приказы
+                </button>
+                <button class="goods-tab-btn ${this.activeSubTab === 'quests' ? 'active' : ''}" id="tab-sub-quests">
+                    Поручения ${availQuestsCount > 0 ? `<span class="badge-tab-count">${availQuestsCount}</span>` : ''}
+                </button>
+            </div>
+
+            <div class="goods-content-view" id="south-road-tab-content">
+                ${this.renderSubTabContent()}
+            </div>
+        `;
     }
 
-    updateQuestPrompts() {
-        const slot = this.container.querySelector('#southroad-quest-prompt-slot');
-        if (slot) {
-            slot.innerHTML = QuestRenderer.renderNpcQuestPrompts(this.player, 'varran') +
-                             QuestRenderer.renderNpcQuestPrompts(this.player, 'bran');
-            this.bindQuestPromptEvents();
+    renderSubTabContent() {
+        if (this.activeSubTab === 'quests') {
+            return QuestRenderer.renderNpcQuestsTab(this.player, this.selectedNpcId);
         }
-    }
 
-    showDialog(speaker, title, text, replies = []) {
-        const box = this.container.querySelector('#guard-dialog-container');
-        if (!box) return;
+        // Вкладка диалога
+        const isVarran = this.selectedNpcId === 'varran';
+        const isGateOpen = !!this.player.hasOpenedSouthGates;
+        const canOpenGate = !!this.player.hasDefeatedFinalBoss && !!this.player.hasViewedAbyssEnding && !isGateOpen;
 
-        box.innerHTML = `
-            <div class="guard-dialog-card anim-pop-in">
-                <div class="dialog-speaker-header">
-                    <div class="speaker-avatar-frame ${speaker}">
-                        ${speaker === 'varran' ? Icons.crown(18) : Icons.shield(18)}
-                    </div>
-                    <div>
-                        <h4 class="dialog-speaker-name">${title}</h4>
-                        <span class="dialog-speaker-sub">${speaker === 'varran' ? 'Командир Южного дозора' : 'Часовой гарнизона'}</span>
-                    </div>
-                </div>
-                <div class="dialog-speech-bubble">
-                    <p class="dialog-speech-text">${text}</p>
-                </div>
+        if (isVarran) {
+            return `
                 <div class="dialog-options-list">
-                    ${replies.map((rep, idx) => `
-                        <button class="btn btn-secondary btn-sm btn-dialog-option" data-idx="${idx}">
-                            ${rep.label}
+                    ${canOpenGate && (!this.dialogState || !this.dialogState.showOpenGateButton) ? `
+                        <button class="btn btn-primary btn-lg btn-pulse-gold btn-dialog-option" id="btn-dialog-varran-victory-report" style="border: 2px solid #facc15; box-shadow: 0 0 16px rgba(250, 204, 21, 0.45); font-weight: bold; padding: 12px 14px;">
+                            ${Icons.crown(16)} «Владыка Бездны повержен! Катакомбы очищены, снимите карантин!»
                         </button>
-                    `).join('')}
+                    ` : ''}
+                    ${this.dialogState && this.dialogState.showOpenGateButton ? `
+                        <div style="margin: 8px 0 14px 0;">
+                            <button class="btn btn-primary btn-lg btn-pulse-gold" id="btn-order-open-gate" style="width: 100%; padding: 15px; font-weight: 800; font-size: 1.05rem; letter-spacing: 0.5px; border: 2px solid #fef08a;">
+                                ${Icons.door(20)} [ПРИКАЗ] СБРОСИТЬ ЦЕПИ И ОТВОРИТЬ ВРАТА!
+                            </button>
+                        </div>
+                    ` : ''}
+                    ${isGateOpen ? `
+                        <button class="btn btn-primary btn-dialog-option btn-pulse-gold" id="btn-dialog-varran-pass">
+                            ${Icons.crown(14)} «Шагнуть через открытые Врата (Смотреть триумф)»
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-secondary btn-dialog-option" id="btn-dialog-varran-lore">
+                        ${Icons.message(14)} «Что ты знаешь об опасностях катакомб, капитан?»
+                    </button>
+                    <button class="btn btn-secondary btn-dialog-option" id="btn-dialog-varran-gate">
+                        ${Icons.lock(14)} «Почему нельзя открыть врата прямо сейчас?»
+                    </button>
                 </div>
-            </div>
-        `;
-
-        box.querySelectorAll('.btn-dialog-option').forEach(btn => {
-            btn.addEventListener('click', () => {
-                sound.playSfx('click');
-                const idx = parseInt(btn.getAttribute('data-idx'), 10);
-                const chosen = replies[idx];
-                if (chosen && chosen.action) {
-                    chosen.action();
-                }
-            });
-        });
-    }
-
-    dialogVarran() {
-        const isUnlocked = !!this.player.hasDefeatedFinalBoss;
-        const questReplies = [];
-
-        // Проверяем активные квесты для сдачи/продвижения у Варрана
-        const interactions = QuestSystem.getActiveQuestsForNpcInteraction(this.player, 'varran');
-        interactions.forEach(item => {
-            questReplies.push({
-                label: `${Icons.spark(13)} ${item.promptLabel}`,
-                action: () => this.handleQuestInteraction('varran', item.quest.id)
-            });
-        });
-
-        // Проверяем доступные квесты от Варрана
-        const availQuests = QuestSystem.getAvailableQuestsForNpc(this.player, 'varran');
-        if (availQuests.length > 0) {
-            questReplies.push({
-                label: `${Icons.scroll(13)} «Есть ли распоряжения для меня, капитан?» (${availQuests.length})`,
-                action: () => this.showAvailableQuestsVarran()
-            });
-        }
-
-        if (isUnlocked) {
-            this.showDialog('varran', 'Капитан Варран', 
-                `«Приветствую тебя, великий чемпион! Весть о сокрушении Владыки Бездны опередила тебя! Земля больше не сотрясается от древнего ужаса, а смрадный туман над катакомбами рассеялся. Мои часовые салютуют тебе! Врата открыты настежь — ступай в столицу с высоко поднятой головой!»`,
-                [
-                    ...questReplies,
-                    {
-                        label: '«Спасибо, капитан! Я готов продолжить путь.»',
-                        action: () => this.attemptPass()
-                    },
-                    {
-                        label: '«Я пока останусь в городе, нужно уладить дела.»',
-                        action: () => this.closeDialog()
-                    }
-                ]
-            );
+            `;
         } else {
-            this.showDialog('varran', 'Капитан Варран', 
-                `«Стой, путник! Я — капитан Варран. Именем королевского наместника Южный тракт закрыт! Из Катакомб сочится древняя скверна. На самом дне, на 30-м этаже, пробудился Владыка Бездны. Пока он жив — ни один человек не покинет город, дабы зараза не перекинулась на королевство. Хочешь, чтобы врата открылись? Спустись на 30-й этаж и сруби чудовищу голову!»`,
-                [
-                    ...questReplies,
-                    {
-                        label: '«Что ты знаешь об опасностях катакомб?»',
-                        action: () => this.showDialog('varran', 'Капитан Варран',
-                            `«Каждый этаж в глубину опаснее предыдущего! Твари становятся свирепее, их удары сокрушают латы, а здоровье чудовищно растет. Не суйся вглубь без крепкого оружия от Торвальда и зелий от торговца Рашида. Собери снаряжение под свой класс, закали клинок — и тогда у тебя будет шанс одолеть Владыку!»`,
-                            [
-                                { label: '«Я уничтожу чудовище на 30-м этаже!»', action: () => this.closeDialog() }
-                            ]
-                        )
-                    },
-                    {
-                        label: '«Понятно. Я вернусь, когда Владыка будет мертв.»',
-                        action: () => this.closeDialog()
-                    }
-                ]
-            );
-        }
-    }
-
-    showAvailableQuestsVarran() {
-        const availQuests = QuestSystem.getAvailableQuestsForNpc(this.player, 'varran');
-        if (availQuests.length === 0) {
-            this.showDialog('varran', 'Капитан Варран', '«На данный момент новых распоряжений для твоего уровня нет. Спустись в катакомбы или проверь других жителей!»', [
-                { label: '«Понял, капитан.»', action: () => this.dialogVarran() }
-            ]);
-            return;
-        }
-
-        const q = availQuests[0];
-        this.showDialog('varran', 'Капитан Варран', 
-            `«Поручение: <strong>${q.title}</strong>»<br><br>${q.dialogIntro}<br><br><span style="color: #94a3b8;">Цель: <strong>${q.targetName}</strong> | Награда: ${q.reward.gold} золота, ${q.reward.exp} опыта</span>`,
-            [
-                {
-                    label: `${Icons.scroll(13)} «Я берусь за это поручение!»`,
-                    action: () => {
-                        QuestSystem.acceptQuest(this.player, q.id);
-                        this.showDialog('varran', 'Капитан Варран', `«Отлично! ${q.dialogPending} Не подведи гарнизон!»`, [
-                            { label: '«Будет исполнено!»', action: () => { this.closeDialog(); this.updateQuestPrompts(); } }
-                        ]);
-                        this.updateQuestPrompts();
-                    }
-                },
-                {
-                    label: '«Я подумаю.»',
-                    action: () => this.dialogVarran()
-                }
-            ]
-        );
-    }
-
-    dialogBran() {
-        const isUnlocked = !!this.player.hasDefeatedFinalBoss;
-        const questReplies = [];
-
-        // Проверяем активные квесты для сдачи/продвижения у Брана
-        const interactions = QuestSystem.getActiveQuestsForNpcInteraction(this.player, 'bran');
-        interactions.forEach(item => {
-            questReplies.push({
-                label: `${Icons.spark(13)} ${item.promptLabel}`,
-                action: () => this.handleQuestInteraction('bran', item.quest.id)
-            });
-        });
-
-        if (isUnlocked) {
-            this.showDialog('bran', 'Стражник Бран',
-                `«Клянусь рукоятью меча, я глазам своим не верю! Ты в одиночку очистил все тридцать этажей Катакомб?! Парни в караулке уже пьют за твое здоровье! Теперь дорога безопасна, торговцы вернутся на тракт. Слава Герою Катакомб!»`,
-                [
-                    ...questReplies,
-                    {
-                        label: '«Благодарю за добрые слова, Бран!»',
-                        action: () => this.closeDialog()
-                    }
-                ]
-            );
-        } else {
-            this.showDialog('bran', 'Стражник Бран',
-                `«Эх, друг... Я и сам мечтаю открыть эти тяжелые створки — на юге в цветущих садах меня ждет невеста. Но капитан Варран шутить не любит. Пока из вентиляционных шахт слышен утробный вой Владыки Бездны, наш приказ — держать оборону намертво. Береги себя там внизу!»`,
-                [
-                    ...questReplies,
-                    {
-                        label: '«Не волнуйся, я разберусь с этой тварью.»',
-                        action: () => this.closeDialog()
-                    }
-                ]
-            );
-        }
-    }
-
-    closeDialog() {
-        const box = this.container.querySelector('#guard-dialog-container');
-        if (!box) return;
-        box.innerHTML = `
-            <div class="dialog-idle-placeholder">
-                <span class="placeholder-icon">${Icons.message(24)}</span>
-                <p>Подойдите к часовым у ворот или выберите стражника для разговора.</p>
-            </div>
-        `;
-    }
-
-    attemptPass() {
-        const isUnlocked = !!this.player.hasDefeatedFinalBoss;
-
-        if (isUnlocked) {
-            sound.playSfx('victory');
-            const modal = this.container.querySelector('#epilogue-modal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.style.display = 'flex';
-                const btn = modal.querySelector('#btn-epilogue-continue');
-                if (btn) {
-                    btn.addEventListener('click', () => {
-                        sound.playSfx('click');
-                        modal.style.display = 'none';
-                        if (this.callbacks.onBack) {
-                            this.callbacks.onBack();
-                        }
-                    });
-                }
-            }
-        } else {
-            sound.playSfx('threat');
-            this.showDialog('varran', 'Капитан Варран',
-                `«Куда прешь?! Врата наглухо заперты на тяжелые железные засовы! Сначала спустись на 30-й этаж Катакомб и уничтожь Владыку Бездны, иначе ворота не откроются!»`,
-                [
-                    {
-                        label: '«Я вернусь в город и подготовлюсь к походу.»',
-                        action: () => this.closeDialog()
-                    }
-                ]
-            );
+            return `
+                <div class="dialog-options-list">
+                    <button class="btn btn-secondary btn-dialog-option" id="btn-dialog-bran-life">
+                        ${Icons.message(14)} «Каково это — нести службу на заставе?»
+                    </button>
+                    <button class="btn btn-secondary btn-dialog-option" id="btn-dialog-bran-advice">
+                        ${Icons.shield(14)} «Какой совет дашь перед спуском в катакомбы?»
+                    </button>
+                </div>
+            `;
         }
     }
 
     initEvents() {
-        // Выход на площадь
-        this.container.querySelector('#btn-leave-south-road').addEventListener('click', () => {
-            sound.playSfx('click');
-            if (this.callbacks.onBack) {
-                this.callbacks.onBack();
-            }
-        });
-
-        // Кнопки диалогов
-        this.container.querySelector('#btn-talk-varran').addEventListener('click', () => {
-            sound.playSfx('click');
-            this.dialogVarran();
-        });
-
-        this.container.querySelector('#btn-talk-bran').addEventListener('click', () => {
-            sound.playSfx('click');
-            this.dialogBran();
-        });
-
-        // Попытка пройти через ворота
-        this.container.querySelector('#btn-attempt-pass').addEventListener('click', () => {
-            this.attemptPass();
-        });
-
-        // Интерактивные фигурки стражников на сцене
-        const guardLeft = this.container.querySelector('#npc-guard-left');
-        if (guardLeft) {
-            guardLeft.addEventListener('click', () => {
+        // Кнопка выхода
+        const btnLeave = this.container.querySelector('#btn-leave-south-road');
+        if (btnLeave) {
+            btnLeave.addEventListener('click', () => {
                 sound.playSfx('click');
-                this.dialogVarran();
+                sound.switchMusic(townTheme, 1.2);
+                if (this.callbacks.onBack) {
+                    this.callbacks.onBack();
+                }
             });
         }
 
-        const guardRight = this.container.querySelector('#npc-guard-right');
-        if (guardRight) {
-            guardRight.addEventListener('click', () => {
+        // Переключатели NPC в шапке панели
+        const btnVarran = this.container.querySelector('#btn-select-varran');
+        if (btnVarran) {
+            btnVarran.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.selectedNpcId = 'varran';
+                this.dialogState = null;
+                this.render(this.container);
+            });
+        }
+
+        const btnBran = this.container.querySelector('#btn-select-bran');
+        if (btnBran) {
+            btnBran.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.selectedNpcId = 'bran';
+                this.dialogState = null;
+                this.render(this.container);
+            });
+        }
+
+        const btnGate = this.container.querySelector('#btn-select-gate');
+        if (btnGate) {
+            btnGate.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.selectedNpcId = 'gate';
+                this.dialogState = null;
+                this.render(this.container);
+            });
+        }
+
+        // Клик по фигурам на SVG сцене
+        const sceneVarran = this.container.querySelector('#scene-guard-varran');
+        if (sceneVarran) {
+            sceneVarran.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.selectedNpcId = 'varran';
+                this.dialogState = null;
+                this.render(this.container);
+            });
+        }
+
+        const sceneBran = this.container.querySelector('#scene-guard-bran');
+        if (sceneBran) {
+            sceneBran.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.selectedNpcId = 'bran';
+                this.dialogState = null;
+                this.render(this.container);
+            });
+        }
+
+        const sceneGate = this.container.querySelector('#scene-gate');
+        if (sceneGate) {
+            sceneGate.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.selectedNpcId = 'gate';
+                this.dialogState = null;
+                this.render(this.container);
+            });
+        }
+
+        // Переключение подвкладок
+        const tabDialog = this.container.querySelector('#tab-sub-dialog');
+        if (tabDialog) {
+            tabDialog.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.activeSubTab = 'dialog';
+                this.render(this.container);
+            });
+        }
+
+        const tabQuests = this.container.querySelector('#tab-sub-quests');
+        if (tabQuests) {
+            tabQuests.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.activeSubTab = 'quests';
+                this.render(this.container);
+            });
+        }
+
+        // Переход к Варрану из карточки врат
+        const btnSwitchToVarran = this.container.querySelector('#btn-switch-to-varran-gate');
+        if (btnSwitchToVarran) {
+            btnSwitchToVarran.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.selectedNpcId = 'varran';
+                this.dialogState = {
+                    text: '«Боги праведные... Скверна Бездны пала! Ты совершил невозможное, Спаситель! Гарнизон, к оружию! По приказу великого героя — СБРОСИТЬ ЦЕПИ! ОТВОРИТЬ ЮЖНЫЕ ВРАТА!»',
+                    showOpenGateButton: true
+                };
+                this.render(this.container);
+            });
+        }
+
+        // Попытка пройти сквозь врата
+        const btnAttempt = this.container.querySelector('#btn-attempt-pass');
+        if (btnAttempt) {
+            btnAttempt.addEventListener('click', () => {
+                if (this.player.hasOpenedSouthGates) {
+                    this.triggerFinalCutscene();
+                } else if (this.player.hasDefeatedFinalBoss && this.player.hasViewedAbyssEnding) {
+                    sound.playSfx('tab');
+                    this.selectedNpcId = 'varran';
+                    this.dialogState = {
+                        text: '«Боги праведные... Скверна Бездны пала! Ты совершил невозможное, Спаситель! Гарнизон, к оружию! По приказу великого героя — СБРОСИТЬ ЦЕПИ! ОТВОРИТЬ ЮЖНЫЕ ВРАТА!»',
+                        showOpenGateButton: true
+                    };
+                    this.render(this.container);
+                } else {
+                    sound.playSfx('click');
+                    sound.playSfx('door');
+                    this.selectedNpcId = 'varran';
+                    this.dialogState = {
+                        text: '«Куда ты лезешь?! Врата заперты на амбарный цепной замок. Сперва убей тварь на 30-м этаже Катакомб, иначе этот проход останется наглухо закрыт!»'
+                    };
+                    this.render(this.container);
+                }
+            });
+        }
+
+        // Обработчик доклада Варрану о победе над финальным боссом
+        const btnVictoryReport = this.container.querySelector('#btn-dialog-varran-victory-report');
+        if (btnVictoryReport) {
+            btnVictoryReport.addEventListener('click', () => {
+                sound.playSfx('questComplete');
+                this.dialogState = {
+                    text: '«Боги праведные... Скверна Бездны пала! Ты совершил невозможное, Спаситель! Гарнизон, к оружию! По приказу великого героя — СБРОСИТЬ ЦЕПИ! ОТВОРИТЬ ЮЖНЫЕ ВРАТА!»',
+                    showOpenGateButton: true
+                };
+                this.render(this.container);
+            });
+        }
+
+        // Кнопка приказа на анимацию открытия врат
+        const btnOrderGate = this.container.querySelector('#btn-order-open-gate');
+        if (btnOrderGate) {
+            btnOrderGate.addEventListener('click', () => {
+                this.playGateOpeningSequence();
+            });
+        }
+
+        // Обработчики диалогов Варрана
+        const btnLoreVarran = this.container.querySelector('#btn-dialog-varran-lore');
+        if (btnLoreVarran) {
+            btnLoreVarran.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.dialogState = {
+                    text: '«С каждым спуском на 10 этажей катакомбы преображаются. На глубине 20–30 этажей обитают кошмарные древние исчадия. Если у тебя нет хорошего запаса зелий и улучшенного оружия, ты там и пяти минут не протянешь.»'
+                };
+                this.render(this.container);
+            });
+        }
+
+        const btnGateVarran = this.container.querySelector('#btn-dialog-varran-gate');
+        if (btnGateVarran) {
+            btnGateVarran.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.dialogState = {
+                    text: '«Потому что за этими вратами — внешние земли королевства! Если хоть одно чудовище прорвется на поверхность, начнется резня. Моя задача — держать рубеж любой ценой!»'
+                };
+                this.render(this.container);
+            });
+        }
+
+        const btnPassVarran = this.container.querySelector('#btn-dialog-varran-pass');
+        if (btnPassVarran) {
+            btnPassVarran.addEventListener('click', () => {
+                this.triggerFinalCutscene();
+            });
+        }
+
+        // Обработчики диалогов Брана
+        const btnLifeBran = this.container.querySelector('#btn-dialog-bran-life');
+        if (btnLifeBran) {
+            btnLifeBran.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.dialogState = {
+                    text: '«Холодные ночи, постоянная тревога и капитан, который гоняет нас за каждую пылинку на кирасе. Но в таверне на площади эль наливают отменный — это скрашивает дежурство!»'
+                };
+                this.render(this.container);
+            });
+        }
+
+        const btnAdviceBran = this.container.querySelector('#btn-dialog-bran-advice');
+        if (btnAdviceBran) {
+            btnAdviceBran.addEventListener('click', () => {
+                sound.playSfx('tab');
+                this.dialogState = {
+                    text: '«Не забывай заглядывать в Храм Света за благословением перед глубоким рейдом, а у торговца всегда держи пару свитков телепортации. Они спасли не одну жизнь!»'
+                };
+                this.render(this.container);
+            });
+        }
+
+        // Квесты: сдача и принятие поручений
+        const promptSlot = this.container.querySelector('#npc-quest-prompt-slot');
+        if (promptSlot) {
+            promptSlot.querySelectorAll('.btn-quest-turnin').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const questId = btn.dataset.questId;
+                    const res = QuestSystem.interactWithNpc(this.player, questId, this.selectedNpcId);
+                    if (res.success) {
+                        this.dialogState = { text: res.dialogText };
+                        this.render(this.container);
+                    }
+                });
+            });
+        }
+
+        const tabContent = this.container.querySelector('#south-road-tab-content');
+        if (tabContent) {
+            tabContent.querySelectorAll('.btn-accept-quest').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const questId = btn.dataset.questId;
+                    const res = QuestSystem.acceptQuest(this.player, questId);
+                    if (res.success) {
+                        this.dialogState = { text: res.quest.dialogPending };
+                        this.render(this.container);
+                    }
+                });
+            });
+        }
+
+        // Кнопка закрытия модалки эпилога
+        const modal = this.container.querySelector('#epilogue-modal');
+        const btnEpilogueContinue = this.container.querySelector('#btn-epilogue-continue');
+        if (btnEpilogueContinue && modal) {
+            btnEpilogueContinue.addEventListener('click', () => {
                 sound.playSfx('click');
-                this.dialogBran();
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
             });
         }
     }
-}
 
+    playGateOpeningSequence() {
+        if (this.isGateAnimating) return;
+        this.isGateAnimating = true;
+
+        // Отключаем клики на правой панели взаимодействия во время анимации
+        const panel = this.container.querySelector('#south-road-panel-container');
+        if (panel) {
+            panel.style.pointerEvents = 'none';
+            panel.style.opacity = '0.65';
+        }
+
+        // 1. Сброс тяжелых цепей с характерным металлическим звоном
+        sound.playSfx('chains');
+        const chains = this.container.querySelector('#gate-lock-chains');
+        if (chains) {
+            chains.classList.add('anim-chain-drop');
+        }
+
+        // 2. Распахивание массивных дубовых створок со скрипом и гулом
+        setTimeout(() => {
+            sound.playSfx('gateOpen');
+            const leftDoor = this.container.querySelector('#gate-door-left');
+            const rightDoor = this.container.querySelector('#gate-door-right');
+            const sunRays = this.container.querySelector('#gate-sun-rays');
+
+            if (leftDoor) leftDoor.classList.add('anim-gate-left-open');
+            if (rightDoor) rightDoor.classList.add('anim-gate-right-open');
+            if (sunRays) {
+                sunRays.style.opacity = '1';
+                sunRays.classList.add('anim-sunbeam-burst');
+            }
+
+            const badgeRect = this.container.querySelector('#gate-status-badge-rect');
+            const badgeText = this.container.querySelector('#gate-status-badge-text');
+            if (badgeRect) badgeRect.setAttribute('stroke', '#f59e0b');
+            if (badgeText) {
+                badgeText.setAttribute('fill', '#fde047');
+                badgeText.textContent = 'ВРАТА ОТКРЫТЫ';
+            }
+        }, 450);
+
+        // 3. Звук триумфальных фанфар, сохранение и переход в финальную катсцену
+        setTimeout(() => {
+            sound.playSfx('victory');
+            this.player.hasOpenedSouthGates = true;
+            SaveSystem.save(this.player);
+
+            this.triggerFinalCutscene();
+        }, 2200);
+    }
+
+    triggerFinalCutscene() {
+        if (this.callbacks.onPlayCutscene) {
+            this.callbacks.onPlayCutscene('grand_finale', () => {
+                this.isGateAnimating = false;
+                this.selectedNpcId = 'varran';
+                this.dialogState = {
+                    text: '«Честь и слава Спасителю королевства! Южные Врата открыты настежь, путь на просторы континента свободен!»',
+                    showOpenGateButton: false
+                };
+                this.render(this.container);
+            });
+        } else {
+            this.showEpilogueModal();
+        }
+    }
+
+    showEpilogueModal() {
+        sound.playSfx('levelUp');
+        const modal = this.container.querySelector('#epilogue-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    }
+}
